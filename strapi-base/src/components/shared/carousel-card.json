@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_shared_carousel_cards",
+  "info": {
+    "displayName": "Carousel Card",
+    "description": "Card with front and back content for carousel"
+  },
+  "options": {},
+  "attributes": {
+    "frontTitle": {
+      "type": "string",
+      "required": true
+    },
+    "frontContent": {
+      "type": "blocks",
+      "required": false
+    },
+    "backContent": {
+      "type": "blocks",
+      "required": false
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  }
+}

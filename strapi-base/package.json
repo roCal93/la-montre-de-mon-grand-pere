@@ -1,0 +1,68 @@
+{
+  "name": "strapi-base",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Strapi application",
+  "scripts": {
+    "build": "strapi build",
+    "console": "strapi console",
+    "deploy": "strapi deploy",
+    "dev": "bash scripts/backup-strapi-db.sh && strapi develop",
+    "develop": "bash scripts/backup-strapi-db.sh && strapi develop",
+    "postinstall": "node scripts/ensure-native-deps.mjs",
+    "prebuild": "node scripts/ensure-native-deps.mjs",
+    "start": "strapi start",
+    "strapi": "strapi",
+    "generate:types": "node scripts/generate-types.js",
+    "sync:types": "node scripts/sync-types.js",
+    "check:cors": "bash scripts/check-cors.sh",
+    "upgrade": "npx @strapi/upgrade latest",
+    "upgrade:dry": "npx @strapi/upgrade latest --dry"
+  },
+  "dependencies": {
+    "@strapi/plugin-cloud": "5.39.0",
+    "@strapi/plugin-users-permissions": "5.39.0",
+    "@strapi/provider-upload-cloudinary": "5.39.0",
+    "@strapi/strapi": "5.39.0",
+    "better-sqlite3": "12.6.0",
+    "pg": "^8.17.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.3",
+    "sharp": "^0.34.5",
+    "styled-components": "^6.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": "20.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "uuid": "c79a9989-682a-4e19-90a0-c972f948a014",
+    "installId": "f352f7d117768cdb3569f1e63a7b7183bff8f70943c2dff25e1ce9bda87b48d9"
+  },
+  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
+  "pnpm": {
+    "overrides": {
+      "tar": "7.5.11",
+      "undici": ">=6.24.0",
+      "file-type": ">=21.3.2",
+      "ajv": ">=8.18.0",
+      "esbuild": ">=0.25.0",
+      "markdown-it": ">=14.1.1",
+      "tmp": ">=0.2.4"
+    },
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "better-sqlite3",
+      "core-js-pure",
+      "esbuild",
+      "sharp"
+    ]
+  }
+}

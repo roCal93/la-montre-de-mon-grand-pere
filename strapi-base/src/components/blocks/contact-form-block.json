@@ -1,0 +1,189 @@
+{
+  "collectionName": "components_blocks_contact_form_blocks",
+  "info": {
+    "displayName": "Contact Form Block",
+    "description": "Contact form with name, email and message fields"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "default": "Contactez-nous",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "description": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "submitButtonText": {
+      "type": "string",
+      "default": "Envoyer",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "namePlaceholder": {
+      "type": "string",
+      "default": "Votre nom",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "emailPlaceholder": {
+      "type": "string",
+      "default": "votre@email.com",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "messagePlaceholder": {
+      "type": "string",
+      "default": "Votre message...",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "nameLabel": {
+      "type": "string",
+      "default": "Votre nom",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "emailLabel": {
+      "type": "string",
+      "default": "Votre email",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "messageLabel": {
+      "type": "string",
+      "default": "Votre message",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "consentText": {
+      "type": "text",
+      "default": "J'accepte que mes données personnelles soient traitées conformément à la",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "policyLinkText": {
+      "type": "string",
+      "default": "politique de confidentialité",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "successMessage": {
+      "type": "string",
+      "default": "✓ Votre message a été envoyé avec succès !",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "errorMessage": {
+      "type": "string",
+      "default": "✗ Une erreur est survenue. Veuillez réessayer.",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "submittingText": {
+      "type": "string",
+      "default": "Envoi en cours...",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "rgpdInfoText": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "consentRequiredText": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "privacyPolicy": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::privacy-policy.privacy-policy"
+    },
+    "blockAlignment": {
+      "type": "enumeration",
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "full"
+      ],
+      "default": "center",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "maxWidth": {
+      "type": "enumeration",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "full"
+      ],
+      "default": "medium",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    }
+  },
+  "config": {}
+}

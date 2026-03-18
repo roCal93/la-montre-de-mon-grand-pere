@@ -1,0 +1,34 @@
+# .gitattributes pour hakuna-mataweb-starter
+# Configuration des stratégies de merge pour faciliter la synchronisation avec les projets clients
+
+# ============================================
+# Fichiers sensibles - Les projets clients doivent garder leur version
+# ============================================
+# Lors d'un merge depuis le starter, ces fichiers du client sont prioritaires
+
+.env merge=ours
+.env.local merge=ours
+.env.example merge=union
+README.md merge=union
+
+# ============================================
+# Normalisation des fins de ligne
+# ============================================
+* text=auto
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# ============================================
+# Fichiers binaires
+# ============================================
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary

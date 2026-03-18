@@ -1,0 +1,45 @@
+{
+  "collectionName": "components_blocks_image_blocks",
+  "info": {
+    "displayName": "Image Block",
+    "description": "Image with caption and alignment"
+  },
+  "options": {},
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "caption": {
+      "type": "string",
+      "required": false
+    },
+    "alignment": {
+      "type": "enumeration",
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "full"
+      ],
+      "default": "center",
+      "required": true
+    },
+    "size": {
+      "type": "enumeration",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "full"
+      ],
+      "default": "medium",
+      "required": true
+    }
+  },
+  "config": {}
+}

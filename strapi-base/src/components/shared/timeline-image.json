@@ -1,0 +1,24 @@
+{
+  "collectionName": "components_shared_timeline_images",
+  "info": {
+    "displayName": "Timeline Image",
+    "icon": "image",
+    "description": "An image for the timeline with an optional external link"
+  },
+  "options": {},
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "link": {
+      "type": "component",
+      "component": "shared.external-link",
+      "required": false
+    }
+  }
+}

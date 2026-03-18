@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_shared_page_links",
+  "info": {
+    "displayName": "page-link",
+    "description": "Link to a page with automatic slug resolution"
+  },
+  "options": {},
+  "attributes": {
+    "page": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::page.page"
+    },
+    "customLabel": {
+      "type": "string",
+      "required": false
+    },
+    "section": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::section.section"
+    }
+  },
+  "config": {}
+}

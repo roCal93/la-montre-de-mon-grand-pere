@@ -1,0 +1,42 @@
+{
+  "collectionName": "components_blocks_button_blocks",
+  "info": {
+    "displayName": "Button Block",
+    "description": "One or multiple buttons with alignment"
+  },
+  "options": {},
+  "attributes": {
+    "buttons": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.button",
+      "required": true,
+      "min": 1
+    },
+    "alignment": {
+      "type": "enumeration",
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "space-between"
+      ],
+      "default": "center",
+      "required": true
+    },
+    "layout": {
+      "type": "enumeration",
+      "enum": [
+        "horizontal",
+        "vertical"
+      ],
+      "default": "horizontal",
+      "required": false
+    },
+    "equalWidth": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "config": {}
+}

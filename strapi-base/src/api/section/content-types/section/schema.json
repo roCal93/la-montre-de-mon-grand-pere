@@ -1,0 +1,121 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sections",
+  "info": {
+    "singularName": "section",
+    "pluralName": "sections",
+    "displayName": "section",
+    "mainField": "identifier"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "required": false
+    },
+    "identifier": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "hideTitle": {
+      "type": "boolean",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "default": false
+    },
+    "blocks": {
+      "type": "dynamiczone",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "components": [
+        "blocks.text-block",
+        "blocks.image-block",
+        "blocks.background-block",
+        "blocks.button-block",
+        "blocks.hero-block-simple-text",
+        "blocks.text-image-block",
+        "blocks.contact-form-block",
+        "blocks.product-list-block"
+      ],
+      "required": true
+    },
+    "order": {
+      "type": "integer",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "required": true
+    },
+    "spacingTop": {
+      "type": "enumeration",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "default": "medium",
+      "enum": [
+        "none",
+        "small",
+        "medium",
+        "large"
+      ]
+    },
+    "spacingBottom": {
+      "type": "enumeration",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "default": "medium",
+      "enum": [
+        "none",
+        "small",
+        "medium",
+        "large"
+      ]
+    },
+    "containerWidth": {
+      "type": "enumeration",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "default": "medium",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "full"
+      ]
+    }
+  }
+}

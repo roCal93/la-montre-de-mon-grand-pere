@@ -1,0 +1,48 @@
+{
+  "collectionName": "components_blocks_text_blocks",
+  "info": {
+    "displayName": "Text Block",
+    "description": "Rich text content block"
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "blocks",
+      "required": true
+    },
+    "textAlignment": {
+      "type": "enumeration",
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "justify"
+      ],
+      "default": "left",
+      "required": true
+    },
+    "blockAlignment": {
+      "type": "enumeration",
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "full"
+      ],
+      "default": "full",
+      "required": true
+    },
+    "maxWidth": {
+      "type": "enumeration",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "full"
+      ],
+      "default": "full",
+      "required": true
+    }
+  },
+  "config": {}
+}

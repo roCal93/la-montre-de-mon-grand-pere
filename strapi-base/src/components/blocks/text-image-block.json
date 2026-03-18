@@ -1,0 +1,67 @@
+{
+  "collectionName": "components_blocks_text_image_blocks",
+  "info": {
+    "displayName": "Text + Image Block",
+    "description": "Combine text content with an image side by side"
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "blocks",
+      "required": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "imagePosition": {
+      "type": "enumeration",
+      "enum": [
+        "left",
+        "right"
+      ],
+      "default": "right",
+      "required": true
+    },
+    "imageSize": {
+      "type": "enumeration",
+      "enum": [
+        "small",
+        "medium",
+        "large"
+      ],
+      "default": "medium",
+      "required": true
+    },
+    "verticalAlignment": {
+      "type": "enumeration",
+      "enum": [
+        "top",
+        "center",
+        "bottom"
+      ],
+      "default": "center",
+      "required": true
+    },
+    "textAlignment": {
+      "type": "enumeration",
+      "enum": [
+        "left",
+        "center",
+        "right",
+        "justify"
+      ],
+      "default": "left",
+      "required": true
+    },
+    "roundedImage": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "config": {}
+}

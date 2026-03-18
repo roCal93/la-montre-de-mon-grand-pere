@@ -1,0 +1,48 @@
+{
+  "collectionName": "components_shared_buttons",
+  "info": {
+    "displayName": "Button",
+    "description": "Call-to-action button with customizable style and link"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "required": false
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "files",
+        "images"
+      ]
+    },
+    "variant": {
+      "type": "enumeration",
+      "enum": [
+        "primary",
+        "secondary",
+        "outline",
+        "ghost"
+      ],
+      "default": "primary",
+      "required": true
+    },
+    "isExternal": {
+      "type": "boolean",
+      "default": false,
+      "required": false
+    },
+    "icon": {
+      "type": "string",
+      "required": false
+    }
+  },
+  "config": {}
+}

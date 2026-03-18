@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_common_timeline_items",
+  "info": {
+    "displayName": "Timeline Item",
+    "icon": "dot-circle",
+    "description": "A single item/step in the timeline."
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "date": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "images": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.timeline-image",
+      "required": false
+    }
+  }
+}

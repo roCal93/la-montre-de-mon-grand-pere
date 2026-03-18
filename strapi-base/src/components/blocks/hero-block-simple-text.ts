@@ -1,0 +1,40 @@
+export default {
+  "collectionName": "components_blocks_hero_block_simple_texts",
+  "info": {
+    "displayName": "Hero Block Simple Text",
+    "description": "Hero section with optional title and text content"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": false
+    },
+    "content": {
+      "type": "text",
+      "required": true
+    },
+    "height": {
+      "type": "enumeration",
+      "enum": [
+        "little",
+        "medium",
+        "large",
+        "full"
+      ],
+      "default": "large",
+      "required": true
+    },
+    "textAlignment": {
+      "type": "enumeration",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "center",
+      "required": true
+    }
+  },
+  "config": {}
+};
