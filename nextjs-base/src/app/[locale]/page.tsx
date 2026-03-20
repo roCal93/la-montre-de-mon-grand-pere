@@ -119,6 +119,20 @@ const fetchHomePageData = async (locale: string, isDraft: boolean) => {
   return res
 }
 
+// Normalize container width coming from Strapi to the allowed values
+const normalizeContainerWidth = (
+  width: unknown
+): 'small' | 'medium' | 'large' | 'full' => {
+  if (
+    width === 'small' ||
+    width === 'medium' ||
+    width === 'large' ||
+    width === 'full'
+  )
+    return width
+  return 'medium'
+}
+
 const getHomePageData = async (locale: string) =>
   fetchHomePageData(locale, false)
 // unstable_cache(
@@ -271,6 +285,7 @@ export default async function HomeLocale({
           blocks={section.blocks as DynamicBlock[]}
           sharedOpeningDays={sharedOpeningDays}
           locale={locale}
+          containerWidth={normalizeContainerWidth(section.containerWidth)}
           isFirstSection={sectionIndex === 0}
           spacingTop={
             section.spacingTop as

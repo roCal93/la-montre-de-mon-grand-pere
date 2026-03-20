@@ -133,22 +133,25 @@ const ContactFormBlock = ({
     <div
       className={`w-full ${blockAlignmentClasses[blockAlignment]} ${maxWidthClasses[maxWidth]} py-10 px-4`}
     >
-      <div className="w-full rounded-lg border border-neutral-200 bg-white/80 p-8 shadow-sm">
+      <div className="w-full rounded-lg bg-white/80 p-8">
         {title && (
-          <h2 className="text-2xl font-semibold text-neutral-900 mb-3">
+          <h2 className="text-2xl font-semibold text-neutral-900 mb-8 text-center">
             {title}
           </h2>
         )}
 
-        {description && (
-          <p className="text-neutral-700 mb-8 whitespace-pre-line">{description}</p>
-        )}
+        <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+          {description && (
+            <div className="md:w-1/3 shrink-0 pt-16">
+              <p className="text-neutral-700 whitespace-pre-line text-center">{description}</p>
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className={`space-y-8 ${description ? 'md:w-1/2' : 'w-full'}`}>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-2">
               <label htmlFor="name" className="text-sm font-medium text-neutral-800">
-                {nameLabel} *
+                {nameLabel}
               </label>
               <input
                 type="text"
@@ -164,7 +167,7 @@ const ContactFormBlock = ({
 
             <div className="flex flex-col gap-2">
               <label htmlFor="email" className="text-sm font-medium text-neutral-800">
-                {emailLabel} *
+                {emailLabel}
               </label>
               <input
                 type="email"
@@ -198,7 +201,7 @@ const ContactFormBlock = ({
 
           <div className="flex flex-col gap-2">
             <label htmlFor="message" className="text-sm font-medium text-neutral-800">
-              {messageLabel} *
+              {messageLabel}
             </label>
             <textarea
               id="message"
@@ -268,6 +271,7 @@ const ContactFormBlock = ({
             </div>
           )}
         </form>
+        </div>
       </div>
 
       <PrivacyPolicyModal

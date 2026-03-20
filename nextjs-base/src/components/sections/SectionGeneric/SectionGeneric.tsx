@@ -165,13 +165,13 @@ export const SectionGeneric = ({
       case 'none':
         return ''
       case 'small':
-        return 'mt-6'
+        return 'pt-6'
       case 'medium':
-        return 'mt-12'
+        return 'pt-12'
       case 'large':
-        return 'mt-24'
+        return 'pt-24'
       default:
-        return 'mt-12'
+        return 'pt-12'
     }
   }
 
@@ -182,13 +182,13 @@ export const SectionGeneric = ({
       case 'none':
         return ''
       case 'small':
-        return 'mb-6'
+        return 'pb-6'
       case 'medium':
-        return 'mb-12'
+        return 'pb-12'
       case 'large':
-        return 'mb-24'
+        return 'pb-24'
       default:
-        return 'mb-12'
+        return 'pb-12'
     }
   }
 

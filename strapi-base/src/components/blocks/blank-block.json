@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_blocks_blank_blocks",
+  "info": {
+    "displayName": "Blank Block",
+    "description": "Espace vide configurable entre deux blocks"
+  },
+  "options": {},
+  "attributes": {
+    "size": {
+      "type": "enumeration",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "xlarge"
+      ],
+      "default": "medium",
+      "required": true
+    }
+  },
+  "config": {}
+}

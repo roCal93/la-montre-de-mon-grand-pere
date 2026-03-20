@@ -59,7 +59,9 @@ export default {
         "blocks.hero-block-simple-text",
         "blocks.text-image-block",
         "blocks.contact-form-block",
-        "blocks.product-list-block"
+        "blocks.product-list-block",
+        "blocks.cards-block",
+        "blocks.blank-block"
       ],
       "required": true
     },
