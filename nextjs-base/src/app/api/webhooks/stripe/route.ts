@@ -45,15 +45,21 @@ async function createOrderInStrapi(
     : 0
   const total = subtotal + shippingCost
 
-  const shippingDetails = session.shipping_details?.address
+  const shippingDetails =
+    session.collected_information?.shipping_details?.address
   const shippingAddress = shippingDetails
     ? {
         firstName:
-          session.shipping_details?.name?.split(' ')[0] ??
+          session.collected_information?.shipping_details?.name?.split(
+            ' '
+          )[0] ??
           session.customer_details?.name?.split(' ')[0] ??
           '',
         lastName:
-          session.shipping_details?.name?.split(' ').slice(1).join(' ') ??
+          session.collected_information?.shipping_details?.name
+            ?.split(' ')
+            .slice(1)
+            .join(' ') ??
           session.customer_details?.name?.split(' ').slice(1).join(' ') ??
           '',
         address1: shippingDetails.line1 ?? '',
