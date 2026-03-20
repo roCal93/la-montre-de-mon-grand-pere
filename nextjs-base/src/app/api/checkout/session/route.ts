@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { toCents } from '@/lib/currency'
 import type { CartItem } from '@/types/cart'
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         quantity: item.quantity,
       }))
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
       locale: locale === 'fr' ? 'fr' : 'en',

@@ -1,4 +1,4 @@
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 
 /**
@@ -14,5 +14,5 @@ export function validateStripeWebhookSignature(
     throw new Error("STRIPE_WEBHOOK_SECRET environment variable is not set");
   }
 
-  return stripe.webhooks.constructEvent(rawBody, signature, secret);
+  return getStripe().webhooks.constructEvent(rawBody, signature, secret);
 }
