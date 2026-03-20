@@ -13,8 +13,8 @@ importers:
   .:
     dependencies:
       '@stripe/stripe-js':
-        specifier: ^8.10.0
-        version: 8.10.0
+        specifier: ^8.11.0
+        version: 8.11.0
       framer-motion:
         specifier: ^12.37.0
         version: 12.37.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -956,8 +956,8 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@stripe/stripe-js@8.10.0':
-    resolution: {integrity: sha512-E1FtmN4/AMpdV0zDUyEnTVMpQTMDi7iy2njG22DpFcSxeCujK22bQ/hmF3bGtNUclqGJhOZMkf7rjUyOAcj4CQ==}
+  '@stripe/stripe-js@8.11.0':
+    resolution: {integrity: sha512-3fVF4z3efsgwgyj64nFK+6F4/vMw0mUXD2TBbOfftJtKVNx4JNv3CSfe1fY4DCtCk0JFp8/YPNcRkzgV0HJ8cg==}
     engines: {node: '>=12.16'}
 
   '@swc/core-darwin-arm64@1.15.18':
@@ -3890,7 +3890,7 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@stripe/stripe-js@8.10.0': {}
+  '@stripe/stripe-js@8.11.0': {}
 
   '@swc/core-darwin-arm64@1.15.18':
     optional: true
