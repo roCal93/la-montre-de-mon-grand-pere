@@ -48,27 +48,37 @@ export const Header = memo(
         : STATIC_DEFAULT_LOCALE
 
     // Transform PageLink to NavigationLink for easier processing
-    const links = useMemo(
-      () =>
-        navigation
-          .filter((link) => link.page?.slug) // Only keep links with valid pages
-          .map(
-            (
-              link: PageLink & {
-                section?: { title?: string; identifier?: string }
-              }
-            ) => {
-              const sec = link.section
-              return {
-                slug: link.page!.slug,
-                label: link.customLabel || sec?.title || link.page!.title || '',
-                isHome: link.page!.slug === 'home',
-                anchor: sec?.identifier,
-              }
+    const links = useMemo(() => {
+      const mappedLinks = navigation
+        .filter((link) => link.page?.slug) // Only keep links with valid pages
+        .map(
+          (
+            link: PageLink & {
+              section?: { title?: string; identifier?: string }
             }
-          ),
-      [navigation]
-    )
+          ) => {
+            const sec = link.section
+            return {
+              slug: link.page!.slug,
+              label: link.customLabel || sec?.title || link.page!.title || '',
+              isHome: link.page!.slug === 'home',
+              anchor: sec?.identifier,
+            }
+          }
+        )
+
+      const hasBlog = mappedLinks.some((link) => link.slug === 'blog')
+      if (!hasBlog) {
+        mappedLinks.push({
+          slug: 'blog',
+          label: currentLocale === 'fr' ? 'Blog' : 'Blog',
+          isHome: false,
+          anchor: undefined,
+        })
+      }
+
+      return mappedLinks
+    }, [navigation, currentLocale])
 
     // Removed no-op useEffects for better performance
 

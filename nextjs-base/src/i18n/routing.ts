@@ -1,22 +1,30 @@
-import { defineRouting } from "next-intl/routing";
+import { defineRouting } from 'next-intl/routing'
 
 export const routing = defineRouting({
-  locales: ["fr", "en"],
-  defaultLocale: "fr",
+  locales: ['fr', 'en'],
+  defaultLocale: 'fr',
   pathnames: {
-    "/boutique": {
-      fr: "/boutique",
-      en: "/shop",
+    '/blog': {
+      fr: '/blog',
+      en: '/blog',
     },
-    "/boutique/[slug]": {
-      fr: "/boutique/[slug]",
-      en: "/shop/[slug]",
+    '/blog/[slug]': {
+      fr: '/blog/[slug]',
+      en: '/blog/[slug]',
     },
-    "/panier": {
-      fr: "/panier",
-      en: "/cart",
+    '/boutique': {
+      fr: '/boutique',
+      en: '/shop',
     },
-    "/checkout/success": "/checkout/success",
-    "/checkout/cancel": "/checkout/cancel",
+    '/boutique/[slug]': {
+      fr: '/boutique/[slug]',
+      en: '/shop/[slug]',
+    },
+    '/panier': {
+      fr: '/panier',
+      en: '/cart',
+    },
+    '/checkout/success': '/checkout/success',
+    '/checkout/cancel': '/checkout/cancel',
   },
-});
+})

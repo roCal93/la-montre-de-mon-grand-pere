@@ -1,6 +1,15 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/currency'
+import { draftMode } from 'next/headers'
+import { createStrapiClient } from '@/lib/strapi-client'
+import { SectionGeneric } from '@/components/sections/SectionGeneric'
+import type { DynamicBlock } from '@/types/custom'
+import type {
+  Page,
+  PageCollectionResponse,
+  StrapiEntity,
+} from '@/types/strapi'
 
 // Strapi v5 — flat response format (no attributes wrapper)
 interface StrapiImage {
@@ -64,9 +73,63 @@ interface Props {
   searchParams: Promise<{ categorie?: string }>
 }
 
+const normalizeContainerWidth = (
+  width: unknown
+): 'small' | 'medium' | 'large' | 'full' => {
+  if (
+    width === 'small' ||
+    width === 'medium' ||
+    width === 'large' ||
+    width === 'full'
+  ) {
+    return width
+  }
+
+  return 'medium'
+}
+
+const fetchShopLandingPage = async ({
+  locale,
+  isDraft,
+}: {
+  locale: string
+  isDraft: boolean
+}): Promise<(Page & StrapiEntity) | null> => {
+  const apiToken = isDraft
+    ? process.env.STRAPI_PREVIEW_TOKEN || process.env.STRAPI_API_TOKEN
+    : process.env.STRAPI_API_TOKEN
+
+  const client = createStrapiClient({
+    apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337',
+    apiToken,
+  })
+
+  const pageRes: PageCollectionResponse = await client.findMany('pages', {
+    filters: { slug: { $eq: 'boutique' } },
+    fields: ['title', 'hideTitle', 'slug'],
+    populate:
+      'sections.blocks.cards.image,sections.blocks.image,sections.blocks.imageDesktop,sections.blocks.buttons.file,sections.blocks.items.images.image,sections.blocks.items.images.link,sections.blocks.examples,sections.blocks.workItems.image,sections.blocks.workItems.categories,sections.blocks.privacyPolicy,sections.blocks.markerImage,sections.blocks.openingDays,sections.blocks.category',
+    locale,
+    publicationState: isDraft ? 'preview' : 'live',
+    pagination: { page: 1, pageSize: 1 },
+  })
+
+  return pageRes.data[0] || null
+}
+
 export default async function BoutiquePage({ params, searchParams }: Props) {
   const { locale } = await params
   const { categorie } = await searchParams
+  const { isEnabled } = await draftMode()
+
+  const shopPage = await fetchShopLandingPage({
+    locale,
+    isDraft: isEnabled,
+  })
+  const shopSections = (shopPage?.sections || []).sort(
+    (a, b) => (a.order || 0) - (b.order || 0)
+  )
+
   const products = await getProducts(locale)
 
   const categories = Array.from(
@@ -84,9 +147,42 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-3xl font-bold tracking-tight">
-        {locale === 'fr' ? 'Boutique' : 'Shop'}
-      </h1>
+      {!shopPage?.hideTitle ? (
+        <h1 className="mb-8 text-3xl font-bold tracking-tight">
+          {shopPage?.title || (locale === 'fr' ? 'Boutique' : 'Shop')}
+        </h1>
+      ) : null}
+
+      {shopSections.length > 0 ? (
+        <div className="mb-12 space-y-8">
+          {shopSections.map((section) => (
+            <SectionGeneric
+              key={section.id}
+              identifier={section.identifier}
+              title={section.hideTitle ? undefined : section.title}
+              blocks={section.blocks as DynamicBlock[]}
+              locale={locale}
+              containerWidth={normalizeContainerWidth(section.containerWidth)}
+              spacingTop={
+                section.spacingTop as
+                  | 'none'
+                  | 'small'
+                  | 'medium'
+                  | 'large'
+                  | undefined
+              }
+              spacingBottom={
+                section.spacingBottom as
+                  | 'none'
+                  | 'small'
+                  | 'medium'
+                  | 'large'
+                  | undefined
+              }
+            />
+          ))}
+        </div>
+      ) : null}
 
       {/* Category filters */}
       {categories.length > 0 && (

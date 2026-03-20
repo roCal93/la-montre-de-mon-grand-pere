@@ -19,7 +19,7 @@ export const Footer = ({
   const madeWithLabel = isEn ? 'Made with passion by' : 'Fait avec passion par'
 
   return (
-    <footer className="bg-gray-900 text-white py-8 text-center">
+    <footer className="backdrop-blur-sm bg-white/10 border-t border-gray-200 text-gray-700 py-8 text-center">
       <div className="space-y-3">
         <p className="text-sm">
           {siteName} © {currentYear}. {rightsLabel}
@@ -27,27 +27,27 @@ export const Footer = ({
         <div className="flex flex-wrap justify-center gap-4 text-sm">
           <Link
             href={`/${locale}/privacy-policy`}
-            className="text-gray-300 hover:text-white hover:underline"
+            className="text-gray-500 hover:text-gray-900 hover:underline"
           >
             {privacyLabel}
           </Link>
-          <span aria-hidden="true" className="text-gray-500">
+          <span aria-hidden="true" className="text-gray-400">
             •
           </span>
           <Link
             href={`/${locale}/legal-notice`}
-            className="text-gray-300 hover:text-white hover:underline"
+            className="text-gray-500 hover:text-gray-900 hover:underline"
           >
             {legalLabel}
           </Link>
         </div>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-500">
           {madeWithLabel}{' '}
           <a
             href="https://hakuna-mataweb.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-white hover:underline"
+            className="text-gray-700 hover:text-gray-900 hover:underline"
           >
             Hakuna Mataweb
           </a>

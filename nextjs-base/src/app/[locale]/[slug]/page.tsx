@@ -313,6 +313,22 @@ export default async function Page({
           sharedOpeningDays={sharedOpeningDays}
           locale={locale}
           containerWidth={normalizeContainerWidth(section.containerWidth)}
+          spacingTop={
+            section.spacingTop as
+              | 'none'
+              | 'small'
+              | 'medium'
+              | 'large'
+              | undefined
+          }
+          spacingBottom={
+            section.spacingBottom as
+              | 'none'
+              | 'small'
+              | 'medium'
+              | 'large'
+              | undefined
+          }
         />
       ))}
     </Layout>
