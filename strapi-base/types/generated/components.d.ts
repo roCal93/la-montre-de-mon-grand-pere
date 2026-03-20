@@ -38,6 +38,19 @@ export interface BlocksBackgroundBlock extends Struct.ComponentSchema {
   };
 }
 
+export interface BlocksBlankBlock extends Struct.ComponentSchema {
+  collectionName: 'components_blocks_blank_blocks';
+  info: {
+    description: 'Espace vide configurable entre deux blocks';
+    displayName: 'Blank Block';
+  };
+  attributes: {
+    size: Schema.Attribute.Enumeration<['small', 'medium', 'large', 'xlarge']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'medium'>;
+  };
+}
+
 export interface BlocksButtonBlock extends Struct.ComponentSchema {
   collectionName: 'components_blocks_button_blocks';
   info: {
@@ -61,6 +74,25 @@ export interface BlocksButtonBlock extends Struct.ComponentSchema {
     equalWidth: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     layout: Schema.Attribute.Enumeration<['horizontal', 'vertical']> &
       Schema.Attribute.DefaultTo<'horizontal'>;
+  };
+}
+
+export interface BlocksCardsBlock extends Struct.ComponentSchema {
+  collectionName: 'components_blocks_cards_blocks';
+  info: {
+    description: 'Display a grid of cards';
+    displayName: 'Cards Block';
+  };
+  attributes: {
+    alignment: Schema.Attribute.Enumeration<['left', 'center', 'right']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'center'>;
+    cards: Schema.Attribute.Relation<'oneToMany', 'api::card.card'> &
+      Schema.Attribute.Required;
+    columns: Schema.Attribute.Enumeration<['1', '2', '3', '4']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'3'>;
+    overlap: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
   };
 }
 
@@ -477,7 +509,9 @@ declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
       'blocks.background-block': BlocksBackgroundBlock;
+      'blocks.blank-block': BlocksBlankBlock;
       'blocks.button-block': BlocksButtonBlock;
+      'blocks.cards-block': BlocksCardsBlock;
       'blocks.contact-form-block': BlocksContactFormBlock;
       'blocks.hero-block-simple-text': BlocksHeroBlockSimpleText;
       'blocks.image-block': BlocksImageBlock;

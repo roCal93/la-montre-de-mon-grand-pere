@@ -42,7 +42,7 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
       switch (block.type) {
         case 'paragraph':
           return (
-            <p key={index} className="text-gray-600 mb-2 whitespace-pre-line">
+            <p key={index} className="text-gray-600 mb-6 whitespace-pre-line">
               {block.children?.map((child, childIndex) => {
                 if (child.type === 'text') {
                   return <span key={childIndex}>{child.text}</span>
@@ -115,7 +115,9 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
         ))}
 
       {title && (
-        <h3 className="text-xl font-semibold whitespace-pre-line">{title}</h3>
+        <h3 className="text-xl font-semibold whitespace-pre-line text-center">
+          {title}
+        </h3>
       )}
       {subtitle && (
         <h4 className="text-sm text-gray-700 mt-1 whitespace-pre-line">
@@ -123,7 +125,7 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
         </h4>
       )}
       {hasVisibleContent && (
-        <div className="mt-2 flex-grow">{renderBlocks(content || [])}</div>
+        <div className="mt-12 flex-grow">{renderBlocks(content || [])}</div>
       )}
     </div>
   )

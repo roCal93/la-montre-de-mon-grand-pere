@@ -1,0 +1,42 @@
+export default {
+  "collectionName": "components_blocks_cards_blocks",
+  "info": {
+    "displayName": "Cards Block",
+    "description": "Display a grid of cards"
+  },
+  "options": {},
+  "attributes": {
+    "cards": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::card.card",
+      "required": true
+    },
+    "columns": {
+      "type": "enumeration",
+      "enum": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "default": "3",
+      "required": true
+    },
+    "alignment": {
+      "type": "enumeration",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "center",
+      "required": true
+    },
+    "overlap": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "config": {}
+}
