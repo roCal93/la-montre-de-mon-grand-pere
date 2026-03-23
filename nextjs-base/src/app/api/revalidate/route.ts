@@ -1,14 +1,29 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
-  const body = await request.json()
+  let body: Record<string, unknown> = {}
+  try {
+    body = (await request.json()) as Record<string, unknown>
+  } catch {
+    body = {}
+  }
+
+  const configuredSecret = process.env.REVALIDATE_SECRET
+  if (!configuredSecret) {
+    return NextResponse.json(
+      { message: 'REVALIDATE_SECRET is not configured' },
+      { status: 503 }
+    )
+  }
 
   // Vérifier le secret pour la sécurité
-  const secret = request.headers.get('x-webhook-secret') || body.secret
-  if (process.env.REVALIDATE_SECRET && secret !== process.env.REVALIDATE_SECRET) {
+  const secret =
+    request.headers.get('x-webhook-secret') ||
+    (typeof body.secret === 'string' ? body.secret : null)
+  if (!secret || secret !== configuredSecret) {
     return NextResponse.json({ message: 'Invalid secret' }, { status: 401 })
   }
 
@@ -22,8 +37,12 @@ export async function POST(request: NextRequest) {
 
     // Revalider les pages spécifiques si elles sont mentionnées dans le webhook
     if (body.model === 'page') {
-      const slug = body.entry?.slug
-      const locale = body.entry?.locale || 'fr'
+      const entry =
+        body.entry && typeof body.entry === 'object'
+          ? (body.entry as Record<string, unknown>)
+          : null
+      const slug = typeof entry?.slug === 'string' ? entry.slug : null
+      const locale = typeof entry?.locale === 'string' ? entry.locale : 'fr'
 
       if (slug) {
         // Revalider la page spécifique

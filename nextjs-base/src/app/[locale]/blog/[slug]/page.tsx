@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { draftMode } from 'next/headers'
+import { Layout } from '@/components/layout'
 import { SectionGeneric } from '@/components/sections/SectionGeneric'
 import { buildMetadata, type Hreflang } from '@/lib/seo'
 import { fetchBlogArticleBySlug } from '@/lib/blog'
@@ -148,92 +149,96 @@ export default async function BlogArticlePage({ params }: Props) {
   )
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <Link
-        href={`/${locale}/blog`}
-        className="mb-8 inline-flex items-center text-sm font-medium text-neutral-600 transition-colors hover:text-black"
-      >
-        {locale === 'fr' ? '← Retour au blog' : '← Back to blog'}
-      </Link>
+    <Layout locale={locale}>
+      <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+        <Link
+          href={`/${locale}/blog`}
+          className="mb-8 inline-flex items-center text-sm font-medium text-neutral-600 transition-colors hover:text-black"
+        >
+          {locale === 'fr' ? '← Retour au blog' : '← Back to blog'}
+        </Link>
 
-      <article>
-        <header className="mb-10 space-y-4">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {article.title}
-          </h1>
+        <article>
+          <header className="mb-10 space-y-4">
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              {article.title}
+            </h1>
 
-          <div className="flex flex-wrap items-center gap-3 text-sm text-neutral-500">
-            {publicationDate ? <span>{publicationDate}</span> : null}
-            {article.authorName ? <span>• {article.authorName}</span> : null}
-            {(article.categories || []).map((category) => (
-              <span
-                key={category.id}
-                className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700"
-              >
-                {category.name}
-              </span>
-            ))}
-          </div>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-neutral-500">
+              {publicationDate ? <span>{publicationDate}</span> : null}
+              {article.authorName ? <span>• {article.authorName}</span> : null}
+              {(article.categories || []).map((category) => (
+                <span
+                  key={category.id}
+                  className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700"
+                >
+                  {category.name}
+                </span>
+              ))}
+            </div>
 
-          {article.excerpt ? (
-            <p className="max-w-3xl text-lg text-neutral-600">
-              {article.excerpt}
-            </p>
-          ) : null}
-        </header>
+            {article.excerpt ? (
+              <p className="max-w-3xl text-lg text-neutral-600">
+                {article.excerpt}
+              </p>
+            ) : null}
+          </header>
 
-        {coverImageUrl ? (
-          <div className="relative mb-10 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-neutral-100">
-            <Image
-              src={coverImageUrl}
-              alt={
-                coverImage?.alternativeText ||
-                article.title ||
-                'Blog cover image'
-              }
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 1000px"
-            />
-          </div>
-        ) : null}
-
-        {sections.length > 0 ? (
-          <div className="space-y-8">
-            {sections.map((section) => (
-              <SectionGeneric
-                key={section.id}
-                identifier={section.identifier}
-                title={section.hideTitle ? undefined : section.title}
-                blocks={section.blocks as DynamicBlock[]}
-                locale={locale}
-                containerWidth={normalizeContainerWidth(section.containerWidth)}
-                spacingTop={
-                  section.spacingTop as
-                    | 'none'
-                    | 'small'
-                    | 'medium'
-                    | 'large'
-                    | undefined
+          {coverImageUrl ? (
+            <div className="relative mb-10 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-neutral-100">
+              <Image
+                src={coverImageUrl}
+                alt={
+                  coverImage?.alternativeText ||
+                  article.title ||
+                  'Blog cover image'
                 }
-                spacingBottom={
-                  section.spacingBottom as
-                    | 'none'
-                    | 'small'
-                    | 'medium'
-                    | 'large'
-                    | undefined
-                }
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 1000px"
               />
-            ))}
-          </div>
-        ) : (
-          <div className="prose max-w-none text-neutral-700">
-            <p>{article.excerpt || ''}</p>
-          </div>
-        )}
-      </article>
-    </main>
+            </div>
+          ) : null}
+
+          {sections.length > 0 ? (
+            <div className="space-y-8">
+              {sections.map((section) => (
+                <SectionGeneric
+                  key={section.id}
+                  identifier={section.identifier}
+                  title={section.hideTitle ? undefined : section.title}
+                  blocks={section.blocks as DynamicBlock[]}
+                  locale={locale}
+                  containerWidth={normalizeContainerWidth(
+                    section.containerWidth
+                  )}
+                  spacingTop={
+                    section.spacingTop as
+                      | 'none'
+                      | 'small'
+                      | 'medium'
+                      | 'large'
+                      | undefined
+                  }
+                  spacingBottom={
+                    section.spacingBottom as
+                      | 'none'
+                      | 'small'
+                      | 'medium'
+                      | 'large'
+                      | undefined
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="prose max-w-none text-neutral-700">
+              <p>{article.excerpt || ''}</p>
+            </div>
+          )}
+        </article>
+      </main>
+    </Layout>
   )
 }

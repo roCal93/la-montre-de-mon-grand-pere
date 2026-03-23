@@ -265,14 +265,14 @@ export const Header = memo(
                   aria-label={
                     link.anchor ? `${link.label} section` : link.label
                   }
-                  className={`relative inline-flex items-center h-9 text-lg transition-colors hover:text-gray-600 w-fit ${
+                  className={`relative inline-flex items-center h-9 px-3 rounded-md overflow-hidden text-lg transition-colors hover:text-gray-600 w-fit ${
                     active ? 'font-semibold text-black' : 'text-gray-700'
                   }`}
                 >
-                  <span className="z-10">{link.label}</span>
+                  <span className="relative z-10">{link.label}</span>
                   <motion.span
                     aria-hidden
-                    className="absolute left-0 bottom-0 h-[3px] w-full bg-[#F88379] origin-left transform"
+                    className="absolute inset-0 z-0 rounded-md bg-gray-200/75 origin-left transform"
                     initial={
                       shouldReduceMotion
                         ? {}
@@ -304,14 +304,14 @@ export const Header = memo(
         id="site-header"
         role="banner"
         aria-label="Site header"
-        className="sticky top-0 z-50 backdrop-blur-sm bg-white/10 border-b border-gray-200 flex justify-center min-[850px]:justify-between items-center p-6"
+        className="sticky top-0 z-50 backdrop-blur-sm bg-white/10 border-b border-gray-200 flex justify-center min-[850px]:justify-between items-center p-1 relative"
       >
         <Link
           href={`/${currentLocale}`}
           prefetch
           onClick={handleLogoClick}
           aria-label={`${title} - Return to homepage`}
-          className="flex-none min-[850px]:flex-1"
+          className="flex-none min-[850px]:flex-1 min-[850px]:ml-6"
         >
           {logo ? (
             <Image
@@ -333,64 +333,70 @@ export const Header = memo(
             </h1>
           )}
         </Link>
-        <div className="hidden min-[850px]:flex items-center space-x-12">
+        <div className="hidden min-[850px]:flex min-[850px]:absolute min-[850px]:top-1/2 min-[850px]:left-1/2 min-[850px]:-translate-x-1/2 min-[850px]:-translate-y-1/2 items-center">
           <nav
             role="navigation"
             aria-label="Main navigation"
-            className="hidden min-[850px]:flex min-[850px]:flex-nowrap min-[850px]:space-x-6"
+            className="hidden min-[850px]:flex min-[850px]:w-[min(46vw,640px)] min-[850px]:items-center"
           >
             {links.map((link, index) => {
               const active = isActive(link.slug, link.isHome, link.anchor)
               const hovered = hoveredIndex === index
               return (
-                <Link
-                  key={link.slug || index}
-                  href={getLocalizedHref(link.slug, link.isHome, link.anchor)}
-                  prefetch
-                  onClick={(e) => handleNavClick(e, link)}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  aria-current={active ? 'page' : undefined}
-                  aria-label={
-                    link.anchor ? `${link.label} section` : link.label
-                  }
-                  // Relative container for absolute animated underline
-                  className={`relative inline-flex items-center h-9 text-lg transition-colors hover:text-gray-600 whitespace-nowrap flex-none ${
-                    active ? 'font-semibold text-black' : 'text-gray-700'
-                  }`}
-                >
-                  <span className="z-10">{link.label}</span>
-                  <motion.span
-                    aria-hidden
-                    className="absolute left-0 bottom-0 h-[3px] w-full bg-[#F88379] origin-left transform"
-                    initial={
-                      shouldReduceMotion
-                        ? {}
-                        : { scaleX: active || hovered ? 1 : 0 }
+                <React.Fragment key={link.slug || index}>
+                  <Link
+                    href={getLocalizedHref(link.slug, link.isHome, link.anchor)}
+                    prefetch
+                    onClick={(e) => handleNavClick(e, link)}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    aria-current={active ? 'page' : undefined}
+                    aria-label={
+                      link.anchor ? `${link.label} section` : link.label
                     }
-                    animate={
-                      shouldReduceMotion
-                        ? {}
-                        : { scaleX: active || hovered ? 1 : 0 }
-                    }
-                    transition={{
-                      type: 'spring',
-                      stiffness: 400,
-                      damping: 30,
-                      duration: 0.18,
-                    }}
-                    style={{ transformOrigin: 'left' }}
-                  />
-                </Link>
+                    className={`relative flex flex-1 items-center justify-center h-[69px] overflow-hidden text-center text-lg transition-colors hover:text-gray-600 whitespace-nowrap ${
+                      active ? 'font-semibold text-black' : 'text-gray-700'
+                    }`}
+                  >
+                    <span className="relative z-10">{link.label}</span>
+                    <motion.span
+                      aria-hidden
+                      className="absolute inset-0 z-0 bg-[rgba(217,217,217,0.2)] origin-left transform"
+                      initial={
+                        shouldReduceMotion
+                          ? {}
+                          : { scaleX: active || hovered ? 1 : 0 }
+                      }
+                      animate={
+                        shouldReduceMotion
+                          ? {}
+                          : { scaleX: active || hovered ? 1 : 0 }
+                      }
+                      transition={{
+                        type: 'spring',
+                        stiffness: 400,
+                        damping: 30,
+                        duration: 0.18,
+                      }}
+                      style={{ transformOrigin: 'left' }}
+                    />
+                  </Link>
+                  {index < links.length - 1 && (
+                    <span
+                      aria-hidden
+                      className="h-[69px] w-[1px] bg-gray-500/90"
+                    />
+                  )}
+                </React.Fragment>
               )
             })}
           </nav>
-          {!hideLanguageSwitcher && (
-            <div className="hidden min-[850px]:block">
-              <LanguageSwitcher />
-            </div>
-          )}
         </div>
+        {!hideLanguageSwitcher && (
+          <div className="hidden min-[850px]:block min-[850px]:ml-auto min-[850px]:mr-6">
+            <LanguageSwitcher />
+          </div>
+        )}
         <div className="min-[850px]:hidden absolute right-6">
           <BurgerMenu
             links={links}

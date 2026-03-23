@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react' 
+import React, { useEffect, useRef, useState } from 'react'
 import { StrapiMedia } from '@/types/strapi'
 import { cleanImageUrl } from '@/lib/strapi'
 
@@ -66,38 +66,48 @@ const BackgroundBlock = ({
     | { attributes?: { url?: string } }
     | null
     | undefined
-  
+
   const getMediaUrl = (m?: MediaLike) => {
     if (!m) return undefined
     if (typeof m === 'string') return cleanImageUrl(m)
-  
+
     if (typeof m === 'object') {
       const obj = m as Record<string, unknown>
-  
+
       if (typeof obj.url === 'string') return cleanImageUrl(obj.url as string)
-  
+
       if (
         obj.data &&
         typeof obj.data === 'object' &&
         'attributes' in (obj.data as Record<string, unknown>) &&
-        typeof ((obj.data as Record<string, unknown>).attributes as Record<string, unknown>).url ===
-          'string'
+        typeof (
+          (obj.data as Record<string, unknown>).attributes as Record<
+            string,
+            unknown
+          >
+        ).url === 'string'
       ) {
         return cleanImageUrl(
-          ((obj.data as Record<string, unknown>).attributes as Record<string, unknown>)
-            .url as string
+          (
+            (obj.data as Record<string, unknown>).attributes as Record<
+              string,
+              unknown
+            >
+          ).url as string
         )
       }
-  
+
       if (
         obj.attributes &&
         typeof obj.attributes === 'object' &&
         typeof (obj.attributes as Record<string, unknown>).url === 'string'
       ) {
-        return cleanImageUrl((obj.attributes as Record<string, unknown>).url as string)
+        return cleanImageUrl(
+          (obj.attributes as Record<string, unknown>).url as string
+        )
       }
     }
-  
+
     return undefined
   }
 
@@ -154,7 +164,8 @@ const BackgroundBlock = ({
       backgroundStyles.backgroundPosition = position
       backgroundStyles.backgroundSize = size
       backgroundStyles.backgroundRepeat = repeat
-      backgroundStyles.backgroundAttachment = fixed ? 'fixed' : 'scroll'
+      // In section scope, keep background anchored to the section only.
+      backgroundStyles.backgroundAttachment = 'scroll'
     }
   }
 
@@ -256,9 +267,10 @@ const BackgroundBlock = ({
         key={viewportKey}
         aria-hidden
         style={{
-          position: fixed ? 'fixed' : 'absolute',
+          position: 'absolute',
           inset: 0,
-          zIndex: -1,
+          zIndex: 0,
+          pointerEvents: 'none',
           ...backgroundStyles,
         }}
       />
@@ -268,16 +280,15 @@ const BackgroundBlock = ({
         <div
           aria-hidden
           style={{
-            position: fixed ? 'fixed' : 'absolute',
+            position: 'absolute',
             inset: 0,
-            zIndex: -1,
+            zIndex: 1,
+            pointerEvents: 'none',
             background: overlayColor,
             opacity: overlayOpacity,
           }}
         />
       ) : null}
-
-
     </>
   )
 }

@@ -3,10 +3,10 @@ type BlankBlockProps = {
 }
 
 const heightMap: Record<NonNullable<BlankBlockProps['size']>, string> = {
-  small: 'h-8',
-  medium: 'h-16',
-  large: 'h-32',
-  xlarge: 'h-64',
+  small: 'h-16',
+  medium: 'h-32',
+  large: 'h-64',
+  xlarge: 'h-96',
 }
 
 const BlankBlock = ({ size = 'medium' }: BlankBlockProps) => {

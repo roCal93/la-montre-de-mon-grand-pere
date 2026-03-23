@@ -16,11 +16,15 @@ type LocalesResponse = {
 
 interface LanguageSwitcherProps {
   side?: 'left' | 'right'
+  dropdownDirection?: 'down' | 'left' | 'right' | 'center'
+  centerOpenGroup?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
 export function LanguageSwitcher({
   side = 'left',
+  dropdownDirection = 'down',
+  centerOpenGroup = false,
   onOpenChange,
 }: LanguageSwitcherProps = {}) {
   const pathname = usePathname() ?? '/'
@@ -112,14 +116,63 @@ export function LanguageSwitcher({
   }, [])
 
   const shouldReduceMotion = useReducedMotion()
+  const isHorizontalDropdown = dropdownDirection !== 'down'
+  const isSideDropdown =
+    dropdownDirection === 'left' || dropdownDirection === 'right'
+  const sideDropdownWidth =
+    otherLocales.length * 36 + (otherLocales.length - 1) * 4
+  const openOffset =
+    centerOpenGroup && open && isSideDropdown ? (sideDropdownWidth + 8) / 2 : 0
+
+  const dropdownPositionClass = isSideDropdown
+    ? dropdownDirection === 'left'
+      ? 'right-full top-1/2 -translate-y-1/2 pr-2'
+      : 'left-full top-1/2 -translate-y-1/2 pl-2'
+    : dropdownDirection === 'center'
+      ? 'left-1/2 top-full -translate-x-1/2 pt-2'
+      : side === 'right'
+        ? 'right-1/2 top-full translate-x-1/2 pt-2'
+        : 'left-1/2 top-full -translate-x-1/2 pt-2'
+
+  const dropdownInitial = shouldReduceMotion
+    ? {}
+    : isSideDropdown
+      ? {
+          opacity: 0,
+          scale: 0.95,
+          x: dropdownDirection === 'left' ? 6 : -6,
+        }
+      : { opacity: 0, scale: 0.9, y: -6 }
+
+  const dropdownAnimate = shouldReduceMotion
+    ? {}
+    : isSideDropdown
+      ? { opacity: 1, scale: 1, x: 0 }
+      : { opacity: 1, scale: 1, y: 0 }
+
+  const dropdownExit = shouldReduceMotion
+    ? {}
+    : isSideDropdown
+      ? {
+          opacity: 0,
+          scale: 0.95,
+          x: dropdownDirection === 'left' ? 4 : -4,
+        }
+      : { opacity: 0, scale: 0.95, y: -4 }
 
   // If only one locale is supported, hide the language switcher entirely
   if (supportedLocales.length <= 1) return null
 
   return (
     <div
-      className="relative"
+      className="relative transition-transform duration-200"
       ref={containerRef}
+      style={{
+        transform:
+          openOffset === 0
+            ? undefined
+            : `translateX(${dropdownDirection === 'right' ? -openOffset : openOffset}px)`,
+      }}
       onMouseEnter={() =>
         canHover && otherLocales.length > 0 && handleOpenChange(true)
       }
@@ -140,22 +193,18 @@ export function LanguageSwitcher({
           <motion.div
             role="menu"
             aria-label="Choisir la langue"
-            initial={
-              shouldReduceMotion ? {} : { opacity: 0, scale: 0.9, y: -6 }
-            }
-            animate={shouldReduceMotion ? {} : { opacity: 1, scale: 1, y: 0 }}
-            exit={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95, y: -4 }}
+            initial={dropdownInitial}
+            animate={dropdownAnimate}
+            exit={dropdownExit}
             transition={{
               type: 'spring',
               stiffness: 400,
               damping: 32,
               duration: 0.2,
             }}
-            className={`absolute ${
-              side === 'right'
-                ? 'right-1/2 translate-x-1/2'
-                : 'left-1/2 -translate-x-1/2'
-            } top-full pt-2 flex flex-col items-center gap-1 z-50`}
+            className={`absolute ${dropdownPositionClass} flex ${
+              isHorizontalDropdown ? 'flex-row' : 'flex-col'
+            } items-center gap-1 z-50`}
           >
             {otherLocales.map((loc, idx) => {
               const href =
@@ -163,9 +212,33 @@ export function LanguageSwitcher({
               return (
                 <motion.div
                   key={loc}
-                  initial={shouldReduceMotion ? {} : { opacity: 0, y: -4 }}
-                  animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-                  exit={shouldReduceMotion ? {} : { opacity: 0, y: -2 }}
+                  initial={
+                    shouldReduceMotion
+                      ? {}
+                      : isSideDropdown
+                        ? {
+                            opacity: 0,
+                            x: dropdownDirection === 'left' ? 4 : -4,
+                          }
+                        : { opacity: 0, y: -4 }
+                  }
+                  animate={
+                    shouldReduceMotion
+                      ? {}
+                      : isSideDropdown
+                        ? { opacity: 1, x: 0 }
+                        : { opacity: 1, y: 0 }
+                  }
+                  exit={
+                    shouldReduceMotion
+                      ? {}
+                      : isSideDropdown
+                        ? {
+                            opacity: 0,
+                            x: dropdownDirection === 'left' ? 2 : -2,
+                          }
+                        : { opacity: 0, y: -2 }
+                  }
                   transition={{ delay: idx * 0.03, duration: 0.12 }}
                 >
                   <Link

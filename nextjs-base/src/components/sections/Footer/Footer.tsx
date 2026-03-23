@@ -13,9 +13,9 @@ export const Footer = ({
 }: FooterProps) => {
   const currentYear = new Date().getFullYear()
   const isEn = locale === 'en'
-  const privacyLabel = isEn ? 'Privacy Policy' : 'Politique de confidentialite'
-  const legalLabel = isEn ? 'Legal Notice' : 'Mentions legales'
-  const rightsLabel = isEn ? 'All rights reserved.' : 'Tous droits reserves.'
+  const privacyLabel = isEn ? 'Privacy Policy' : 'Politique de confidentialité'
+  const legalLabel = isEn ? 'Legal Notice' : 'Mentions légales'
+  const rightsLabel = isEn ? 'All rights reserved.' : 'Tous droits réservés.'
   const madeWithLabel = isEn ? 'Made with passion by' : 'Fait avec passion par'
 
   return (
@@ -58,8 +58,12 @@ export const Footer = ({
             alt="Logo Hakuna Mataweb"
             width={30}
             height={25}
-            style={{ transform: 'rotate(21deg)' }}
-            className="opacity-80 hover:opacity-100 transition-opacity"
+            style={{
+              transform: 'rotate(21deg)',
+              width: '30px',
+              height: '25px',
+            }}
+            className="opacity-40"
           />
         </div>
       </div>

@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { formatPrice } from '@/lib/currency'
+import { Layout } from '@/components/layout'
 import { AddToCartButton } from './AddToCartButton'
 
 // Strapi v5 — flat response format (no attributes wrapper)
@@ -87,93 +88,93 @@ export default async function ProductPage({ params }: Props) {
   const firstImg = imgs[0]
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <Link
-        href={`/${locale}/boutique`}
-        className="mb-6 inline-flex items-center text-sm font-medium text-neutral-600 transition-colors hover:text-black"
-      >
-        {locale === 'fr' ? '← Retour à la boutique' : '← Back to shop'}
-      </Link>
+    <Layout locale={locale}>
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <Link
+          href={`/${locale}/boutique`}
+          className="mb-6 inline-flex items-center text-sm font-medium text-neutral-600 transition-colors hover:text-black"
+        >
+          {locale === 'fr' ? '← Retour à la boutique' : '← Back to shop'}
+        </Link>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-        {/* Images */}
-        <div className="space-y-3">
-          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-neutral-100">
-            {firstImg ? (
-              <Image
-                src={buildImgUrl(firstImg.url)}
-                alt={firstImg.alternativeText ?? name}
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            ) : (
-              <div className="h-full w-full bg-neutral-200" />
-            )}
-          </div>
-          {imgs.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {imgs.slice(1).map((img) => (
-                <div
-                  key={img.id}
-                  className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100"
-                >
-                  <Image
-                    src={buildImgUrl(img.url)}
-                    alt={img.alternativeText ?? name}
-                    fill
-                    className="object-cover"
-                    sizes="128px"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="flex flex-col gap-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              {name}
-            </h1>
-            <div className="mt-2 flex items-baseline gap-3">
-              <span className="text-2xl font-semibold">
-                {formatPrice(price)}
-              </span>
-              {compareAtPrice && compareAtPrice > price && (
-                <span className="text-base text-neutral-400 line-through">
-                  {formatPrice(compareAtPrice)}
-                </span>
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+          <div className="space-y-3">
+            <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-neutral-100">
+              {firstImg ? (
+                <Image
+                  src={buildImgUrl(firstImg.url)}
+                  alt={firstImg.alternativeText ?? name}
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              ) : (
+                <div className="h-full w-full bg-neutral-200" />
               )}
             </div>
+            {imgs.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {imgs.slice(1).map((img) => (
+                  <div
+                    key={img.id}
+                    className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100"
+                  >
+                    <Image
+                      src={buildImgUrl(img.url)}
+                      alt={img.alternativeText ?? name}
+                      fill
+                      className="object-cover"
+                      sizes="128px"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {description && (
-            <div
-              className="prose prose-sm max-w-none text-neutral-700"
-              dangerouslySetInnerHTML={{ __html: description }}
+          <div className="flex flex-col gap-6">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                {name}
+              </h1>
+              <div className="mt-2 flex items-baseline gap-3">
+                <span className="text-2xl font-semibold">
+                  {formatPrice(price)}
+                </span>
+                {compareAtPrice && compareAtPrice > price && (
+                  <span className="text-base text-neutral-400 line-through">
+                    {formatPrice(compareAtPrice)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {description && (
+              <div
+                className="prose prose-sm max-w-none text-neutral-700"
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
+            )}
+
+            <AddToCartButton
+              product={{
+                id: product.id,
+                documentId: product.documentId,
+                name,
+                slug,
+                price,
+                imageUrl: firstImg ? buildImgUrl(firstImg.url) : null,
+                stock,
+              }}
             />
-          )}
 
-          <AddToCartButton
-            product={{
-              id: product.id,
-              documentId: product.documentId,
-              name,
-              slug,
-              price,
-              imageUrl: firstImg ? buildImgUrl(firstImg.url) : null,
-              stock,
-            }}
-          />
-
-          <p className="text-xs text-neutral-400">
-            Livraison calculée au moment du paiement.
-          </p>
+            <p className="text-xs text-neutral-400">
+              Livraison calculée au moment du paiement.
+            </p>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </Layout>
   )
 }

@@ -1,7 +1,30 @@
 import { draftMode } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
+
+function getSafeDestination(urlParam: string | null, baseUrl: string): URL {
+  const fallback = new URL('/', baseUrl)
+  if (!urlParam) return fallback
+
+  // Allow only same-origin absolute URLs, or relative URLs.
+  try {
+    const parsed = new URL(urlParam)
+    if (parsed.origin !== fallback.origin) {
+      return fallback
+    }
+    return parsed
+  } catch {
+    try {
+      if (!urlParam.startsWith('/') || urlParam.startsWith('//')) {
+        return fallback
+      }
+      return new URL(urlParam, baseUrl)
+    } catch {
+      return fallback
+    }
+  }
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -9,8 +32,13 @@ export async function GET(req: Request) {
   const url = searchParams.get('url')
   const status = searchParams.get('status')
 
-  // Vérifier le secret si défini
-  if (process.env.PREVIEW_SECRET && secret !== process.env.PREVIEW_SECRET) {
+  const configuredSecret = process.env.PREVIEW_SECRET
+  if (!configuredSecret) {
+    return new Response('PREVIEW_SECRET is not configured', { status: 503 })
+  }
+
+  // Vérifier le secret
+  if (!secret || secret !== configuredSecret) {
     return new Response('Invalid token', { status: 401 })
   }
 
@@ -35,7 +63,7 @@ export async function GET(req: Request) {
     req.headers.get('origin') ||
     process.env.NEXT_PUBLIC_SITE_URL ||
     'http://localhost:3000'
-  const destinationUrl = url ? new URL(url, baseUrl) : new URL('/', baseUrl)
+  const destinationUrl = getSafeDestination(url, baseUrl)
 
   // Ajouter le paramètre ?draft=true pour indiquer aux pages de fetcher le bon statut (fallback si USE_DRAFT_MODE=false)
   if (status !== 'published') {

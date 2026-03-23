@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { draftMode } from 'next/headers'
 import { fetchBlogArticles } from '@/lib/blog'
 import { createStrapiClient } from '@/lib/strapi-client'
+import { Layout } from '@/components/layout'
 import { SectionGeneric } from '@/components/sections/SectionGeneric'
 import type { DynamicBlock } from '@/types/custom'
 import type { Page, PageCollectionResponse, StrapiEntity } from '@/types/strapi'
@@ -108,157 +109,159 @@ export default async function BlogPage({ params, searchParams }: Props) {
   )
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <header className="mb-10">
-        {!blogPage?.hideTitle ? (
-          <h1 className="text-3xl font-bold tracking-tight">
-            {blogPage?.title || (locale === 'fr' ? 'Blog' : 'Blog')}
-          </h1>
+    <Layout locale={locale}>
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <header className="mb-10">
+          {!blogPage?.hideTitle ? (
+            <h1 className="text-3xl font-bold tracking-tight">
+              {blogPage?.title || (locale === 'fr' ? 'Blog' : 'Blog')}
+            </h1>
+          ) : null}
+          {!blogPage ? (
+            <p className="mt-2 text-neutral-600">
+              {locale === 'fr'
+                ? 'Conseils horlogers, histoires et nouveautes de la maison.'
+                : 'Watchmaking insights, stories and latest house updates.'}
+            </p>
+          ) : null}
+        </header>
+
+        {blogSections.length > 0 ? (
+          <div className="mb-12 space-y-8">
+            {blogSections.map((section) => (
+              <SectionGeneric
+                key={section.id}
+                identifier={section.identifier}
+                title={section.hideTitle ? undefined : section.title}
+                blocks={section.blocks as DynamicBlock[]}
+                locale={locale}
+                containerWidth={normalizeContainerWidth(section.containerWidth)}
+                spacingTop={
+                  section.spacingTop as
+                    | 'none'
+                    | 'small'
+                    | 'medium'
+                    | 'large'
+                    | undefined
+                }
+                spacingBottom={
+                  section.spacingBottom as
+                    | 'none'
+                    | 'small'
+                    | 'medium'
+                    | 'large'
+                    | undefined
+                }
+              />
+            ))}
+          </div>
         ) : null}
-        {!blogPage ? (
-          <p className="mt-2 text-neutral-600">
+
+        {articles.length === 0 ? (
+          <p className="text-neutral-500">
             {locale === 'fr'
-              ? 'Conseils horlogers, histoires et nouveautes de la maison.'
-              : 'Watchmaking insights, stories and latest house updates.'}
+              ? 'Aucun article publie pour le moment.'
+              : 'No published articles yet.'}
           </p>
+        ) : (
+          <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {articles.map((article) => {
+              const image = article.coverImage
+              const imageUrl = image?.url
+                ? image.url.startsWith('http')
+                  ? image.url
+                  : `${process.env.NEXT_PUBLIC_STRAPI_URL}${image.url}`
+                : null
+              const formattedDate = formatPublicationDate(
+                article.publicationDate || article.createdAt,
+                locale
+              )
+
+              return (
+                <li key={article.id}>
+                  <Link
+                    href={`/${locale}/blog/${article.slug}`}
+                    className="group block"
+                  >
+                    <article className="h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-md">
+                      <div className="relative aspect-[4/3] w-full bg-neutral-100">
+                        {imageUrl ? (
+                          <Image
+                            src={imageUrl}
+                            alt={
+                              image?.alternativeText ||
+                              article.title ||
+                              'Blog article'
+                            }
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
+                        ) : null}
+                      </div>
+
+                      <div className="space-y-3 p-5">
+                        {formattedDate ? (
+                          <p className="text-xs uppercase tracking-wide text-neutral-500">
+                            {formattedDate}
+                          </p>
+                        ) : null}
+
+                        <h2 className="text-lg font-semibold leading-snug group-hover:underline">
+                          {article.title}
+                        </h2>
+
+                        {article.excerpt ? (
+                          <p className="line-clamp-3 text-sm text-neutral-600">
+                            {article.excerpt}
+                          </p>
+                        ) : null}
+                      </div>
+                    </article>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+
+        {(hasPreviousPage || hasNextPage) && pagination ? (
+          <nav
+            className="mt-10 flex items-center justify-between"
+            aria-label={
+              locale === 'fr' ? 'Pagination du blog' : 'Blog pagination'
+            }
+          >
+            {hasPreviousPage ? (
+              <Link
+                href={`/${locale}/blog?page=${pagination.page - 1}`}
+                className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+              >
+                {locale === 'fr' ? 'Page precedente' : 'Previous page'}
+              </Link>
+            ) : (
+              <span />
+            )}
+
+            <span className="text-sm text-neutral-500">
+              {locale === 'fr'
+                ? `Page ${pagination.page} sur ${pagination.pageCount}`
+                : `Page ${pagination.page} of ${pagination.pageCount}`}
+            </span>
+
+            {hasNextPage ? (
+              <Link
+                href={`/${locale}/blog?page=${pagination.page + 1}`}
+                className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+              >
+                {locale === 'fr' ? 'Page suivante' : 'Next page'}
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
         ) : null}
-      </header>
-
-      {blogSections.length > 0 ? (
-        <div className="mb-12 space-y-8">
-          {blogSections.map((section) => (
-            <SectionGeneric
-              key={section.id}
-              identifier={section.identifier}
-              title={section.hideTitle ? undefined : section.title}
-              blocks={section.blocks as DynamicBlock[]}
-              locale={locale}
-              containerWidth={normalizeContainerWidth(section.containerWidth)}
-              spacingTop={
-                section.spacingTop as
-                  | 'none'
-                  | 'small'
-                  | 'medium'
-                  | 'large'
-                  | undefined
-              }
-              spacingBottom={
-                section.spacingBottom as
-                  | 'none'
-                  | 'small'
-                  | 'medium'
-                  | 'large'
-                  | undefined
-              }
-            />
-          ))}
-        </div>
-      ) : null}
-
-      {articles.length === 0 ? (
-        <p className="text-neutral-500">
-          {locale === 'fr'
-            ? 'Aucun article publie pour le moment.'
-            : 'No published articles yet.'}
-        </p>
-      ) : (
-        <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article) => {
-            const image = article.coverImage
-            const imageUrl = image?.url
-              ? image.url.startsWith('http')
-                ? image.url
-                : `${process.env.NEXT_PUBLIC_STRAPI_URL}${image.url}`
-              : null
-            const formattedDate = formatPublicationDate(
-              article.publicationDate || article.createdAt,
-              locale
-            )
-
-            return (
-              <li key={article.id}>
-                <Link
-                  href={`/${locale}/blog/${article.slug}`}
-                  className="group block"
-                >
-                  <article className="h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-md">
-                    <div className="relative aspect-[4/3] w-full bg-neutral-100">
-                      {imageUrl ? (
-                        <Image
-                          src={imageUrl}
-                          alt={
-                            image?.alternativeText ||
-                            article.title ||
-                            'Blog article'
-                          }
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        />
-                      ) : null}
-                    </div>
-
-                    <div className="space-y-3 p-5">
-                      {formattedDate ? (
-                        <p className="text-xs uppercase tracking-wide text-neutral-500">
-                          {formattedDate}
-                        </p>
-                      ) : null}
-
-                      <h2 className="text-lg font-semibold leading-snug group-hover:underline">
-                        {article.title}
-                      </h2>
-
-                      {article.excerpt ? (
-                        <p className="line-clamp-3 text-sm text-neutral-600">
-                          {article.excerpt}
-                        </p>
-                      ) : null}
-                    </div>
-                  </article>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-
-      {(hasPreviousPage || hasNextPage) && pagination ? (
-        <nav
-          className="mt-10 flex items-center justify-between"
-          aria-label={
-            locale === 'fr' ? 'Pagination du blog' : 'Blog pagination'
-          }
-        >
-          {hasPreviousPage ? (
-            <Link
-              href={`/${locale}/blog?page=${pagination.page - 1}`}
-              className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-            >
-              {locale === 'fr' ? 'Page precedente' : 'Previous page'}
-            </Link>
-          ) : (
-            <span />
-          )}
-
-          <span className="text-sm text-neutral-500">
-            {locale === 'fr'
-              ? `Page ${pagination.page} sur ${pagination.pageCount}`
-              : `Page ${pagination.page} of ${pagination.pageCount}`}
-          </span>
-
-          {hasNextPage ? (
-            <Link
-              href={`/${locale}/blog?page=${pagination.page + 1}`}
-              className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-            >
-              {locale === 'fr' ? 'Page suivante' : 'Next page'}
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
-      ) : null}
-    </main>
+      </main>
+    </Layout>
   )
 }

@@ -3,8 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
-import { motion, Transition } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { LanguageSwitcher } from '@/components/locale/LanguageSwitcher'
 import { scrollToAnchor } from '@/lib/anchor'
 
@@ -27,9 +26,25 @@ export const BurgerMenu = ({
   hideLanguageSwitcher = false,
 }: BurgerMenuProps) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [langOpen, setLangOpen] = useState(false)
+  const [, setLangOpen] = useState(false)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [headerBottom, setHeaderBottom] = useState(0)
   const pathname = usePathname() ?? '/'
   const wrapperRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const updateHeaderBottom = () => {
+      const header = document.getElementById('site-header')
+      if (header) setHeaderBottom(header.getBoundingClientRect().bottom)
+    }
+    updateHeaderBottom()
+    window.addEventListener('resize', updateHeaderBottom)
+    window.addEventListener('scroll', updateHeaderBottom, { passive: true })
+    return () => {
+      window.removeEventListener('resize', updateHeaderBottom)
+      window.removeEventListener('scroll', updateHeaderBottom)
+    }
+  }, [])
 
   // Close on outside click or Escape key
   useEffect(() => {
@@ -158,20 +173,6 @@ export const BurgerMenu = ({
     }
   }
 
-  const motionTransition: Transition = langOpen
-    ? {
-        type: 'spring',
-        stiffness: 160,
-        damping: 30,
-        opacity: { duration: 0.28, delay: 0.08 },
-      }
-    : {
-        type: 'spring',
-        stiffness: 200,
-        damping: 32,
-        opacity: { duration: 0.18 },
-      }
-
   return (
     <div ref={wrapperRef} className="relative min-[850px]:hidden">
       <button
@@ -203,57 +204,71 @@ export const BurgerMenu = ({
           ></div>
           <div
             id="mobile-menu"
-            className="absolute right-0 top-22 w-64 bg-[rgba(255,241,241,0.9)] shadow-lg rounded-lg z-50 border border-gray-200"
+            className="fixed right-2 w-64 bg-white/95 backdrop-blur-sm shadow-lg rounded-lg z-50 border border-gray-200"
+            style={{ top: headerBottom + 8 }}
             role="dialog"
             aria-label="Mobile navigation menu"
           >
             <nav
-              className="flex flex-col p-4 space-y-2"
+              className="flex flex-col"
               role="navigation"
               aria-label="Mobile navigation"
             >
               {links.map((link, index) => {
                 const active = isActive(link.slug, link.isHome, link.anchor)
+                const hovered = hoveredIndex === index
                 return (
-                  <Link
-                    key={link.slug || index}
-                    href={getLocalizedHref(link.slug, link.isHome, link.anchor)}
-                    prefetch
-                    onClick={(e) => handleMenuNavClick(e, link)}
-                    aria-current={active ? 'page' : undefined}
-                    aria-label={
-                      link.anchor ? `${link.label} section` : link.label
-                    }
-                  >
-                    <Button
-                      variant={active ? 'primary' : 'secondary'}
-                      className={`w-full ${active ? '!bg-[#F88379] hover:!bg-[#F88379] !text-white' : '!bg-[rgba(250,220,163,0.6)] hover:!bg-[rgba(250,220,163,0.6)] !text-gray-800'} cursor-pointer !shadow-md hover:!shadow-lg ${active ? 'font-semibold' : ''}`}
+                  <React.Fragment key={link.slug || index}>
+                    <Link
+                      href={getLocalizedHref(
+                        link.slug,
+                        link.isHome,
+                        link.anchor
+                      )}
+                      prefetch
+                      onClick={(e) => handleMenuNavClick(e, link)}
+                      onMouseEnter={() => setHoveredIndex(index)}
+                      onMouseLeave={() => setHoveredIndex(null)}
+                      aria-current={active ? 'page' : undefined}
+                      aria-label={
+                        link.anchor ? `${link.label} section` : link.label
+                      }
+                      className={`relative flex items-center justify-center h-14 w-full overflow-hidden text-lg transition-colors ${
+                        active ? 'font-semibold text-black' : 'text-gray-700'
+                      }`}
                     >
-                      {link.label}
-                    </Button>
-                  </Link>
+                      <span className="relative z-10">{link.label}</span>
+                      <motion.span
+                        aria-hidden
+                        className="absolute inset-0 z-0 bg-[rgba(217,217,217,0.2)] origin-left"
+                        initial={{ scaleX: active || hovered ? 1 : 0 }}
+                        animate={{ scaleX: active || hovered ? 1 : 0 }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 400,
+                          damping: 30,
+                        }}
+                        style={{ transformOrigin: 'left' }}
+                      />
+                    </Link>
+                    {index < links.length - 1 && (
+                      <span
+                        aria-hidden
+                        className="mx-12 h-[1px] bg-gray-500/90"
+                      />
+                    )}
+                  </React.Fragment>
                 )
               })}
               {!hideLanguageSwitcher && (
-                <motion.div
-                  layout
-                  initial={false}
-                  animate={{ opacity: langOpen ? 1 : 0.9 }}
-                  transition={motionTransition}
-                  className={`pt-2 border-t border-gray-200 flex ${langOpen ? 'justify-start' : 'justify-center'}`}
-                >
-                  <motion.div
-                    initial={false}
-                    animate={{ x: langOpen ? -8 : 0 }}
-                    transition={motionTransition}
-                    className="inline-flex"
-                  >
-                    <LanguageSwitcher
-                      side="right"
-                      onOpenChange={(v) => setLangOpen(v)}
-                    />
-                  </motion.div>
-                </motion.div>
+                <div className="py-4 border-t border-gray-200 flex justify-center">
+                  <LanguageSwitcher
+                    side="right"
+                    dropdownDirection="right"
+                    centerOpenGroup
+                    onOpenChange={(v) => setLangOpen(v)}
+                  />
+                </div>
               )}
             </nav>
           </div>

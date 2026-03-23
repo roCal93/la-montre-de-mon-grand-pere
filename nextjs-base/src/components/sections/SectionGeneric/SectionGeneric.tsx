@@ -50,6 +50,20 @@ export const SectionGeneric = ({
       ? openingDaysFromTextMap
       : sharedOpeningDays
 
+  const sectionScopedBackgroundBlocks = (blocks || []).filter((block) => {
+    const raw = (block as { __component?: string }).__component ?? ''
+    if (raw !== 'blocks.background-block') return false
+    const scope = (block as { scope?: string }).scope ?? 'section'
+    return scope !== 'global'
+  })
+
+  const contentBlocks = (blocks || []).filter((block) => {
+    const raw = (block as { __component?: string }).__component ?? ''
+    if (raw !== 'blocks.background-block') return true
+    const scope = (block as { scope?: string }).scope ?? 'section'
+    return scope === 'global'
+  })
+
   const toPascalStatic = (s: string) =>
     s
       .split('-')
@@ -58,7 +72,7 @@ export const SectionGeneric = ({
 
   // Pre-compute the index of the first ImageBlock for LCP priority (only needed in first section)
   const firstImageBlockIndex = isFirstSection
-    ? (blocks || []).findIndex((b) => {
+    ? contentBlocks.findIndex((b) => {
         const raw = (b as { __component?: string }).__component ?? ''
         const key = raw.split('.').pop() || raw
         return toPascalStatic(key) === 'ImageBlock'
@@ -195,14 +209,29 @@ export const SectionGeneric = ({
   return (
     <section
       id={identifier}
-      className={`${getTopSpacingClass(spacingTop)} ${getBottomSpacingClass(spacingBottom)} px-4`}
+      className={`relative ${sectionScopedBackgroundBlocks.length > 0 ? 'overflow-hidden' : ''} ${getTopSpacingClass(spacingTop)} ${getBottomSpacingClass(spacingBottom)} px-4`}
     >
-      <div className={`${getContainerWidthClass(containerWidth)} mx-auto`}>
+      {sectionScopedBackgroundBlocks.map((block, index) => {
+        const SectionBackgroundBlock = TypedBlocks.BackgroundBlock as
+          | React.ComponentType<Record<string, unknown>>
+          | undefined
+
+        if (!SectionBackgroundBlock) return null
+
+        return (
+          <SectionBackgroundBlock
+            key={`section-bg-${index}`}
+            {...(block as Record<string, unknown>)}
+          />
+        )
+      })}
+
+      <div className={`relative z-10 ${getContainerWidthClass(containerWidth)} mx-auto`}>
         {title && (
           <h2 className="text-3xl font-normal mb-8 text-center">{title}</h2>
         )}
         <div className="space-y-4">
-          {blocks?.map((block, index) => renderBlock(block, index))}
+          {contentBlocks.map((block, index) => renderBlock(block, index))}
         </div>
       </div>
     </section>
