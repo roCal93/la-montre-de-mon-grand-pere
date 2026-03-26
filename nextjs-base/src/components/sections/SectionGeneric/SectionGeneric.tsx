@@ -140,7 +140,7 @@ export const SectionGeneric = ({
           <div key={index} style={{ minHeight: '300px' }}>
             <React.Suspense
               fallback={
-                <div className="h-72 bg-gray-100 animate-pulse rounded-lg" />
+                <div className="h-72 animate-pulse rounded-2xl border border-neutral-200 bg-neutral-100" />
               }
             >
               <BlockComponent {...blockProps} />
@@ -162,9 +162,9 @@ export const SectionGeneric = ({
     return (
       <div
         key={index}
-        className="p-4 border-2 border-dashed border-gray-300 rounded-lg"
+        className="rounded-2xl border-2 border-dashed border-neutral-300 p-4"
       >
-        <p className="text-gray-500 text-center">
+        <p className="text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500">
           Block: {block.__component} (placeholder - will be replaced by
           create-hakuna-app)
         </p>
@@ -226,11 +226,15 @@ export const SectionGeneric = ({
         )
       })}
 
-      <div className={`relative z-10 ${getContainerWidthClass(containerWidth)} mx-auto`}>
+      <div
+        className={`relative z-10 ${getContainerWidthClass(containerWidth)} mx-auto`}
+      >
         {title && (
-          <h2 className="text-3xl font-normal mb-8 text-center">{title}</h2>
+          <h2 className="mb-8 text-center text-[30px] font-medium leading-tight tracking-[0.01em] text-neutral-900 sm:text-[36px]">
+            {title}
+          </h2>
         )}
-        <div className="space-y-4">
+        <div className="space-y-6 sm:space-y-8">
           {contentBlocks.map((block, index) => renderBlock(block, index))}
         </div>
       </div>

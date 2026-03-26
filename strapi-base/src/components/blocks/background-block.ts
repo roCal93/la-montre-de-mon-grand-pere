@@ -38,7 +38,7 @@ export default {
         "files"
       ]
     },
-    "position": {
+    "positionMobile": {
       "type": "enumeration",
       "enum": [
         "center center",
@@ -53,7 +53,31 @@ export default {
       ],
       "default": "center center"
     },
-    "size": {
+    "positionDesktop": {
+      "type": "enumeration",
+      "enum": [
+        "center center",
+        "top center",
+        "top left",
+        "top right",
+        "bottom center",
+        "bottom left",
+        "bottom right",
+        "left center",
+        "right center"
+      ],
+      "default": "center center"
+    },
+    "sizeMobile": {
+      "type": "enumeration",
+      "enum": [
+        "cover",
+        "contain",
+        "auto"
+      ],
+      "default": "cover"
+    },
+    "sizeDesktop": {
       "type": "enumeration",
       "enum": [
         "cover",

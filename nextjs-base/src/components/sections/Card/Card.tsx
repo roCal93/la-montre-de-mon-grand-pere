@@ -42,7 +42,10 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
       switch (block.type) {
         case 'paragraph':
           return (
-            <p key={index} className="text-gray-600 mb-6 whitespace-pre-line">
+            <p
+              key={index}
+              className="mb-4 whitespace-pre-line text-[14px] leading-[1.85] text-neutral-700"
+            >
               {block.children?.map((child, childIndex) => {
                 if (child.type === 'text') {
                   return <span key={childIndex}>{child.text}</span>
@@ -56,7 +59,10 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
           const level = block.level || 3
           const HeadingTag = `h${level}` as keyof React.JSX.IntrinsicElements
           return (
-            <HeadingTag key={index} className="text-gray-600 mb-2">
+            <HeadingTag
+              key={index}
+              className="mb-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600"
+            >
               {block.children?.map((child, childIndex) => {
                 if (child.type === 'text') {
                   return <span key={childIndex}>{child.text}</span>
@@ -74,7 +80,7 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
 
   return (
     <div
-      className={`rounded-lg overflow-hidden h-full flex flex-col ${isImageOnly ? 'bg-transparent border-0 shadow-none p-0 max-w-none' : 'border shadow p-4 bg-white'}`}
+      className={`h-full overflow-hidden rounded-2xl flex flex-col ${isImageOnly ? 'bg-transparent border-0 shadow-none p-0 max-w-none' : 'border border-neutral-200 bg-white p-5 shadow-sm sm:p-6'}`}
     >
       {cleanImage &&
         (isImageOnly ? (
@@ -103,7 +109,7 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
             </div>
           )
         ) : (
-          <div className="relative w-full h-40 mb-4 flex-shrink-0">
+          <div className="relative mb-5 h-44 w-full flex-shrink-0 overflow-hidden rounded-xl bg-neutral-100">
             <Image
               src={cleanImage}
               alt={title || 'Card image'}
@@ -115,17 +121,19 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
         ))}
 
       {title && (
-        <h3 className="text-xl font-semibold whitespace-pre-line text-center">
+        <h3 className="whitespace-pre-line text-center text-[20px] font-medium leading-snug tracking-[0.01em] text-neutral-900">
           {title}
         </h3>
       )}
       {subtitle && (
-        <h4 className="text-sm text-gray-700 mt-1 whitespace-pre-line">
+        <h4 className="mt-2 whitespace-pre-line text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500">
           {subtitle}
         </h4>
       )}
       {hasVisibleContent && (
-        <div className="mt-12 flex-grow">{renderBlocks(content || [])}</div>
+        <div className="mt-6 flex-grow border-l-2 border-black pl-4">
+          {renderBlocks(content || [])}
+        </div>
       )}
     </div>
   )

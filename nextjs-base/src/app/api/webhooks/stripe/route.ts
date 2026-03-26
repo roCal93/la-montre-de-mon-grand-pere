@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { validateStripeWebhookSignature } from '@/lib/webhook-validation'
 import type Stripe from 'stripe'
 
@@ -143,6 +143,11 @@ async function decrementStockInStrapi(
       const newStock = Math.max(0, (data.stock ?? 0) - item.quantity)
       const updatePayload: Record<string, unknown> = { stock: newStock }
 
+      // When stock reaches 0, deactivate in Strapi (lifecycle hook will archive in Stripe)
+      if (newStock === 0) {
+        updatePayload.active = false
+      }
+
       await fetch(`${strapiUrl}/api/products/${item.documentId}`, {
         method: 'PUT',
         headers: {
@@ -190,6 +195,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             : []
           const locale = session.metadata?.locale ?? 'fr'
           await decrementStockInStrapi(cartItems)
+          revalidateTag('products')
+          revalidatePath(`/${locale}`, 'page')
           revalidatePath(`/${locale}/boutique`, 'page')
           for (const item of cartItems) {
             revalidatePath(`/${locale}/boutique/${item.slug}`, 'page')
@@ -211,6 +218,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const locale2 = session.metadata?.locale ?? 'fr'
         await createOrderInStrapi(session)
         await decrementStockInStrapi(cartItems)
+        revalidateTag('products')
+        revalidatePath(`/${locale2}`, 'page')
         revalidatePath(`/${locale2}/boutique`, 'page')
         for (const item of cartItems) {
           revalidatePath(`/${locale2}/boutique/${item.slug}`, 'page')

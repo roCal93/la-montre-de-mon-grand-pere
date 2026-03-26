@@ -22,6 +22,8 @@ interface StrapiProduct {
   slug: string
   price: number
   compareAtPrice: number | null
+  stock: number | null
+  active: boolean
   images: StrapiImage[] | null
   category: StrapiCategory | null
 }
@@ -36,7 +38,6 @@ async function fetchProducts(
 
   const url = new URL(`${strapiUrl}/api/products`)
   url.searchParams.set('locale', locale)
-  url.searchParams.set('filters[active][$eq]', 'true')
   if (categorySlug) {
     url.searchParams.set('filters[category][slug][$eq]', categorySlug)
   }
@@ -44,12 +45,18 @@ async function fetchProducts(
   url.searchParams.set('populate[images][fields][1]', 'alternativeText')
   url.searchParams.set('populate[category][fields][0]', 'name')
   url.searchParams.set('populate[category][fields][1]', 'slug')
+  url.searchParams.set('fields[0]', 'name')
+  url.searchParams.set('fields[1]', 'slug')
+  url.searchParams.set('fields[2]', 'price')
+  url.searchParams.set('fields[3]', 'compareAtPrice')
+  url.searchParams.set('fields[4]', 'stock')
+  url.searchParams.set('fields[5]', 'active')
   url.searchParams.set('sort', 'createdAt:desc')
   url.searchParams.set('pagination[pageSize]', String(maxItems))
 
   const res = await fetch(url.toString(), {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
-    next: { revalidate: 60 },
+    next: { tags: ['products'] },
   })
 
   if (!res.ok) return []
@@ -63,7 +70,10 @@ interface Props {
   maxItems?: number | null
   showFilters?: boolean
   // Strapi v5 flat category (may come as direct object or legacy data wrapper)
-  category?: StrapiCategory | { data?: { attributes?: { slug?: string } } | null } | null
+  category?:
+    | StrapiCategory
+    | { data?: { attributes?: { slug?: string } } | null }
+    | null
   locale?: string
 }
 
@@ -116,39 +126,60 @@ export default async function ProductListBlock({
             const img = product.images?.[0]
             const imgUrl = img ? buildImgUrl(img.url) : null
 
+            const isSoldOut =
+              !product.active || (product.stock !== null && product.stock <= 0)
+
             return (
               <li key={product.id}>
                 <Link
                   href={`/${locale}/${shopPath}/${product.slug}`}
                   className="group block"
                 >
-                  <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-neutral-100">
-                    {imgUrl && (
-                      <Image
-                        src={imgUrl}
-                        alt={img?.alternativeText ?? product.name}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      />
-                    )}
-                  </div>
-                  <div className="mt-3">
-                    <p className="text-sm font-medium group-hover:underline">
-                      {product.name}
-                    </p>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <span className="text-sm font-semibold">
-                        {formatPrice(product.price)}
-                      </span>
-                      {product.compareAtPrice &&
-                        product.compareAtPrice > product.price && (
-                          <span className="text-xs text-neutral-400 line-through">
-                            {formatPrice(product.compareAtPrice)}
+                  <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg">
+                    <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
+                      {imgUrl && (
+                        <Image
+                          src={imgUrl}
+                          alt={img?.alternativeText ?? product.name}
+                          fill
+                          className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] ${
+                            isSoldOut ? 'opacity-60' : ''
+                          }`}
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        />
+                      )}
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/[0.03] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                      {isSoldOut && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">
+                            {locale === 'fr' ? 'Vendu' : 'Sold'}
                           </span>
-                        )}
+                        </div>
+                      )}
                     </div>
-                  </div>
+
+                    <div className="space-y-2.5 p-3 sm:p-4">
+                      <p className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80">
+                        {product.name}
+                      </p>
+                      {product.category ? (
+                        <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600">
+                          {product.category.name}
+                        </p>
+                      ) : null}
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-[family-name:var(--font-geist-mono)] text-[13px] font-semibold tracking-[0.02em] text-neutral-900">
+                          {formatPrice(product.price)}
+                        </span>
+                        {product.compareAtPrice &&
+                          product.compareAtPrice > product.price && (
+                            <span className="text-[12px] text-neutral-400 line-through">
+                              {formatPrice(product.compareAtPrice)}
+                            </span>
+                          )}
+                      </div>
+                    </div>
+                  </article>
                 </Link>
               </li>
             )

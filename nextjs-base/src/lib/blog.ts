@@ -54,13 +54,36 @@ export async function fetchBlogArticles({
   isDraft = false,
   page = 1,
   pageSize = 9,
+  query,
+  includeSections = false,
 }: {
   locale: string
   isDraft?: boolean
   page?: number
   pageSize?: number
+  query?: string
+  includeSections?: boolean
 }): Promise<BlogArticleCollectionResponse> {
   const client = createClient(isDraft)
+  const normalizedQuery = query?.trim()
+  const shouldApplyApiTextFilter = normalizedQuery && !includeSections
+
+  const populate = includeSections
+    ? BLOG_ARTICLE_POPULATE_WITH_SECTIONS
+    : {
+        coverImage: {
+          fields: ['url', 'alternativeText', 'width', 'height', 'formats'],
+        },
+        categories: {
+          fields: ['name', 'slug'],
+        },
+        seoImage: {
+          fields: ['url', 'alternativeText', 'width', 'height', 'formats'],
+        },
+        localizations: {
+          fields: ['slug', 'locale'],
+        },
+      }
 
   return client.findMany<BlogArticle>('blog-articles', {
     fields: [
@@ -77,22 +100,20 @@ export async function fetchBlogArticles({
       'createdAt',
       'updatedAt',
     ],
-    populate: {
-      coverImage: {
-        fields: ['url', 'alternativeText', 'width', 'height', 'formats'],
-      },
-      categories: {
-        fields: ['name', 'slug'],
-      },
-      seoImage: {
-        fields: ['url', 'alternativeText', 'width', 'height', 'formats'],
-      },
-      localizations: {
-        fields: ['slug', 'locale'],
-      },
-    },
+    populate,
     locale,
     publicationState: isDraft ? 'preview' : 'live',
+    ...(shouldApplyApiTextFilter
+      ? {
+          filters: {
+            $or: [
+              { title: { $containsi: normalizedQuery } },
+              { excerpt: { $containsi: normalizedQuery } },
+              { authorName: { $containsi: normalizedQuery } },
+            ],
+          },
+        }
+      : {}),
     sort: ['publicationDate:desc', 'createdAt:desc'],
     pagination: {
       page,

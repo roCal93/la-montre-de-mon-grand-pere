@@ -28,6 +28,9 @@ function getAllowedOrigins() {
 }
 
 const nextConfig: NextConfig = {
+  // Force @react-pdf/renderer to be bundled (it's ESM-only and can't be externalized)
+  transpilePackages: ['@react-pdf/renderer'],
+
   images: {
     remotePatterns: [
       {

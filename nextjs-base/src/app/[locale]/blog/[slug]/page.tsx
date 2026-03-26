@@ -153,24 +153,32 @@ export default async function BlogArticlePage({ params }: Props) {
       <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         <Link
           href={`/${locale}/blog`}
-          className="mb-8 inline-flex items-center text-sm font-medium text-neutral-600 transition-colors hover:text-black"
+          className="mb-8 inline-flex items-center font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.1em] text-neutral-400 transition-colors hover:text-black"
         >
           {locale === 'fr' ? '← Retour au blog' : '← Back to blog'}
         </Link>
 
         <article>
-          <header className="mb-10 space-y-4">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <header className="mb-10 space-y-5 border-b border-neutral-200 pb-8">
+            <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
               {article.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-3 text-sm text-neutral-500">
-              {publicationDate ? <span>{publicationDate}</span> : null}
-              {article.authorName ? <span>• {article.authorName}</span> : null}
+            <div className="flex flex-wrap items-center gap-2">
+              {publicationDate ? (
+                <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500">
+                  {publicationDate}
+                </span>
+              ) : null}
+              {article.authorName ? (
+                <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500">
+                  {article.authorName}
+                </span>
+              ) : null}
               {(article.categories || []).map((category) => (
                 <span
                   key={category.id}
-                  className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700"
+                  className="border border-neutral-300 px-[10px] py-[4px] font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500"
                 >
                   {category.name}
                 </span>
@@ -178,7 +186,7 @@ export default async function BlogArticlePage({ params }: Props) {
             </div>
 
             {article.excerpt ? (
-              <p className="max-w-3xl text-lg text-neutral-600">
+              <p className="max-w-3xl border-l-2 border-black pl-4 text-[14px] leading-[1.8] text-neutral-500">
                 {article.excerpt}
               </p>
             ) : null}

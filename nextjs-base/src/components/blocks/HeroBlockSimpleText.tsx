@@ -34,9 +34,15 @@ const HeroBlockSimpleText = ({
         <div
           className={`flex flex-col ${textAlignmentClasses[textAlignment]} gap-6`}
         >
-          {title && <h1 className="text-4xl font-normal">{title}</h1>}
+          {title && (
+            <h1 className="max-w-4xl text-[30px] font-medium leading-tight tracking-[0.01em] text-neutral-900 sm:text-[38px]">
+              {title}
+            </h1>
+          )}
 
-          <p className="text-xl max-w-4xl whitespace-pre-line">{content}</p>
+          <p className="max-w-4xl text-[17px] leading-[1.85] whitespace-pre-line text-neutral-700 sm:text-[18px]">
+            {content}
+          </p>
         </div>
       </div>
     </section>

@@ -32,6 +32,7 @@ export default {
     },
     "description": {
       "type": "richtext",
+      "displayName": "Histoire",
       "pluginOptions": {
         "i18n": {
           "localized": true
@@ -82,6 +83,44 @@ export default {
     "stripePriceId": {
       "type": "string",
       "private": true
+    },
+    "reference": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "badges": {
+      "type": "json",
+      "default": []
+    },
+    "technicalSpecs": {
+      "type": "json",
+      "default": []
+    },
+    "conditionRatings": {
+      "type": "json",
+      "default": []
+    },
+    "restorationWork": {
+      "type": "json",
+      "default": []
+    },
+    "beforeImage": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "afterImage": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
     }
   }
 };

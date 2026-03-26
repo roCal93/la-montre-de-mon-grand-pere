@@ -3,6 +3,22 @@ import { getStripe } from '@/lib/stripe'
 import { toCents } from '@/lib/currency'
 import type { CartItem } from '@/types/cart'
 
+/** Strip HTML tags to get plain text (Stripe doesn't accept HTML in description) */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** Return only publicly accessible image URLs (Stripe can't reach localhost) */
+function toPublicImageUrl(url: string | null | undefined): string[] {
+  if (!url) return []
+  if (url.startsWith('http://localhost') || url.startsWith('http://127.'))
+    return []
+  return [url]
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -30,7 +46,10 @@ export async function POST(request: NextRequest) {
           unit_amount: toCents(item.price),
           product_data: {
             name: item.name,
-            ...(item.imageUrl ? { images: [item.imageUrl] } : {}),
+            ...(item.description
+              ? { description: stripHtml(item.description).slice(0, 500) }
+              : {}),
+            images: toPublicImageUrl(item.imageUrl),
             metadata: {
               strapiId: String(item.id),
               slug: item.slug,

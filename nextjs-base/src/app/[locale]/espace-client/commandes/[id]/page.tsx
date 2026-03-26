@@ -1,0 +1,256 @@
+import { auth } from '@/auth'
+import { redirect, notFound } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
+import { formatPrice } from '@/lib/currency'
+import { cleanImageUrl } from '@/lib/strapi'
+
+interface LineItem {
+  id: number
+  productName: string
+  productSlug: string
+  quantity: number
+  unitPrice: number
+  total: number
+}
+
+interface ShippingAddress {
+  firstName: string
+  lastName: string
+  address1: string
+  address2?: string
+  city: string
+  postalCode: string
+  country: string
+  phone?: string
+}
+interface ProductImage {
+  formats?: { small?: { url: string }; thumbnail?: { url: string } }
+  url: string
+}
+
+interface Product {
+  slug: string
+  images: ProductImage[]
+}
+interface Order {
+  documentId: string
+  status: string
+  createdAt: string
+  customerEmail: string
+  customerName: string
+  lineItems: LineItem[]
+  shippingAddress: ShippingAddress
+  subtotal: number
+  shippingCost: number
+  total: number
+  currency: string
+  notes?: string
+}
+
+interface StrapiSingle<T> {
+  data: T
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'En attente',
+  paid: 'Payé',
+  shipped: 'Expédié',
+  cancelled: 'Annulé',
+  refunded: 'Remboursé',
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-stone-100 text-stone-600',
+  paid: 'bg-green-100 text-green-800',
+  shipped: 'bg-blue-100 text-blue-800',
+  cancelled: 'bg-red-100 text-red-800',
+  refunded: 'bg-orange-100 text-orange-800',
+}
+
+export default async function CommandeDetailPage({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>
+}) {
+  const { locale, id } = await params
+  const session = await auth()
+  if (!session) redirect(`/${locale}/espace-client/connexion`)
+
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  const token = process.env.STRAPI_API_TOKEN
+  const res = await fetch(`${strapiUrl}/api/orders/${id}?populate=*`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) notFound()
+  const json = (await res.json()) as StrapiSingle<Order>
+  const order = json.data
+  if (!order) notFound()
+
+  // IDOR check: ensure the order belongs to this user (by email)
+  if (order.customerEmail.toLowerCase() !== session.user.email.toLowerCase()) {
+    notFound()
+  }
+
+  const addr = order.shippingAddress
+
+  const productSlugs = [
+    ...new Set(order.lineItems?.map((item) => item.productSlug) ?? []),
+  ]
+  const productImages: Record<string, string | undefined> = {}
+
+  if (productSlugs.length > 0) {
+    const slugParams = productSlugs
+      .map(
+        (slug, index) =>
+          `filters[slug][$in][${index}]=${encodeURIComponent(slug)}`
+      )
+      .join('&')
+
+    const productsRes = await fetch(
+      `${strapiUrl}/api/products?${slugParams}&populate[images]=true`,
+      { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
+    )
+
+    if (productsRes.ok) {
+      const productsJson = (await productsRes.json()) as { data: Product[] }
+      for (const p of productsJson.data ?? []) {
+        const img = p.images?.[0]
+        const rawUrl =
+          img?.formats?.small?.url ?? img?.formats?.thumbnail?.url ?? img?.url
+        productImages[p.slug] = cleanImageUrl(rawUrl)
+      }
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-2">
+        <Link
+          href={`/${locale}/espace-client/commandes`}
+          className="text-sm text-stone-500 hover:text-stone-800"
+        >
+          ← Mes commandes
+        </Link>
+      </div>
+
+      <div className="flex items-start justify-between gap-4 mt-4">
+        <div>
+          <h1 className="text-2xl font-serif font-bold text-stone-900">
+            Commande #{order.documentId.slice(-8).toUpperCase()}
+          </h1>
+          <p className="mt-1 text-sm text-stone-500">
+            {new Date(order.createdAt).toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </p>
+        </div>
+        <span
+          className={`shrink-0 inline-flex rounded-full px-3 py-1 text-sm font-medium ${STATUS_COLORS[order.status] ?? 'bg-stone-100 text-stone-600'}`}
+        >
+          {STATUS_LABELS[order.status] ?? order.status}
+        </span>
+      </div>
+
+      {/* Articles */}
+      <section className="mt-8 rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-stone-800 mb-4">
+          {(order.lineItems?.reduce((s, i) => s + i.quantity, 0) ?? 0) > 1
+            ? 'Articles'
+            : 'Article'}
+        </h2>
+        <ul className="divide-y divide-stone-100">
+          {order.lineItems?.map((item, i) => {
+            const imageUrl = productImages[item.productSlug]
+            return (
+              <li key={i} className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-stone-100">
+                    {imageUrl ? (
+                      <Image
+                        src={imageUrl}
+                        alt={item.productName}
+                        width={56}
+                        height={56}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-stone-300">
+                        ⌚
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-stone-800">
+                      {item.productName}
+                    </p>
+                    <p className="text-xs text-stone-400">× {item.quantity}</p>
+                  </div>
+                </div>
+                <p className="text-sm font-medium text-stone-900">
+                  {formatPrice(item.unitPrice * item.quantity)}
+                </p>
+              </li>
+            )
+          })}
+        </ul>
+
+        <div className="mt-4 space-y-1.5 border-t border-stone-100 pt-4">
+          <div className="flex justify-between text-sm text-stone-500">
+            <span>Sous-total</span>
+            <span>{formatPrice(order.subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-sm text-stone-500">
+            <span>Livraison</span>
+            <span>
+              {order.shippingCost === 0
+                ? 'Offerte'
+                : formatPrice(order.shippingCost)}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm font-semibold text-stone-900 pt-1.5 border-t border-stone-100">
+            <span>Total</span>
+            <span>{formatPrice(order.total)}</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Shipping address */}
+      {addr && (
+        <section className="mt-6 rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-stone-800 mb-3">
+            Adresse de livraison
+          </h2>
+          <address className="not-italic text-sm text-stone-600 leading-6">
+            <p className="font-medium text-stone-800">
+              {addr.firstName} {addr.lastName}
+            </p>
+            <p>{addr.address1}</p>
+            {addr.address2 && <p>{addr.address2}</p>}
+            <p>
+              {addr.postalCode} {addr.city}
+            </p>
+            <p>{addr.country}</p>
+          </address>
+        </section>
+      )}
+
+      {/* Invoice download */}
+      <div className="mt-6">
+        <a
+          href={`/api/invoice/${order.documentId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-5 py-2.5 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50 transition-colors"
+        >
+          ↓ Télécharger la facture (PDF)
+        </a>
+      </div>
+    </div>
+  )
+}

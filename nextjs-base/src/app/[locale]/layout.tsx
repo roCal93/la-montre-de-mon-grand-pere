@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { isSupportedLocale } from '@/lib/supported-locales'
 import { CartProvider } from '@/components/cart/CartContext'
 import { CartDrawer } from '@/components/cart/CartDrawer'
+import { AuthProvider } from '@/components/espace-client/AuthProvider'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,12 +27,14 @@ export default async function LocaleLayout({
   }
 
   return (
-    <CartProvider>
-      <CartDrawer />
-      <PageTransition>
-        <LangSetter lang={locale} />
-        {children}
-      </PageTransition>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <CartDrawer />
+        <PageTransition>
+          <LangSetter lang={locale} />
+          {children}
+        </PageTransition>
+      </CartProvider>
+    </AuthProvider>
   )
 }

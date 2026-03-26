@@ -1,18 +1,31 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { draftMode } from 'next/headers'
-import { fetchBlogArticles } from '@/lib/blog'
+import { fetchBlogArticles, type BlogArticle } from '@/lib/blog'
 import { createStrapiClient } from '@/lib/strapi-client'
+import { getPageSEO } from '@/lib/seo'
 import { Layout } from '@/components/layout'
 import { SectionGeneric } from '@/components/sections/SectionGeneric'
 import type { DynamicBlock } from '@/types/custom'
 import type { Page, PageCollectionResponse, StrapiEntity } from '@/types/strapi'
+import type { Metadata } from 'next'
 
 export const revalidate = 3600
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const { isEnabled } = await draftMode()
+
+  return (await getPageSEO('blog', isEnabled, locale)) || {}
+}
+
 interface Props {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string; q?: string }>
 }
 
 const PAGE_SIZE = 9
@@ -78,21 +91,115 @@ const formatPublicationDate = (date: string | undefined, locale: string) => {
   }
 }
 
+const normalizeSearchText = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+
+const extractAllStrings = (
+  value: unknown,
+  seen = new Set<object>()
+): string[] => {
+  if (value == null) return []
+  if (typeof value === 'string') return [value]
+  if (typeof value !== 'object') return []
+  if (seen.has(value)) return []
+
+  seen.add(value)
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => extractAllStrings(item, seen))
+  }
+
+  return Object.values(value as Record<string, unknown>).flatMap((entry) =>
+    extractAllStrings(entry, seen)
+  )
+}
+
+const articleMatchesQuery = (article: BlogArticle, query: string) => {
+  if (!query) return true
+
+  const searchableText = [
+    article.title,
+    article.excerpt,
+    article.authorName,
+    article.seoTitle,
+    ...(article.categories ?? []).map((category) => category.name),
+    ...extractAllStrings(article.sections),
+    ...extractAllStrings(article.seoDescription),
+  ]
+    .filter((value): value is string => typeof value === 'string')
+    .join(' ')
+
+  return normalizeSearchText(searchableText).includes(query)
+}
+
+type BlogPagination = {
+  page: number
+  pageSize: number
+  pageCount: number
+  total: number
+}
+
 export default async function BlogPage({ params, searchParams }: Props) {
   const { locale } = await params
-  const { page } = await searchParams
+  const { page, q } = await searchParams
   const { isEnabled } = await draftMode()
+  const query = q?.trim() ?? ''
+  const normalizedQuery = normalizeSearchText(query)
 
   const currentPage = Number(page || '1')
   const safePage =
     Number.isFinite(currentPage) && currentPage > 0 ? currentPage : 1
 
-  const articleRes = await fetchBlogArticles({
-    locale,
-    isDraft: isEnabled,
-    page: safePage,
-    pageSize: PAGE_SIZE,
-  })
+  let articles: BlogArticle[] = []
+  let pagination: BlogPagination | null = null
+
+  if (normalizedQuery) {
+    const allArticlesRes = await fetchBlogArticles({
+      locale,
+      isDraft: isEnabled,
+      page: 1,
+      pageSize: 1000,
+      includeSections: true,
+    })
+
+    const matchingArticles = allArticlesRes.data.filter((article) =>
+      articleMatchesQuery(article, normalizedQuery)
+    )
+
+    const total = matchingArticles.length
+    const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
+    const clampedPage = Math.min(safePage, pageCount)
+    const start = (clampedPage - 1) * PAGE_SIZE
+
+    articles = matchingArticles.slice(start, start + PAGE_SIZE)
+    pagination = {
+      page: clampedPage,
+      pageSize: PAGE_SIZE,
+      pageCount,
+      total,
+    }
+  } else {
+    const articleRes = await fetchBlogArticles({
+      locale,
+      isDraft: isEnabled,
+      page: safePage,
+      pageSize: PAGE_SIZE,
+    })
+
+    articles = articleRes.data
+    pagination = articleRes.meta.pagination
+      ? {
+          page: articleRes.meta.pagination.page,
+          pageSize: articleRes.meta.pagination.pageSize,
+          pageCount: articleRes.meta.pagination.pageCount,
+          total: articleRes.meta.pagination.total,
+        }
+      : null
+  }
+
   const blogPage = await fetchBlogLandingPage({
     locale,
     isDraft: isEnabled,
@@ -101,8 +208,6 @@ export default async function BlogPage({ params, searchParams }: Props) {
     (a, b) => (a.order || 0) - (b.order || 0)
   )
 
-  const articles = articleRes.data
-  const pagination = articleRes.meta.pagination
   const hasPreviousPage = Boolean(pagination && pagination.page > 1)
   const hasNextPage = Boolean(
     pagination && pagination.page < pagination.pageCount
@@ -111,14 +216,14 @@ export default async function BlogPage({ params, searchParams }: Props) {
   return (
     <Layout locale={locale}>
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <header className="mb-10">
+        <header className="mb-10 pb-6">
           {!blogPage?.hideTitle ? (
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-[23px] font-medium leading-snug">
               {blogPage?.title || (locale === 'fr' ? 'Blog' : 'Blog')}
             </h1>
           ) : null}
           {!blogPage ? (
-            <p className="mt-2 text-neutral-600">
+            <p className="mt-3 max-w-3xl border-l-2 border-black pl-4 text-[14px] leading-[1.8] text-neutral-500">
               {locale === 'fr'
                 ? 'Conseils horlogers, histoires et nouveautes de la maison.'
                 : 'Watchmaking insights, stories and latest house updates.'}
@@ -157,11 +262,37 @@ export default async function BlogPage({ params, searchParams }: Props) {
           </div>
         ) : null}
 
+        <form method="GET" className="mb-8 flex justify-center">
+          <div className="flex w-full max-w-md items-center gap-2">
+            <input
+              type="search"
+              name="q"
+              defaultValue={query}
+              placeholder={
+                locale === 'fr'
+                  ? 'Rechercher un article...'
+                  : 'Search articles...'
+              }
+              className="w-full border border-neutral-300 bg-white px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.08em] outline-none transition-colors focus:border-black"
+            />
+            <button
+              type="submit"
+              className="border border-black bg-black px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] font-medium uppercase tracking-[0.08em] text-white transition-colors hover:bg-neutral-900"
+            >
+              {locale === 'fr' ? 'Rechercher' : 'Search'}
+            </button>
+          </div>
+        </form>
+
         {articles.length === 0 ? (
           <p className="text-neutral-500">
-            {locale === 'fr'
-              ? 'Aucun article publie pour le moment.'
-              : 'No published articles yet.'}
+            {query
+              ? locale === 'fr'
+                ? 'Aucun article ne correspond a votre recherche.'
+                : 'No articles match your search.'
+              : locale === 'fr'
+                ? 'Aucun article publie pour le moment.'
+                : 'No published articles yet.'}
           </p>
         ) : (
           <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -183,8 +314,8 @@ export default async function BlogPage({ params, searchParams }: Props) {
                     href={`/${locale}/blog/${article.slug}`}
                     className="group block"
                   >
-                    <article className="h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-md">
-                      <div className="relative aspect-[4/3] w-full bg-neutral-100">
+                    <article className="h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg">
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
                         {imageUrl ? (
                           <Image
                             src={imageUrl}
@@ -194,26 +325,33 @@ export default async function BlogPage({ params, searchParams }: Props) {
                               'Blog article'
                             }
                             fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           />
                         ) : null}
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/[0.03] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                       </div>
 
-                      <div className="space-y-3 p-5">
+                      <div className="space-y-3.5 p-5">
                         {formattedDate ? (
-                          <p className="text-xs uppercase tracking-wide text-neutral-500">
+                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600">
                             {formattedDate}
                           </p>
                         ) : null}
 
-                        <h2 className="text-lg font-semibold leading-snug group-hover:underline">
+                        <h2 className="line-clamp-2 text-[18px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80">
                           {article.title}
                         </h2>
 
                         {article.excerpt ? (
-                          <p className="line-clamp-3 text-sm text-neutral-600">
+                          <p className="line-clamp-3 border-l-2 border-black pl-3 text-[14px] leading-[1.7] text-neutral-500">
                             {article.excerpt}
+                          </p>
+                        ) : null}
+
+                        {(article.categories || []).length > 0 ? (
+                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-600">
+                            {article.categories?.[0]?.name}
                           </p>
                         ) : null}
                       </div>
@@ -234,7 +372,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
           >
             {hasPreviousPage ? (
               <Link
-                href={`/${locale}/blog?page=${pagination.page - 1}`}
+                href={`/${locale}/blog?page=${pagination.page - 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
                 className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
               >
                 {locale === 'fr' ? 'Page precedente' : 'Previous page'}
@@ -251,7 +389,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
 
             {hasNextPage ? (
               <Link
-                href={`/${locale}/blog?page=${pagination.page + 1}`}
+                href={`/${locale}/blog?page=${pagination.page + 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
                 className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
               >
                 {locale === 'fr' ? 'Page suivante' : 'Next page'}

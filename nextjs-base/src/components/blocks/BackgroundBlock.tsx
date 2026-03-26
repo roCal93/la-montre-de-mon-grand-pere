@@ -10,13 +10,20 @@ type BackgroundBlockProps = {
   gradient?: string
   image?: StrapiMedia
   imageDesktop?: StrapiMedia
-  position?:
+  positionMobile?:
     | 'center center'
     | 'top center'
     | 'bottom center'
     | 'left center'
     | 'right center'
-  size?: 'cover' | 'contain' | 'auto'
+  positionDesktop?:
+    | 'center center'
+    | 'top center'
+    | 'bottom center'
+    | 'left center'
+    | 'right center'
+  sizeMobile?: 'cover' | 'contain' | 'auto'
+  sizeDesktop?: 'cover' | 'contain' | 'auto'
   repeat?: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y'
   fixed?: boolean
   overlayColor?: string
@@ -49,8 +56,10 @@ const BackgroundBlock = ({
   gradient,
   image,
   imageDesktop,
-  position = 'center center',
-  size = 'cover',
+  positionMobile = 'center center',
+  positionDesktop = 'center center',
+  sizeMobile = 'cover',
+  sizeDesktop = 'cover',
   repeat = 'no-repeat',
   fixed = false,
   overlayColor,
@@ -116,9 +125,14 @@ const BackgroundBlock = ({
   const [currentImageSrc, setCurrentImageSrc] = useState<string | undefined>(
     mobileSrc
   )
+  const [isDesktopViewport, setIsDesktopViewport] = useState(false)
   const [viewportKey, setViewportKey] = useState(0) // force re-render on viewport change
   const backgroundStyles: React.CSSProperties = {}
   const prevStylesRef = useRef<Record<string, string | null>>({})
+
+  const currentSize = isDesktopViewport && desktopSrc ? sizeDesktop : sizeMobile
+  const currentPosition =
+    isDesktopViewport && desktopSrc ? positionDesktop : positionMobile
 
   // responsive image swap
   useEffect(() => {
@@ -136,6 +150,7 @@ const BackgroundBlock = ({
     const mql = window.matchMedia('(min-width: 768px)')
     const update = () => {
       const isDesktop = mql.matches
+      setIsDesktopViewport(isDesktop)
       const newSrc = isDesktop && desktopSrc ? desktopSrc : mobileSrc
       setCurrentImageSrc(newSrc)
       setViewportKey((prev) => prev + 1) // force re-render
@@ -161,8 +176,8 @@ const BackgroundBlock = ({
 
     if (type === 'image' && currentImageSrc) {
       backgroundStyles.backgroundImage = `url(${currentImageSrc})`
-      backgroundStyles.backgroundPosition = position
-      backgroundStyles.backgroundSize = size
+      backgroundStyles.backgroundPosition = currentPosition
+      backgroundStyles.backgroundSize = currentSize
       backgroundStyles.backgroundRepeat = repeat
       // In section scope, keep background anchored to the section only.
       backgroundStyles.backgroundAttachment = 'scroll'
@@ -189,8 +204,8 @@ const BackgroundBlock = ({
       body.style.backgroundImage = gradient
     } else if (type === 'image' && currentImageSrc) {
       body.style.backgroundImage = `url(${currentImageSrc})`
-      body.style.backgroundPosition = position
-      body.style.backgroundSize = size
+      body.style.backgroundPosition = currentPosition
+      body.style.backgroundSize = currentSize
       body.style.backgroundRepeat = repeat
       body.style.backgroundAttachment = fixed ? 'fixed' : 'scroll'
     }
@@ -250,8 +265,8 @@ const BackgroundBlock = ({
     color,
     gradient,
     currentImageSrc,
-    position,
-    size,
+    currentPosition,
+    currentSize,
     repeat,
     fixed,
     overlayColor,

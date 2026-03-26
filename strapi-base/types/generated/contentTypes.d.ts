@@ -755,6 +755,10 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
     currency: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'eur'>;
+    customer: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     customerEmail: Schema.Attribute.Email & Schema.Attribute.Required;
     customerName: Schema.Attribute.String & Schema.Attribute.Required;
     lineItems: Schema.Attribute.Component<'shop.order-line-item', true> &
@@ -1009,6 +1013,10 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     active: Schema.Attribute.Boolean &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<true>;
+    afterImage: Schema.Attribute.Media<'images', true>;
+    badges: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
+    beforeImage: Schema.Attribute.Media<'images', true>;
+    brand: Schema.Attribute.String;
     category: Schema.Attribute.Relation<
       'manyToOne',
       'api::product-category.product-category'
@@ -1020,6 +1028,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
         },
         number
       >;
+    conditionRatings: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1051,6 +1060,8 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
         number
       >;
     publishedAt: Schema.Attribute.DateTime;
+    reference: Schema.Attribute.String;
+    restorationWork: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     shortDescription: Schema.Attribute.Text &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -1067,6 +1078,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       > &
       Schema.Attribute.DefaultTo<0>;
     stripePriceId: Schema.Attribute.String & Schema.Attribute.Private;
+    technicalSpecs: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1173,6 +1185,139 @@ export interface ApiSectionSection extends Struct.CollectionTypeSchema {
           localized: true;
         };
       }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiServiceRequestServiceRequest
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'service_requests';
+  info: {
+    description: 'Demandes de r\u00E9paration, nettoyage et restauration envoy\u00E9es par les clients';
+    displayName: 'Demande de service';
+    pluralName: 'service-requests';
+    singularName: 'service-request';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    admin_response: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    customer: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    description: Schema.Attribute.Text & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::service-request.service-request'
+    > &
+      Schema.Attribute.Private;
+    photos: Schema.Attribute.Media<'images', true>;
+    publishedAt: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<
+      [
+        'pending',
+        'in_progress',
+        'quote_sent',
+        'accepted',
+        'completed',
+        'cancelled',
+      ]
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    type: Schema.Attribute.Enumeration<
+      ['reparation', 'nettoyage', 'restauration', 'expertise']
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    watch_description: Schema.Attribute.String;
+  };
+}
+
+export interface ApiWatchFileWatchFile extends Struct.CollectionTypeSchema {
+  collectionName: 'watch_files';
+  info: {
+    description: "Dossier de restauration d'une montre client";
+    displayName: 'Dossier Montre';
+    pluralName: 'watch-files';
+    singularName: 'watch-file';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    customer: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::watch-file.watch-file'
+    > &
+      Schema.Attribute.Private;
+    order: Schema.Attribute.Relation<'manyToOne', 'api::order.order'>;
+    photos_after: Schema.Attribute.Media<'images', true>;
+    photos_before: Schema.Attribute.Media<'images', true>;
+    product: Schema.Attribute.Relation<'manyToOne', 'api::product.product'>;
+    publishedAt: Schema.Attribute.DateTime;
+    restoration_notes: Schema.Attribute.RichText;
+    status: Schema.Attribute.Enumeration<
+      ['waiting', 'in_progress', 'completed']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'waiting'>;
+    technician_notes: Schema.Attribute.RichText & Schema.Attribute.Private;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiWishlistItemWishlistItem
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'wishlist_items';
+  info: {
+    description: 'Produits sauvegard\u00E9s en favoris par les clients';
+    displayName: 'Favori';
+    pluralName: 'wishlist-items';
+    singularName: 'wishlist-item';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    customer: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    > &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::wishlist-item.wishlist-item'
+    > &
+      Schema.Attribute.Private;
+    product: Schema.Attribute.Relation<'manyToOne', 'api::product.product'> &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1847,6 +1992,9 @@ declare module '@strapi/strapi' {
       'api::product-category.product-category': ApiProductCategoryProductCategory;
       'api::product.product': ApiProductProduct;
       'api::section.section': ApiSectionSection;
+      'api::service-request.service-request': ApiServiceRequestServiceRequest;
+      'api::watch-file.watch-file': ApiWatchFileWatchFile;
+      'api::wishlist-item.wishlist-item': ApiWishlistItemWishlistItem;
       'api::work-category.work-category': ApiWorkCategoryWorkCategory;
       'api::work-item.work-item': ApiWorkItemWorkItem;
       'plugin::content-releases.release': PluginContentReleasesRelease;

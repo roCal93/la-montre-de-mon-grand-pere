@@ -1,91 +1,139 @@
-"use client";
+import { draftMode } from 'next/headers'
+import type { Metadata } from 'next'
+import { getPageSEO } from '@/lib/seo'
+import { createStrapiClient } from '@/lib/strapi-client'
+import { Layout } from '@/components/layout'
+import { SectionGeneric } from '@/components/sections/SectionGeneric'
+import type { DynamicBlock } from '@/types/custom'
+import type { Page, PageCollectionResponse, StrapiEntity } from '@/types/strapi'
+import PanierPageClient from './PanierPageClient'
 
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useCart } from "@/components/cart/CartContext";
-import { CartLineItem } from "@/components/cart/CartLineItem";
-import { formatPrice } from "@/lib/currency";
-import { useRouter } from "next/navigation";
+interface PanierPageProps {
+  params: Promise<{ locale: string }>
+}
 
-export default function PanierPage() {
-  const { items, subtotal } = useCart();
-  const params = useParams();
-  const locale = (params?.locale as string) ?? "fr";
-  const router = useRouter();
+const normalizeContainerWidth = (
+  width: unknown
+): 'small' | 'medium' | 'large' | 'full' => {
+  if (
+    width === 'small' ||
+    width === 'medium' ||
+    width === 'large' ||
+    width === 'full'
+  ) {
+    return width
+  }
 
-  const handleCheckout = async () => {
-    const res = await fetch("/api/checkout/session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, locale }),
-    });
-    const data = (await res.json()) as { url?: string; error?: string };
-    if (data.url) {
-      router.push(data.url);
-    }
-  };
+  return 'medium'
+}
+
+const fetchCartLandingPage = async ({
+  locale,
+  isDraft,
+}: {
+  locale: string
+  isDraft: boolean
+}): Promise<(Page & StrapiEntity) | null> => {
+  const apiToken = isDraft
+    ? process.env.STRAPI_PREVIEW_TOKEN || process.env.STRAPI_API_TOKEN
+    : process.env.STRAPI_API_TOKEN
+
+  const client = createStrapiClient({
+    apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337',
+    apiToken,
+  })
+
+  const baseQuery = {
+    fields: ['title', 'hideTitle', 'slug'],
+    populate:
+      'sections.blocks.cards.image,sections.blocks.image,sections.blocks.imageDesktop,sections.blocks.buttons.file,sections.blocks.items.images.image,sections.blocks.items.images.link,sections.blocks.examples,sections.blocks.workItems.image,sections.blocks.workItems.categories,sections.blocks.privacyPolicy,sections.blocks.markerImage,sections.blocks.openingDays,sections.blocks.category',
+    locale,
+    publicationState: isDraft ? 'preview' : 'live',
+    pagination: { page: 1, pageSize: 1 },
+  } as const
+
+  const panierRes: PageCollectionResponse = await client.findMany('pages', {
+    ...baseQuery,
+    filters: { slug: { $eq: 'panier' } },
+  })
+
+  if (panierRes.data[0]) {
+    return panierRes.data[0]
+  }
+
+  const cartRes: PageCollectionResponse = await client.findMany('pages', {
+    ...baseQuery,
+    filters: { slug: { $eq: 'cart' } },
+  })
+
+  return cartRes.data[0] || null
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const { isEnabled } = await draftMode()
+
+  const seo =
+    (await getPageSEO('panier', isEnabled, locale)) ||
+    (await getPageSEO('cart', isEnabled, locale))
+
+  return seo || {}
+}
+
+export default async function PanierPage({ params }: PanierPageProps) {
+  const { locale } = await params
+  const { isEnabled } = await draftMode()
+
+  const cartPage = await fetchCartLandingPage({
+    locale,
+    isDraft: isEnabled,
+  })
+  const cartSections = (cartPage?.sections || []).sort(
+    (a, b) => (a.order || 0) - (b.order || 0)
+  )
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-3xl font-bold tracking-tight">
-        {locale === "fr" ? "Mon panier" : "My cart"}
-      </h1>
-
-      {items.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-neutral-500 mb-6">
-            {locale === "fr" ? "Votre panier est vide." : "Your cart is empty."}
-          </p>
-          <Link
-            href={`/${locale}/boutique`}
-            className="inline-block rounded-md bg-black px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors"
-          >
-            {locale === "fr" ? "Découvrir la boutique" : "Browse the shop"}
-          </Link>
+    <Layout locale={locale}>
+      {cartSections.length > 0 ? (
+        <div className="mx-auto mb-12 mt-12 max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
+          {cartSections.map((section) => (
+            <SectionGeneric
+              key={section.id}
+              identifier={section.identifier}
+              title={section.hideTitle ? undefined : section.title}
+              blocks={section.blocks as DynamicBlock[]}
+              locale={locale}
+              containerWidth={normalizeContainerWidth(section.containerWidth)}
+              spacingTop={
+                section.spacingTop as
+                  | 'none'
+                  | 'small'
+                  | 'medium'
+                  | 'large'
+                  | undefined
+              }
+              spacingBottom={
+                section.spacingBottom as
+                  | 'none'
+                  | 'small'
+                  | 'medium'
+                  | 'large'
+                  | undefined
+              }
+            />
+          ))}
         </div>
-      ) : (
-        <div className="grid gap-8 lg:grid-cols-3">
-          <ul role="list" className="lg:col-span-2 divide-y">
-            {items.map((item) => (
-              <CartLineItem
-                key={item.id}
-                id={item.id}
-                name={item.name}
-                price={item.price}
-                imageUrl={item.imageUrl}
-                quantity={item.quantity}
-              />
-            ))}
-          </ul>
+      ) : null}
 
-          <div className="rounded-xl border p-6 self-start space-y-4">
-            <h2 className="font-semibold">
-              {locale === "fr" ? "Récapitulatif" : "Summary"}
-            </h2>
-            <div className="flex justify-between text-sm text-neutral-600">
-              <span>{locale === "fr" ? "Sous-total" : "Subtotal"}</span>
-              <span className="font-medium">{formatPrice(subtotal)}</span>
-            </div>
-            <p className="text-xs text-neutral-400">
-              {locale === "fr"
-                ? "Frais de livraison calculés à l'étape suivante."
-                : "Shipping calculated at next step."}
-            </p>
-            <button
-              onClick={handleCheckout}
-              className="w-full rounded-md bg-black py-3 text-sm font-semibold text-white hover:bg-neutral-800 active:bg-neutral-900 transition-colors"
-            >
-              {locale === "fr" ? "Passer commande" : "Proceed to checkout"}
-            </button>
-            <Link
-              href={`/${locale}/boutique`}
-              className="block text-center text-sm text-neutral-500 hover:text-black transition-colors"
-            >
-              {locale === "fr" ? "Continuer mes achats" : "Continue shopping"}
-            </Link>
-          </div>
-        </div>
-      )}
-    </main>
-  );
+      <PanierPageClient
+        locale={locale}
+        pageTitle={cartPage?.title}
+        hideTitle={Boolean(cartPage?.hideTitle)}
+      />
+    </Layout>
+  )
 }

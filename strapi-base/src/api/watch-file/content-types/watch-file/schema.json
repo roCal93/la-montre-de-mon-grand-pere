@@ -1,0 +1,60 @@
+{
+  "kind": "collectionType",
+  "collectionName": "watch_files",
+  "info": {
+    "singularName": "watch-file",
+    "pluralName": "watch-files",
+    "displayName": "Dossier Montre",
+    "description": "Dossier de restauration d'une montre client"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["waiting", "in_progress", "completed"],
+      "default": "waiting",
+      "required": true
+    },
+    "restoration_notes": {
+      "type": "richtext"
+    },
+    "technician_notes": {
+      "type": "richtext",
+      "private": true
+    },
+    "photos_before": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "photos_after": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "customer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "order": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::order.order"
+    },
+    "product": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::product.product"
+    }
+  }
+}

@@ -1,46 +1,67 @@
-"use client";
+'use client'
 
-import { useEffect, useRef } from "react";
-import { useCart } from "@/components/cart/CartContext";
-import { CartLineItem } from "@/components/cart/CartLineItem";
-import { formatPrice } from "@/lib/currency";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from 'react'
+import { useCart } from '@/components/cart/CartContext'
+import { CartLineItem } from '@/components/cart/CartLineItem'
+import { formatPrice } from '@/lib/currency'
+import { useParams, useRouter } from 'next/navigation'
 
 export function CartDrawer() {
-  const { items, subtotal, isOpen, closeCart } = useCart();
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const params = useParams();
-  const router = useRouter();
-  const locale = (params?.locale as string) ?? "fr";
+  const { items, subtotal, isOpen, closeCart } = useCart()
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const params = useParams()
+  const router = useRouter()
+  const locale = (params?.locale as string) ?? 'fr'
+  const [headerOffset, setHeaderOffset] = useState(0)
+
+  useEffect(() => {
+    const updateHeaderOffset = () => {
+      const header = document.getElementById('site-header')
+      setHeaderOffset(header?.getBoundingClientRect().height ?? 0)
+    }
+
+    updateHeaderOffset()
+    window.addEventListener('resize', updateHeaderOffset)
+
+    return () => {
+      window.removeEventListener('resize', updateHeaderOffset)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    const header = document.getElementById('site-header')
+    setHeaderOffset(header?.getBoundingClientRect().height ?? 0)
+  }, [isOpen])
 
   // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeCart();
-    };
+      if (e.key === 'Escape') closeCart()
+    }
     if (isOpen) {
-      document.addEventListener("keydown", handleKey);
-      document.body.style.overflow = "hidden";
+      document.addEventListener('keydown', handleKey)
+      document.body.style.overflow = 'hidden'
     }
     return () => {
-      document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
-    };
-  }, [isOpen, closeCart]);
+      document.removeEventListener('keydown', handleKey)
+      document.body.style.overflow = ''
+    }
+  }, [isOpen, closeCart])
 
   const handleCheckout = async () => {
-    const res = await fetch("/api/checkout/session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/api/checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items, locale }),
-    });
-    const data = (await res.json()) as { url?: string; error?: string };
+    })
+    const data = (await res.json()) as { url?: string; error?: string }
     if (data.url) {
-      router.push(data.url);
+      router.push(data.url)
     } else {
-      console.error("Checkout session error:", data.error);
+      console.error('Checkout session error:', data.error)
     }
-  };
+  }
 
   return (
     <>
@@ -49,8 +70,11 @@ export function CartDrawer() {
         ref={overlayRef}
         aria-hidden
         onClick={closeCart}
-        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 ${
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        style={{ top: `${headerOffset}px` }}
+        className={`fixed right-0 bottom-0 left-0 z-40 bg-black/40 transition-opacity duration-300 ${
+          isOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
         }`}
       />
 
@@ -59,17 +83,21 @@ export function CartDrawer() {
         role="dialog"
         aria-modal
         aria-label="Panier"
-        className={`fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-xl transition-transform duration-300 ${
-          isOpen ? "translate-x-0" : "translate-x-full"
+        style={{
+          top: `${headerOffset}px`,
+          height: `calc(100dvh - ${headerOffset}px)`,
+        }}
+        className={`fixed right-0 bottom-0 z-50 flex w-full max-w-md flex-col bg-white shadow-xl transition-transform duration-300 ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h2 className="text-lg font-semibold">
-            Panier{" "}
+            Panier{' '}
             {items.length > 0 && (
               <span className="ml-1 text-sm font-normal text-neutral-500">
-                ({items.length} {items.length === 1 ? "article" : "articles"})
+                ({items.length} {items.length === 1 ? 'article' : 'articles'})
               </span>
             )}
           </h2>
@@ -119,7 +147,9 @@ export function CartDrawer() {
         {items.length > 0 && (
           <div className="border-t px-6 py-4 space-y-4">
             <div className="flex justify-between text-sm">
-              <span className="text-neutral-600">Sous-total (hors livraison)</span>
+              <span className="text-neutral-600">
+                Sous-total (hors livraison)
+              </span>
               <span className="font-semibold">{formatPrice(subtotal)}</span>
             </div>
             <button
@@ -138,5 +168,5 @@ export function CartDrawer() {
         )}
       </aside>
     </>
-  );
+  )
 }

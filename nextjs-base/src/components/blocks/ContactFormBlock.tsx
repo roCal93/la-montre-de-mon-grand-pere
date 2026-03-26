@@ -133,7 +133,7 @@ const ContactFormBlock = ({
     <div
       className={`w-full ${blockAlignmentClasses[blockAlignment]} ${maxWidthClasses[maxWidth]} py-10 px-4`}
     >
-      <div className="w-full rounded-lg bg-white/80 p-8">
+      <div className="w-full rounded-lg p-8">
         {title && (
           <h2 className="text-2xl font-semibold text-neutral-900 mb-8 text-center">
             {title}
@@ -143,134 +143,150 @@ const ContactFormBlock = ({
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           {description && (
             <div className="md:w-1/3 shrink-0 pt-16">
-              <p className="text-neutral-700 whitespace-pre-line text-center">{description}</p>
+              <p className="text-neutral-700 whitespace-pre-line text-center">
+                {description}
+              </p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className={`space-y-8 ${description ? 'md:w-1/2' : 'w-full'}`}>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="name" className="text-sm font-medium text-neutral-800">
-                {nameLabel}
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60"
-                placeholder={namePlaceholder}
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-sm font-medium text-neutral-800">
-                {emailLabel}
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60"
-                placeholder={emailPlaceholder}
-              />
-            </div>
-          </div>
-
-          {/* Honeypot - Champ invisible pour les bots */}
-          <input
-            type="text"
-            name="website"
-            value={formData.website}
-            onChange={handleChange}
-            autoComplete="off"
-            tabIndex={-1}
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              left: '-9999px',
-              width: '1px',
-              height: '1px',
-            }}
-          />
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="message" className="text-sm font-medium text-neutral-800">
-              {messageLabel}
-            </label>
-            <textarea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              required
-              rows={5}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60 resize-vertical"
-              placeholder={messagePlaceholder}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                id="consent"
-                name="consent"
-                checked={formData.consent}
-                onChange={handleChange}
-                required
-                className="mt-1 h-4 w-4 rounded border border-neutral-300 text-neutral-900 focus:ring-neutral-900/60"
-              />
-              <label htmlFor="consent" className="text-sm text-neutral-800">
-                {consentText}{' '}
-                <button
-                  type="button"
-                  onClick={() => setIsPolicyModalOpen(true)}
-                  className="underline underline-offset-2 transition-colors hover:text-neutral-700"
+          <form
+            onSubmit={handleSubmit}
+            className={`space-y-8 ${description ? 'md:w-1/2' : 'w-full'}`}
+          >
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="name"
+                  className="text-sm font-medium text-neutral-800"
                 >
-                  {policyLinkText}
-                </button>
-                . *
-              </label>
+                  {nameLabel}
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60"
+                  placeholder={namePlaceholder}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="email"
+                  className="text-sm font-medium text-neutral-800"
+                >
+                  {emailLabel}
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60"
+                  placeholder={emailPlaceholder}
+                />
+              </div>
             </div>
 
-            {rgpdInfoText && (
-              <div className="whitespace-pre-line rounded-md border border-neutral-200 bg-neutral-50 p-4 text-xs text-neutral-700">
-                {rgpdInfoText}
+            {/* Honeypot - Champ invisible pour les bots */}
+            <input
+              type="text"
+              name="website"
+              value={formData.website}
+              onChange={handleChange}
+              autoComplete="off"
+              tabIndex={-1}
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                left: '-9999px',
+                width: '1px',
+                height: '1px',
+              }}
+            />
+
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="message"
+                className="text-sm font-medium text-neutral-800"
+              >
+                {messageLabel}
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
+                required
+                rows={5}
+                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60 resize-vertical"
+                placeholder={messagePlaceholder}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="consent"
+                  name="consent"
+                  checked={formData.consent}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 h-4 w-4 rounded border border-neutral-300 text-neutral-900 focus:ring-neutral-900/60"
+                />
+                <label htmlFor="consent" className="text-sm text-neutral-800">
+                  {consentText}{' '}
+                  <button
+                    type="button"
+                    onClick={() => setIsPolicyModalOpen(true)}
+                    className="underline underline-offset-2 transition-colors hover:text-neutral-700"
+                  >
+                    {policyLinkText}
+                  </button>
+                  . *
+                </label>
+              </div>
+
+              {rgpdInfoText && (
+                <div className="whitespace-pre-line rounded-md border border-neutral-200 bg-neutral-50 p-4 text-xs text-neutral-700">
+                  {rgpdInfoText}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col items-start gap-3">
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isSubmitting || !formData.consent}
+              >
+                {isSubmitting ? submittingText : submitButtonText}
+              </Button>
+              {!formData.consent && consentRequiredText && (
+                <p className="text-xs text-neutral-600">
+                  {consentRequiredText}
+                </p>
+              )}
+            </div>
+
+            {submitStatus === 'success' && (
+              <div className="rounded-md border border-green-200 bg-green-50 p-4">
+                <p className="text-sm text-green-800">{successMessage}</p>
               </div>
             )}
-          </div>
 
-          <div className="flex flex-col items-start gap-3">
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={isSubmitting || !formData.consent}
-            >
-              {isSubmitting ? submittingText : submitButtonText}
-            </Button>
-            {!formData.consent && consentRequiredText && (
-              <p className="text-xs text-neutral-600">{consentRequiredText}</p>
+            {submitStatus === 'error' && (
+              <div className="rounded-md border border-red-200 bg-red-50 p-4">
+                <p className="text-sm text-red-800">{errorMessage}</p>
+              </div>
             )}
-          </div>
-
-          {submitStatus === 'success' && (
-            <div className="rounded-md border border-green-200 bg-green-50 p-4">
-              <p className="text-sm text-green-800">{successMessage}</p>
-            </div>
-          )}
-
-          {submitStatus === 'error' && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-4">
-              <p className="text-sm text-red-800">{errorMessage}</p>
-            </div>
-          )}
-        </form>
+          </form>
         </div>
       </div>
 

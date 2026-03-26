@@ -8,11 +8,11 @@ type TextBlockProps = {
   maxWidth?: 'small' | 'medium' | 'large' | 'full'
 }
 
-const TextBlock = ({ 
-  content, 
+const TextBlock = ({
+  content,
   textAlignment = 'left',
   blockAlignment = 'full',
-  maxWidth = 'full'
+  maxWidth = 'full',
 }: TextBlockProps) => {
   const alignmentClasses = {
     left: 'text-left',
@@ -40,13 +40,19 @@ const TextBlock = ({
       switch (block.type) {
         case 'paragraph':
           return (
-            <p key={index} className={`text-gray-700 mb-4 ${alignmentClasses[textAlignment]}`}>
+            <p
+              key={index}
+              className={`mb-4 text-[14px] leading-[1.85] text-neutral-700 ${alignmentClasses[textAlignment]}`}
+            >
               {block.children?.map((child, childIndex) => {
                 if (child.type === 'text') {
                   let text = <span key={childIndex}>{child.text}</span>
-                  if (child.bold) text = <strong key={childIndex}>{child.text}</strong>
-                  if (child.italic) text = <em key={childIndex}>{child.text}</em>
-                  if (child.underline) text = <u key={childIndex}>{child.text}</u>
+                  if (child.bold)
+                    text = <strong key={childIndex}>{child.text}</strong>
+                  if (child.italic)
+                    text = <em key={childIndex}>{child.text}</em>
+                  if (child.underline)
+                    text = <u key={childIndex}>{child.text}</u>
                   return text
                 }
                 return null
@@ -57,15 +63,18 @@ const TextBlock = ({
           const level = block.level || 2
           const HeadingTag = `h${level}` as keyof React.JSX.IntrinsicElements
           const headingClasses = {
-            1: 'text-4xl font-bold mb-6',
-            2: 'text-3xl font-bold mb-5',
-            3: 'text-2xl font-bold mb-4',
-            4: 'text-xl font-bold mb-3',
-            5: 'text-lg font-bold mb-2',
-            6: 'text-base font-bold mb-2',
+            1: 'mb-6 text-[34px] font-medium leading-tight tracking-[0.01em] text-neutral-900',
+            2: 'mb-5 text-[30px] font-medium leading-tight tracking-[0.01em] text-neutral-900',
+            3: 'mb-4 text-[24px] font-medium leading-snug tracking-[0.01em] text-neutral-900',
+            4: 'mb-3 text-[20px] font-medium leading-snug text-neutral-900',
+            5: 'mb-2 font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.1em] text-neutral-600',
+            6: 'mb-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-600',
           }
           return (
-            <HeadingTag key={index} className={`${headingClasses[level as keyof typeof headingClasses]} ${alignmentClasses[textAlignment]}`}>
+            <HeadingTag
+              key={index}
+              className={`${headingClasses[level as keyof typeof headingClasses]} ${alignmentClasses[textAlignment]}`}
+            >
               {block.children?.map((child, childIndex) => {
                 if (child.type === 'text') {
                   return <span key={childIndex}>{child.text}</span>
@@ -76,17 +85,28 @@ const TextBlock = ({
           )
         case 'list':
           const ListTag = block.format === 'ordered' ? 'ol' : 'ul'
-          const listClass = block.format === 'ordered' ? 'list-decimal' : 'list-disc'
+          const listClass =
+            block.format === 'ordered' ? 'list-decimal' : 'list-disc'
           return (
-            <ListTag key={index} className={`${listClass} ml-6 mb-4 text-gray-700 ${alignmentClasses[textAlignment]}`}>
+            <ListTag
+              key={index}
+              className={`${listClass} mb-4 ml-6 text-[14px] leading-[1.85] text-neutral-700 ${alignmentClasses[textAlignment]}`}
+            >
               {block.children?.map((child, childIndex) => (
                 <li key={childIndex} className="mb-2">
-                  {Array.isArray(child.children) && child.children.map((grandChild: StrapiBlock, grandChildIndex: number) => {
-                    if (grandChild.type === 'text') {
-                      return <span key={grandChildIndex}>{String(grandChild.text || '')}</span>
-                    }
-                    return null
-                  })}
+                  {Array.isArray(child.children) &&
+                    child.children.map(
+                      (grandChild: StrapiBlock, grandChildIndex: number) => {
+                        if (grandChild.type === 'text') {
+                          return (
+                            <span key={grandChildIndex}>
+                              {String(grandChild.text || '')}
+                            </span>
+                          )
+                        }
+                        return null
+                      }
+                    )}
                 </li>
               ))}
             </ListTag>
@@ -98,8 +118,10 @@ const TextBlock = ({
   }
 
   return (
-    <div className={`${blockAlignmentClasses[blockAlignment]} ${maxWidthClasses[maxWidth]}`}>
-      <div className="prose max-w-none">{renderBlocks(content)}</div>
+    <div
+      className={`${blockAlignmentClasses[blockAlignment]} ${maxWidthClasses[maxWidth]}`}
+    >
+      <div className="max-w-none">{renderBlocks(content)}</div>
     </div>
   )
 }

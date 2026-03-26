@@ -37,11 +37,11 @@ const CardsBlock = ({
 
   if (overlap) {
     return (
-      <div className="flex flex-col md:flex-row items-center justify-center my-8 px-4 sm:px-8 gap-4 md:gap-0">
+      <div className="mt-8 mb-8 flex flex-col md:flex-row items-center justify-center px-4 sm:px-8 gap-4 md:gap-0">
         {cards.map((card, index) => (
           <div
             key={card.id}
-            className={`relative w-full sm:w-96 md:w-80 lg:w-96 xl:w-[28rem] flex-shrink-0 transition-all duration-300 hover:-translate-y-6 hover:scale-105 cursor-pointer ${index > 0 ? 'md:-ml-10 lg:-ml-12' : ''}`}
+            className={`relative w-full sm:w-96 md:w-80 lg:w-96 xl:w-[28rem] flex-shrink-0 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:scale-[1.01] ${index > 0 ? 'md:-ml-10 lg:-ml-12' : ''}`}
             style={{
               zIndex: index === 0 ? cards.length : cards.length - index,
             }}
@@ -60,7 +60,7 @@ const CardsBlock = ({
 
   return (
     <div
-      className={`grid ${columnClasses[columns]} ${alignmentClasses[alignment]} gap-6 my-8`}
+      className={`grid ${columnClasses[columns]} ${alignmentClasses[alignment]} gap-6 mt-12 mb-8`}
     >
       {cards.map((card) => (
         <div key={card.id} className={cardWidthClasses[columns]}>

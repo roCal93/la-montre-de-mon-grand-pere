@@ -80,6 +80,11 @@ export default {
     "locale": {
       "type": "string",
       "default": "fr"
+    },
+    "customer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
     }
   }
 };

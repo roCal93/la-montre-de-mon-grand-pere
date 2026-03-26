@@ -14,6 +14,8 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { BurgerMenu } from '@/components/ui/BurgerMenu'
 import { LanguageSwitcher } from '@/components/locale/LanguageSwitcher'
+import { CartButton } from '@/components/cart/CartButton'
+import { AccountButton } from '@/components/espace-client/AccountButton'
 import { scrollToAnchor, scrollToAnchorWithRetry } from '@/lib/anchor'
 import type { StrapiMedia, PageLink } from '@/types/strapi'
 import {
@@ -239,7 +241,9 @@ export const Header = memo(
             </Link>
 
             {!hideLanguageSwitcher && (
-              <div className="flex-none pr-6">
+              <div className="flex-none pr-6 flex items-center gap-2">
+                <AccountButton />
+                <CartButton />
                 <LanguageSwitcher />
               </div>
             )}
@@ -393,7 +397,9 @@ export const Header = memo(
           </nav>
         </div>
         {!hideLanguageSwitcher && (
-          <div className="hidden min-[850px]:block min-[850px]:ml-auto min-[850px]:mr-6">
+          <div className="hidden min-[850px]:flex min-[850px]:items-center min-[850px]:gap-2 min-[850px]:ml-auto min-[850px]:mr-6">
+            <AccountButton />
+            <CartButton />
             <LanguageSwitcher />
           </div>
         )}

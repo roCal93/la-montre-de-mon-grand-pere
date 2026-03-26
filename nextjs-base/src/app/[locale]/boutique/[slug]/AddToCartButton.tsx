@@ -12,6 +12,7 @@ interface Props {
     price: number
     imageUrl: string | null
     stock: number
+    description?: string | null
   }
 }
 
@@ -26,6 +27,7 @@ export function AddToCartButton({ product }: Props) {
       slug: product.slug,
       price: product.price,
       imageUrl: product.imageUrl,
+      description: product.description,
     })
     openCart()
   }

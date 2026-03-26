@@ -14,7 +14,21 @@ export interface BlocksBackgroundBlock extends Struct.ComponentSchema {
     imageDesktop: Schema.Attribute.Media<'images' | 'files'>;
     overlayColor: Schema.Attribute.String;
     overlayOpacity: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
-    position: Schema.Attribute.Enumeration<
+    positionDesktop: Schema.Attribute.Enumeration<
+      [
+        'center center',
+        'top center',
+        'top left',
+        'top right',
+        'bottom center',
+        'bottom left',
+        'bottom right',
+        'left center',
+        'right center',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'center center'>;
+    positionMobile: Schema.Attribute.Enumeration<
       [
         'center center',
         'top center',
@@ -34,7 +48,9 @@ export interface BlocksBackgroundBlock extends Struct.ComponentSchema {
       Schema.Attribute.DefaultTo<'no-repeat'>;
     scope: Schema.Attribute.Enumeration<['section', 'global']> &
       Schema.Attribute.DefaultTo<'section'>;
-    size: Schema.Attribute.Enumeration<['cover', 'contain', 'auto']> &
+    sizeDesktop: Schema.Attribute.Enumeration<['cover', 'contain', 'auto']> &
+      Schema.Attribute.DefaultTo<'cover'>;
+    sizeMobile: Schema.Attribute.Enumeration<['cover', 'contain', 'auto']> &
       Schema.Attribute.DefaultTo<'cover'>;
     type: Schema.Attribute.Enumeration<['color', 'image', 'gradient']> &
       Schema.Attribute.Required &

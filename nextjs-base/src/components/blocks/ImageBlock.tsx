@@ -10,11 +10,18 @@ type ImageBlockProps = {
   priority?: boolean
 }
 
-const ImageBlock = ({ image, caption, alignment, size, priority }: ImageBlockProps) => {
+const ImageBlock = ({
+  image,
+  caption,
+  alignment,
+  size,
+  priority,
+}: ImageBlockProps) => {
   const imageSrc = cleanImageUrl(image.url)
-  const finalImageSrc = imageSrc && imageSrc.startsWith('/') 
-    ? `${process.env.NEXT_PUBLIC_STRAPI_URL}${imageSrc}` 
-    : imageSrc || ''
+  const finalImageSrc =
+    imageSrc && imageSrc.startsWith('/')
+      ? `${process.env.NEXT_PUBLIC_STRAPI_URL}${imageSrc}`
+      : imageSrc || ''
 
   const alignmentClasses = {
     left: 'mr-auto',
@@ -31,20 +38,22 @@ const ImageBlock = ({ image, caption, alignment, size, priority }: ImageBlockPro
   }
 
   return (
-    <figure className={`my-6 ${alignmentClasses[alignment]} ${sizeClasses[size]}`}>
+    <figure
+      className={`my-6 ${alignmentClasses[alignment]} ${sizeClasses[size]}`}
+    >
       <Image
         src={finalImageSrc}
         alt={image.alternativeText || caption || 'Image'}
         width={image.width || 800}
         height={image.height || 600}
-        className="w-full h-auto object-cover rounded-lg"
+        className="h-auto w-full rounded-2xl border border-neutral-200 object-cover"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
         quality={85}
         priority={priority}
         fetchPriority={priority ? 'high' : undefined}
       />
       {caption && (
-        <figcaption className="text-sm text-gray-600 mt-2 text-center italic">
+        <figcaption className="mt-3 text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500">
           {caption}
         </figcaption>
       )}
