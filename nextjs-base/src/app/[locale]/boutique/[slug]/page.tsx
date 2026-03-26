@@ -60,6 +60,11 @@ async function getProduct(
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
 
+  if (!strapiUrl) {
+    console.error('[getProduct] NEXT_PUBLIC_STRAPI_URL is not configured')
+    return null
+  }
+
   const buildUrl = (includeExtendedFields: boolean) => {
     const url = new URL(`${strapiUrl}/api/products`)
     url.searchParams.set('filters[slug][$eq]', slug)
@@ -99,39 +104,55 @@ async function getProduct(
 
   const url = buildUrl(true)
 
-  const res = await fetch(url.toString(), {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    cache: 'no-store',
-  })
+  try {
+    const res = await fetch(url.toString(), {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
+    })
 
-  if (!res.ok) {
-    const body = await res.text()
-    if (res.status === 400 && body.includes('Invalid key')) {
-      const fallbackRes = await fetch(buildUrl(false).toString(), {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        cache: 'no-store',
-      })
+    if (!res.ok) {
+      const body = await res.text()
+      if (res.status === 400 && body.includes('Invalid key')) {
+        try {
+          const fallbackRes = await fetch(buildUrl(false).toString(), {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            cache: 'no-store',
+            signal: AbortSignal.timeout(8000),
+          })
 
-      if (!fallbackRes.ok) {
-        const fallbackBody = await fallbackRes.text()
-        console.error(
-          `[getProduct:fallback] Strapi ${fallbackRes.status} for slug="${slug}":`,
-          fallbackBody
-        )
-        return null
+          if (!fallbackRes.ok) {
+            const fallbackBody = await fallbackRes.text()
+            console.error(
+              `[getProduct:fallback] Strapi ${fallbackRes.status} for slug="${slug}":`,
+              fallbackBody
+            )
+            return null
+          }
+
+          const fallbackJson = (await fallbackRes.json()) as {
+            data: StrapiProduct[]
+          }
+          return fallbackJson.data?.[0] ?? null
+        } catch (fallbackError) {
+          console.error('[getProduct:fallback] fetch failed:', fallbackError)
+          return null
+        }
       }
 
-      const fallbackJson = (await fallbackRes.json()) as {
-        data: StrapiProduct[]
-      }
-      return fallbackJson.data?.[0] ?? null
+      console.error(
+        `[getProduct] Strapi ${res.status} for slug="${slug}":`,
+        body
+      )
+      return null
     }
 
-    console.error(`[getProduct] Strapi ${res.status} for slug="${slug}":`, body)
+    const json = (await res.json()) as { data: StrapiProduct[] }
+    return json.data?.[0] ?? null
+  } catch (error) {
+    console.error(`[getProduct] fetch failed for slug="${slug}":`, error)
     return null
   }
-  const json = (await res.json()) as { data: StrapiProduct[] }
-  return json.data?.[0] ?? null
 }
 
 interface Props {

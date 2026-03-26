@@ -51,18 +51,21 @@ export default function ConnexionPage({
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
+    <div className="flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-serif font-bold text-stone-900">
+          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.18em] text-neutral-500">
             Espace client
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
+            Heureux de vous revoir
           </h1>
-          <p className="mt-2 text-sm text-stone-500">
-            Connectez-vous à votre compte
+          <p className="mt-2 text-sm text-neutral-500">
+            Entrez vos identifiants pour acceder a votre compte.
           </p>
         </div>
 
-        <div className="rounded-2xl bg-white p-8 shadow-sm border border-stone-100">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
           <form
             onSubmit={handleSubmit(onSubmit)}
             noValidate
@@ -70,7 +73,7 @@ export default function ConnexionPage({
           >
             <div>
               <label
-                className="block text-sm font-medium text-stone-700 mb-1.5"
+                className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600"
                 htmlFor="email"
               >
                 Email
@@ -80,7 +83,7 @@ export default function ConnexionPage({
                 type="email"
                 autoComplete="email"
                 {...register('email')}
-                className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm focus:border-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-700"
+                className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black"
               />
               {errors.email && (
                 <p className="mt-1 text-xs text-red-600">
@@ -91,7 +94,7 @@ export default function ConnexionPage({
 
             <div>
               <label
-                className="block text-sm font-medium text-stone-700 mb-1.5"
+                className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600"
                 htmlFor="password"
               >
                 Mot de passe
@@ -101,7 +104,7 @@ export default function ConnexionPage({
                 type="password"
                 autoComplete="current-password"
                 {...register('password')}
-                className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm focus:border-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-700"
+                className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black"
               />
               {errors.password && (
                 <p className="mt-1 text-xs text-red-600">
@@ -112,7 +115,7 @@ export default function ConnexionPage({
 
             {error && (
               <p
-                className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+                className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                 role="alert"
               >
                 {error}
@@ -122,28 +125,28 @@ export default function ConnexionPage({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-lg bg-stone-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-60"
+              className="w-full border border-black bg-black px-4 py-3 font-[family-name:var(--font-geist-mono)] text-[12px] font-semibold uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? 'Connexion…' : 'Se connecter'}
             </button>
           </form>
 
-          <div className="mt-6 space-y-3 text-center text-sm text-stone-500">
+          <div className="mt-6 space-y-3 text-center text-sm text-neutral-500">
             <p>
               <Link
                 href={`/${locale}/espace-client/mot-de-passe-oublie`}
-                className="text-amber-800 hover:underline"
+                className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black"
               >
-                Mot de passe oublié ?
+                Mot de passe oublie ?
               </Link>
             </p>
             <p>
               Pas encore de compte ?{' '}
               <Link
                 href={`/${locale}/espace-client/inscription`}
-                className="text-amber-800 hover:underline"
+                className="font-semibold text-neutral-900 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-black"
               >
-                Créer un compte
+                Creer un compte
               </Link>
             </p>
           </div>

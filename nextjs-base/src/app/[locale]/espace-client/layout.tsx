@@ -1,5 +1,6 @@
 import { auth } from '@/auth'
 import { EspaceClientSidebar } from '@/components/espace-client/EspaceClientSidebar'
+import { Layout } from '@/components/layout'
 
 interface Props {
   children: React.ReactNode
@@ -13,24 +14,20 @@ export default async function EspaceClientLayout({ children, params }: Props) {
   //Auth pages (connexion, inscription, mot-de-passe-oublie) are accessible without session.
   // The middleware ensures only those pages pass through unauthenticated.
   if (!session) {
-    return <>{children}</>
+    return <Layout locale={locale}>{children}</Layout>
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <div className="flex">
-        <EspaceClientSidebar locale={locale} />
+    <div className="flex min-h-screen bg-white">
+      <EspaceClientSidebar locale={locale} />
 
-        <main className="flex-1 min-w-0 px-4 py-8 md:px-8 md:py-10 max-w-4xl">
-          <div className="mb-6 text-xs text-stone-500">
-            Connecté en tant que{' '}
-            <span className="font-medium text-stone-700">
-              {session.user.email}
-            </span>
-          </div>
-          {children}
-        </main>
-      </div>
+      <main className="flex-1 min-w-0 px-4 py-8 md:px-8 md:py-10">
+        <div className="mb-6 font-[family-name:var(--font-geist-mono)] text-[15px] uppercase tracking-[0.12em] text-neutral-400">
+          Connecté :{' '}
+          <span className="text-neutral-600">{session.user.email}</span>
+        </div>
+        {children}
+      </main>
     </div>
   )
 }

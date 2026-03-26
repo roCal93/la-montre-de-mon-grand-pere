@@ -43,20 +43,27 @@ export default async function FavorisPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-serif font-bold text-stone-900">Mes favoris</h1>
-      <p className="mt-1 text-sm text-stone-500 mb-8">
-        {items.length} montre{items.length !== 1 ? 's' : ''} sauvegardée{items.length !== 1 ? 's' : ''}
+      <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.18em] text-neutral-500">
+        Espace client
+      </p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
+        Mes favoris
+      </h1>
+      <p className="mt-1 text-sm text-neutral-500 mb-8">
+        {items.length} montre{items.length !== 1 ? 's' : ''} sauvegardée
+        {items.length !== 1 ? 's' : ''}
       </p>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-stone-200 bg-white py-16 px-6 text-center">
-          <p className="text-4xl mb-3">♥</p>
-          <p className="text-stone-500 text-sm">Aucun favori pour le moment.</p>
+        <div className="border border-dashed border-neutral-200 bg-white py-16 px-6 text-center">
+          <p className="text-neutral-500 text-sm">
+            Aucun favori pour le moment.
+          </p>
           <Link
             href={`/${locale}/boutique`}
-            className="mt-4 inline-block text-sm text-amber-800 hover:underline"
+            className="mt-4 inline-block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black"
           >
-            Découvrir la boutique →
+            Découvrir la boutique
           </Link>
         </div>
       ) : (
@@ -69,22 +76,22 @@ export default async function FavorisPage({
             return (
               <li
                 key={item.documentId}
-                className="group rounded-2xl border border-stone-100 bg-white shadow-sm overflow-hidden hover:border-amber-200 hover:shadow-md transition-all"
+                className="group border border-neutral-200 bg-white shadow-sm overflow-hidden hover:border-neutral-400 hover:shadow-md transition-all"
               >
                 <Link href={`/${locale}/boutique/${product.slug}`}>
                   <div className="relative aspect-square bg-stone-100">
                     {imgUrl ? (
                       <Image
                         src={imgUrl}
-                        alt={product.images?.[0]?.alternativeText ?? product.name}
+                        alt={
+                          product.images?.[0]?.alternativeText ?? product.name
+                        }
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                         sizes="(max-width: 640px) 100vw, 280px"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-4xl text-stone-300">
-                        ⌚
-                      </div>
+                      <div className="flex h-full items-center justify-center bg-neutral-100" />
                     )}
                     {product.stock === 0 && (
                       <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
@@ -98,18 +105,18 @@ export default async function FavorisPage({
 
                 <div className="p-4">
                   <Link href={`/${locale}/boutique/${product.slug}`}>
-                    <p className="text-sm font-semibold text-stone-900 truncate hover:text-amber-800 transition-colors">
+                    <p className="text-sm font-semibold text-neutral-900 truncate hover:text-black transition-colors">
                       {product.name}
                     </p>
                   </Link>
-                  <p className="mt-1 text-sm font-medium text-stone-700">
+                  <p className="mt-1 text-sm font-medium text-neutral-700">
                     {formatPrice(product.price)}
                   </p>
 
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <Link
                       href={`/${locale}/boutique/${product.slug}`}
-                      className="flex-1 text-center rounded-lg bg-stone-900 px-3 py-2 text-xs font-medium text-white hover:bg-stone-700 transition-colors"
+                      className="flex-1 text-center border border-black bg-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[10px] font-semibold uppercase tracking-[0.1em] text-white hover:bg-neutral-900 transition-colors"
                     >
                       Voir la montre
                     </Link>

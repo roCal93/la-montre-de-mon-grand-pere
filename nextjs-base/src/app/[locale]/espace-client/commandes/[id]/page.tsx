@@ -180,9 +180,7 @@ export default async function CommandeDetailPage({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-stone-300">
-                        ⌚
-                      </div>
+                      <div className="w-full h-full bg-neutral-100" />
                     )}
                   </div>
                   <div>

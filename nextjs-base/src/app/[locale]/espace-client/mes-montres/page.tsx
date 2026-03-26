@@ -6,7 +6,7 @@ import Link from 'next/link'
 interface WatchFile {
   documentId: string
   title: string
-  status: 'waiting' | 'in_progress' | 'completed'
+  watch_status: 'waiting' | 'in_progress' | 'completed'
   createdAt: string
   product?: { name: string }
 }
@@ -27,12 +27,6 @@ const STATUS_COLORS: Record<string, string> = {
   completed: 'bg-green-100 text-green-800',
 }
 
-const STATUS_ICONS: Record<string, string> = {
-  waiting: '⏳',
-  in_progress: '🔧',
-  completed: '✅',
-}
-
 export default async function MesMontrePage({
   params,
 }: {
@@ -51,20 +45,22 @@ export default async function MesMontrePage({
 
   return (
     <div>
-      <h1 className="text-2xl font-serif font-bold text-stone-900">
+      <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.18em] text-neutral-500">
+        Espace client
+      </p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
         Mes montres
       </h1>
-      <p className="mt-1 text-sm text-stone-500">
+      <p className="mt-1 text-sm text-neutral-500">
         Dossiers de restauration de vos montres
       </p>
 
       {watchFiles.length === 0 ? (
-        <div className="mt-12 text-center rounded-2xl border border-dashed border-stone-200 bg-white py-16 px-6">
-          <p className="text-4xl mb-3">⌚</p>
-          <p className="text-stone-500 text-sm">
+        <div className="mt-12 text-center border border-dashed border-neutral-200 bg-white py-16 px-6">
+          <p className="text-neutral-500 text-sm">
             Aucun dossier de restauration pour le moment.
           </p>
-          <p className="mt-2 text-xs text-stone-400">
+          <p className="mt-2 text-xs text-neutral-400">
             Vos dossiers apparaîtront ici dès qu&apos;un suivi sera ouvert par
             notre atelier.
           </p>
@@ -75,37 +71,34 @@ export default async function MesMontrePage({
             <li key={wf.documentId}>
               <Link
                 href={`/${locale}/espace-client/mes-montres/${wf.documentId}`}
-                className="group flex flex-col gap-3 rounded-2xl border border-stone-100 bg-white p-5 shadow-sm hover:border-amber-200 hover:shadow-md transition-all"
+                className="group flex flex-col gap-3 border border-neutral-200 bg-white p-5 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-stone-900 truncate">
+                    <p className="text-sm font-semibold text-neutral-900 truncate">
                       {wf.title}
                     </p>
                     {wf.product?.name && (
-                      <p className="text-xs text-stone-400 truncate mt-0.5">
+                      <p className="text-xs text-neutral-400 truncate mt-0.5">
                         {wf.product.name}
                       </p>
                     )}
                   </div>
-                  <span className="text-lg shrink-0">
-                    {STATUS_ICONS[wf.status]}
-                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[wf.status] ?? 'bg-stone-100 text-stone-600'}`}
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[wf.watch_status] ?? 'bg-stone-100 text-stone-600'}`}
                   >
-                    {STATUS_LABELS[wf.status] ?? wf.status}
+                    {STATUS_LABELS[wf.watch_status] ?? wf.watch_status}
                   </span>
-                  <span className="text-xs text-stone-400">
+                  <span className="text-xs text-neutral-400">
                     {new Date(wf.createdAt).toLocaleDateString('fr-FR')}
                   </span>
                 </div>
 
-                <span className="text-xs text-amber-800 group-hover:underline mt-1">
-                  Voir le dossier →
+                <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 group-hover:text-black transition-colors mt-1">
+                  Voir le dossier
                 </span>
               </Link>
             </li>

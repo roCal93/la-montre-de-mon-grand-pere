@@ -53,6 +53,11 @@ async function getProducts(locale: string): Promise<StrapiProduct[]> {
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
 
+  if (!strapiUrl) {
+    console.error('[getProducts] NEXT_PUBLIC_STRAPI_URL is not configured')
+    return []
+  }
+
   const url = new URL(`${strapiUrl}/api/products`)
   url.searchParams.set('locale', locale)
   url.searchParams.set('fields[0]', 'name')
@@ -70,14 +75,24 @@ async function getProducts(locale: string): Promise<StrapiProduct[]> {
   url.searchParams.set('sort', 'createdAt:desc')
   url.searchParams.set('pagination[pageSize]', '100')
 
-  const res = await fetch(url.toString(), {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    cache: 'no-store',
-  })
+  try {
+    const res = await fetch(url.toString(), {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
+    })
 
-  if (!res.ok) return []
-  const json = (await res.json()) as { data: StrapiProduct[] }
-  return json.data ?? []
+    if (!res.ok) {
+      console.error(`[getProducts] Strapi ${res.status} on ${url.pathname}`)
+      return []
+    }
+
+    const json = (await res.json()) as { data: StrapiProduct[] }
+    return json.data ?? []
+  } catch (error) {
+    console.error('[getProducts] fetch failed:', error)
+    return []
+  }
 }
 
 interface Props {

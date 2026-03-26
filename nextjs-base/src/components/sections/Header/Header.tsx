@@ -397,7 +397,7 @@ export const Header = memo(
           </nav>
         </div>
         {!hideLanguageSwitcher && (
-          <div className="hidden min-[850px]:flex min-[850px]:items-center min-[850px]:gap-2 min-[850px]:ml-auto min-[850px]:mr-6">
+          <div className="hidden min-[850px]:flex min-[850px]:items-center min-[850px]:gap-4 min-[850px]:ml-auto min-[850px]:mr-6">
             <AccountButton />
             <CartButton />
             <LanguageSwitcher />

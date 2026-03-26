@@ -28,8 +28,6 @@ async function createOrderInStrapi(
       }>)
     : []
 
-  const locale = session.metadata?.locale ?? 'fr'
-
   const lineItems = cartItems.map((item) => ({
     productId: String(item.id),
     productName: item.name,
@@ -45,38 +43,33 @@ async function createOrderInStrapi(
     : 0
   const total = subtotal + shippingCost
 
+  // Stripe payload can vary by API version/event context. Resolve shipping data from multiple sources.
+  const shippingName =
+    session.collected_information?.shipping_details?.name ??
+    session.shipping_details?.name ??
+    session.customer_details?.name ??
+    ''
+
+  const nameParts = shippingName.split(' ').filter(Boolean)
+  const firstName = nameParts[0] ?? 'Client'
+  const lastName = nameParts.slice(1).join(' ') || 'Stripe'
+
   const shippingDetails =
-    session.collected_information?.shipping_details?.address
-  const shippingAddress = shippingDetails
-    ? {
-        firstName:
-          session.collected_information?.shipping_details?.name?.split(
-            ' '
-          )[0] ??
-          session.customer_details?.name?.split(' ')[0] ??
-          '',
-        lastName:
-          session.collected_information?.shipping_details?.name
-            ?.split(' ')
-            .slice(1)
-            .join(' ') ??
-          session.customer_details?.name?.split(' ').slice(1).join(' ') ??
-          '',
-        address1: shippingDetails.line1 ?? '',
-        address2: shippingDetails.line2 ?? '',
-        city: shippingDetails.city ?? '',
-        postalCode: shippingDetails.postal_code ?? '',
-        country: shippingDetails.country ?? 'FR',
-        phone: session.customer_details?.phone ?? '',
-      }
-    : {
-        firstName: '',
-        lastName: '',
-        address1: '',
-        city: '',
-        postalCode: '',
-        country: 'FR',
-      }
+    session.collected_information?.shipping_details?.address ??
+    session.shipping_details?.address ??
+    session.customer_details?.address ??
+    null
+
+  const shippingAddress = {
+    firstName,
+    lastName,
+    address1: shippingDetails?.line1 || 'Adresse non fournie',
+    address2: shippingDetails?.line2 || '',
+    city: shippingDetails?.city || 'Ville inconnue',
+    postalCode: shippingDetails?.postal_code || '00000',
+    country: shippingDetails?.country || 'FR',
+    phone: session.customer_details?.phone ?? '',
+  }
 
   const orderPayload = {
     data: {
@@ -94,7 +87,6 @@ async function createOrderInStrapi(
       shippingCost,
       total,
       currency: session.currency ?? 'eur',
-      locale,
     },
   }
 
@@ -130,6 +122,8 @@ async function decrementStockInStrapi(
 
   await Promise.all(
     cartItems.map(async (item) => {
+      if (!item.documentId) return
+
       // Fetch current stock
       const getRes = await fetch(
         `${strapiUrl}/api/products/${item.documentId}?fields[0]=stock&fields[1]=active`,

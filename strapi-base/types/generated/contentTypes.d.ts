@@ -1269,22 +1269,29 @@ export interface ApiWatchFileWatchFile extends Struct.CollectionTypeSchema {
       'api::watch-file.watch-file'
     > &
       Schema.Attribute.Private;
-    order: Schema.Attribute.Relation<'manyToOne', 'api::order.order'>;
+    order: Schema.Attribute.Relation<'manyToOne', 'api::order.order'> &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: false;
+        };
+      }>;
     photos_after: Schema.Attribute.Media<'images', true>;
     photos_before: Schema.Attribute.Media<'images', true>;
     product: Schema.Attribute.Relation<'manyToOne', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
     restoration_notes: Schema.Attribute.RichText;
-    status: Schema.Attribute.Enumeration<
+    technician_notes: Schema.Attribute.RichText & Schema.Attribute.Private;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Dossier montre'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    watch_status: Schema.Attribute.Enumeration<
       ['waiting', 'in_progress', 'completed']
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'waiting'>;
-    technician_notes: Schema.Attribute.RichText & Schema.Attribute.Private;
-    title: Schema.Attribute.String & Schema.Attribute.Required;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
   };
 }
 

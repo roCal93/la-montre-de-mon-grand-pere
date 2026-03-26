@@ -29,15 +29,13 @@ export function AccountButton() {
         strokeWidth={1.75}
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-5 w-5"
+        className="h-6 w-6"
         aria-hidden
       >
         <circle cx="12" cy="8" r="4" />
         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
       </svg>
-      {session && (
-        <span className="sr-only">Mon espace client</span>
-      )}
+      {session && <span className="sr-only">Mon espace client</span>}
     </Link>
   )
 }

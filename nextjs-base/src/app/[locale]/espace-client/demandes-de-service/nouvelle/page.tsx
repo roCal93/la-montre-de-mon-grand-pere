@@ -10,16 +10,34 @@ import { z } from 'zod'
 const schema = z.object({
   type: z.enum(['reparation', 'nettoyage', 'restauration', 'expertise']),
   watch_description: z.string().optional(),
-  description: z.string().min(10, 'Décrivez votre demande (minimum 10 caractères)'),
+  description: z
+    .string()
+    .min(10, 'Décrivez votre demande (minimum 10 caractères)'),
 })
 
 type FormData = z.infer<typeof schema>
 
 const TYPE_OPTIONS = [
-  { value: 'reparation', label: '🔨 Réparation', desc: "Remise en marche d'une montre en panne" },
-  { value: 'nettoyage', label: '✨ Nettoyage', desc: 'Nettoyage et révision du mécanisme' },
-  { value: 'restauration', label: '⌚ Restauration', desc: 'Restauration esthétique complète' },
-  { value: 'expertise', label: '🔍 Expertise', desc: 'Estimation et authentification' },
+  {
+    value: 'reparation',
+    label: 'Réparation',
+    desc: "Remise en marche d'une montre en panne",
+  },
+  {
+    value: 'nettoyage',
+    label: 'Nettoyage',
+    desc: 'Nettoyage et révision du mécanisme',
+  },
+  {
+    value: 'restauration',
+    label: 'Restauration',
+    desc: 'Restauration esthétique complète',
+  },
+  {
+    value: 'expertise',
+    label: 'Expertise',
+    desc: 'Estimation et authentification',
+  },
 ]
 
 export default function NouvelleDemandeServicePage({
@@ -73,13 +91,20 @@ export default function NouvelleDemandeServicePage({
         </Link>
       </div>
 
-      <h1 className="text-2xl font-serif font-bold text-stone-900">Nouvelle demande de service</h1>
+      <h1 className="text-2xl font-serif font-bold text-stone-900">
+        Nouvelle demande de service
+      </h1>
       <p className="mt-1 text-sm text-stone-500 mb-8">
-        Décrivez votre montre et votre besoin, nous reviendrons vers vous avec un devis.
+        Décrivez votre montre et votre besoin, nous reviendrons vers vous avec
+        un devis.
       </p>
 
       <div className="rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          className="space-y-6"
+        >
           {/* Type de service */}
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-3">
@@ -102,7 +127,9 @@ export default function NouvelleDemandeServicePage({
                     {...register('type')}
                     className="sr-only"
                   />
-                  <span className="text-sm font-medium text-stone-900">{opt.label}</span>
+                  <span className="text-sm font-medium text-stone-900">
+                    {opt.label}
+                  </span>
                   <span className="text-xs text-stone-500">{opt.desc}</span>
                 </label>
               ))}
@@ -143,12 +170,17 @@ export default function NouvelleDemandeServicePage({
               className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm focus:border-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-700 resize-none"
             />
             {errors.description && (
-              <p className="mt-1 text-xs text-red-600">{errors.description.message}</p>
+              <p className="mt-1 text-xs text-red-600">
+                {errors.description.message}
+              </p>
             )}
           </div>
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+            <p
+              className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+              role="alert"
+            >
               {error}
             </p>
           )}

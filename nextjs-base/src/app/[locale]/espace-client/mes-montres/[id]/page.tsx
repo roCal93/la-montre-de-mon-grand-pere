@@ -15,7 +15,7 @@ interface MediaFile {
 interface WatchFile {
   documentId: string
   title: string
-  status: 'waiting' | 'in_progress' | 'completed'
+  watch_status: 'waiting' | 'in_progress' | 'completed'
   restoration_notes?: string
   createdAt: string
   updatedAt: string
@@ -70,7 +70,7 @@ export default async function WatchFileDetailPage({
   const watchFile = data?.data
   if (!watchFile || error) notFound()
 
-  const currentStep = statusIndex(watchFile.status)
+  const currentStep = statusIndex(watchFile.watch_status)
   const beforePhotos = watchFile.photos_before ?? []
   const afterPhotos = watchFile.photos_after ?? []
 
@@ -97,9 +97,9 @@ export default async function WatchFileDetailPage({
           )}
         </div>
         <span
-          className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${STATUS_COLORS[watchFile.status] ?? 'bg-stone-100 text-stone-600'}`}
+          className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${STATUS_COLORS[watchFile.watch_status] ?? 'bg-stone-100 text-stone-600'}`}
         >
-          {STATUS_LABELS[watchFile.status] ?? watchFile.status}
+          {STATUS_LABELS[watchFile.watch_status] ?? watchFile.watch_status}
         </span>
       </div>
 
@@ -222,7 +222,7 @@ export default async function WatchFileDetailPage({
             href={`/${locale}/espace-client/commandes/${watchFile.order.documentId}`}
             className="text-sm text-amber-800 hover:underline"
           >
-            Commande #{watchFile.order.documentId.slice(-8).toUpperCase()} →
+            Commande #{watchFile.order.documentId.slice(-8).toUpperCase()}
           </Link>
         </section>
       )}

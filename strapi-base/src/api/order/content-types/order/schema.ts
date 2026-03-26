@@ -77,10 +77,6 @@ export default {
     "notes": {
       "type": "text"
     },
-    "locale": {
-      "type": "string",
-      "default": "fr"
-    },
     "customer": {
       "type": "relation",
       "relation": "manyToOne",

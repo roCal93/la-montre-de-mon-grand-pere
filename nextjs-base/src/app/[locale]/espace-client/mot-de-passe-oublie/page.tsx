@@ -47,23 +47,24 @@ export default function MotDePasseOubliePage({
 
   if (sent) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
-          <div className="rounded-2xl bg-white p-10 shadow-sm border border-stone-100">
-            <div className="text-4xl mb-4">✉️</div>
-            <h2 className="text-xl font-serif font-bold text-stone-900 mb-2">
+      <div className="flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-10 text-center shadow-sm">
+            <h2 className="text-2xl font-semibold tracking-[0.01em] text-neutral-900">
               Email envoyé !
             </h2>
-            <p className="text-sm text-stone-500 mb-6">
+            <p className="mt-3 text-sm text-neutral-500">
               Si un compte existe pour cet email, vous recevrez un lien de
               réinitialisation.
             </p>
-            <Link
-              href={`/${locale}/espace-client/connexion`}
-              className="text-sm text-amber-800 hover:underline"
-            >
-              ← Retour à la connexion
-            </Link>
+            <div className="mt-8">
+              <Link
+                href={`/${locale}/espace-client/connexion`}
+                className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black"
+              >
+                ← Retour à la connexion
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -71,18 +72,21 @@ export default function MotDePasseOubliePage({
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
+    <div className="flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-serif font-bold text-stone-900">
+          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.18em] text-neutral-500">
+            Espace client
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
             Mot de passe oublié
           </h1>
-          <p className="mt-2 text-sm text-stone-500">
+          <p className="mt-2 text-sm text-neutral-500">
             Entrez votre email pour recevoir un lien de réinitialisation.
           </p>
         </div>
 
-        <div className="rounded-2xl bg-white p-8 shadow-sm border border-stone-100">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
           <form
             onSubmit={handleSubmit(onSubmit)}
             noValidate
@@ -90,7 +94,7 @@ export default function MotDePasseOubliePage({
           >
             <div>
               <label
-                className="block text-sm font-medium text-stone-700 mb-1.5"
+                className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600"
                 htmlFor="email"
               >
                 Email
@@ -100,7 +104,7 @@ export default function MotDePasseOubliePage({
                 type="email"
                 autoComplete="email"
                 {...register('email')}
-                className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm focus:border-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-700"
+                className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black"
               />
               {errors.email && (
                 <p className="mt-1 text-xs text-red-600">
@@ -111,7 +115,7 @@ export default function MotDePasseOubliePage({
 
             {error && (
               <p
-                className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+                className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                 role="alert"
               >
                 {error}
@@ -121,16 +125,16 @@ export default function MotDePasseOubliePage({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-lg bg-stone-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-60"
+              className="w-full border border-black bg-black px-4 py-3 font-[family-name:var(--font-geist-mono)] text-[12px] font-semibold uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? 'Envoi…' : 'Envoyer le lien'}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-stone-500">
+          <p className="mt-6 text-center">
             <Link
               href={`/${locale}/espace-client/connexion`}
-              className="text-amber-800 hover:underline"
+              className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black"
             >
               ← Retour à la connexion
             </Link>
