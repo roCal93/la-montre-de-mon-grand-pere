@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { StrapiMedia } from '@/types/strapi'
 import { cleanImageUrl } from '@/lib/strapi'
 
@@ -127,6 +128,7 @@ const BackgroundBlock = ({
   )
   const [isDesktopViewport, setIsDesktopViewport] = useState(false)
   const [viewportKey, setViewportKey] = useState(0) // force re-render on viewport change
+  const [mounted, setMounted] = useState(false)
   const backgroundStyles: React.CSSProperties = {}
   const prevStylesRef = useRef<Record<string, string | null>>({})
 
@@ -210,15 +212,6 @@ const BackgroundBlock = ({
       body.style.backgroundAttachment = fixed ? 'fixed' : 'scroll'
     }
 
-    if (overlayColor && overlayOpacity) {
-      const overlay = hexToRgba(overlayColor, overlayOpacity)
-      if (body.style.backgroundImage && body.style.backgroundImage !== 'none') {
-        body.style.backgroundImage = `linear-gradient(${overlay}, ${overlay}), ${body.style.backgroundImage}`
-      } else if (type === 'color') {
-        body.style.backgroundImage = `linear-gradient(${overlay}, ${overlay})`
-      }
-    }
-
     body.classList.add('hakuna-background-applied')
     // expose current image for debugging
     if (typeof currentImageSrc !== 'undefined') {
@@ -269,11 +262,31 @@ const BackgroundBlock = ({
     currentSize,
     repeat,
     fixed,
-    overlayColor,
-    overlayOpacity,
   ])
 
-  if (scope === 'global') return null
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (scope === 'global') {
+    if (overlayColor && overlayOpacity && mounted) {
+      return createPortal(
+        <div
+          aria-hidden
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 5,
+            pointerEvents: 'none',
+            background: overlayColor,
+            opacity: overlayOpacity,
+          }}
+        />,
+        document.body
+      )
+    }
+    return null
+  }
 
   return (
     <>

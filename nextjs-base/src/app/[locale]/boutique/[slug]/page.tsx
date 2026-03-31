@@ -362,7 +362,7 @@ export default async function ProductPage({ params }: Props) {
           <div className="mt-8">
             <SectionLabel>
               {locale === 'fr'
-                ? 'Avant / Après restauration'
+                ? 'Avant / Après réparation'
                 : 'Before / After restoration'}
             </SectionLabel>
             <BeforeAfterSlider pairs={beforeAfterPairs} locale={locale} />
@@ -422,11 +422,11 @@ export default async function ProductPage({ params }: Props) {
           </div>
         )}
 
-        {/* ── Travaux de restauration ── */}
+        {/* ── Travaux de réparation ── */}
         {hasRestoration && (
           <div className="mt-8">
             <SectionLabel>
-              {locale === 'fr' ? 'Travaux de restauration' : 'Restoration work'}
+              {locale === 'fr' ? 'Travaux de réparation' : 'Repair work'}
             </SectionLabel>
             <div className="border border-neutral-200 p-5">
               <p className="mb-4 font-[family-name:var(--font-geist-mono)] text-[12px] text-neutral-400">
@@ -462,26 +462,60 @@ export default async function ProductPage({ params }: Props) {
         {/* ── Footer strip ── */}
         <div className="mt-12 grid grid-cols-4 divide-x divide-neutral-200 border-t border-neutral-200 pt-6">
           {[
-            { val: '12 mois', key: locale === 'fr' ? 'Garantie' : 'Warranty' },
-            { val: '48 h', key: locale === 'fr' ? 'Expédition' : 'Shipping' },
-            { val: '14 jours', key: locale === 'fr' ? 'Retour' : 'Return' },
+            {
+              val: '12 mois',
+              key: locale === 'fr' ? 'Garantie' : 'Warranty',
+              href: `/${locale}/garantie`,
+            },
+            {
+              val: '48 h',
+              key: locale === 'fr' ? 'Expédition' : 'Shipping',
+              href: `/${locale}/livraison`,
+            },
+            {
+              val: '14 jours',
+              key: locale === 'fr' ? 'Retour' : 'Return',
+              href: `/${locale}/livraison`,
+            },
             {
               val: locale === 'fr' ? 'Sécurisé' : 'Secure',
               key: locale === 'fr' ? 'Paiement' : 'Payment',
+              href:
+                locale === 'fr'
+                  ? 'https://stripe.com/fr/security'
+                  : 'https://stripe.com/security',
             },
-          ].map(({ val, key }) => (
-            <div
-              key={key}
-              className="flex flex-col items-center gap-1 px-2 text-center"
-            >
-              <span className="font-[family-name:var(--font-geist-mono)] text-[14px] font-medium">
-                {val}
-              </span>
-              <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400">
-                {key}
-              </span>
-            </div>
-          ))}
+          ].map(({ val, key, href }) =>
+            href ? (
+              <Link
+                key={key}
+                href={href}
+                {...(href.startsWith('http')
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
+                className="flex flex-col items-center gap-1 px-2 text-center transition-opacity hover:opacity-60"
+              >
+                <span className="font-[family-name:var(--font-geist-mono)] text-[14px] font-medium">
+                  {val}
+                </span>
+                <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400">
+                  {key}
+                </span>
+              </Link>
+            ) : (
+              <div
+                key={key}
+                className="flex flex-col items-center gap-1 px-2 text-center"
+              >
+                <span className="font-[family-name:var(--font-geist-mono)] text-[14px] font-medium">
+                  {val}
+                </span>
+                <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400">
+                  {key}
+                </span>
+              </div>
+            )
+          )}
         </div>
       </main>
     </Layout>

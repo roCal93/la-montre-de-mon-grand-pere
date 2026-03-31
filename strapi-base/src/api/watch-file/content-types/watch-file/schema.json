@@ -17,14 +17,7 @@
       "default": "Dossier montre",
       "required": true
     },
-    "watch_status": {
-      "type": "enumeration",
-      "columnName": "status",
-      "enum": ["waiting", "in_progress", "completed"],
-      "default": "waiting",
-      "required": true
-    },
-    "restoration_notes": {
+    "repair_notes": {
       "type": "richtext"
     },
     "technician_notes": {

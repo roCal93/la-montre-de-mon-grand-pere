@@ -6,25 +6,12 @@ import Link from 'next/link'
 interface WatchFile {
   documentId: string
   title: string
-  watch_status: 'waiting' | 'in_progress' | 'completed'
   createdAt: string
   product?: { name: string }
 }
 
 interface StrapiList<T> {
   data: T[]
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  waiting: 'En attente',
-  in_progress: 'En cours',
-  completed: 'Terminé',
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  waiting: 'bg-amber-100 text-amber-800',
-  in_progress: 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800',
 }
 
 export default async function MesMontrePage({
@@ -52,13 +39,13 @@ export default async function MesMontrePage({
         Mes montres
       </h1>
       <p className="mt-1 text-sm text-neutral-500">
-        Dossiers de restauration de vos montres
+        Dossiers de réparation de vos montres
       </p>
 
       {watchFiles.length === 0 ? (
         <div className="mt-12 text-center border border-dashed border-neutral-200 bg-white py-16 px-6">
           <p className="text-neutral-500 text-sm">
-            Aucun dossier de restauration pour le moment.
+            Aucun dossier de réparation pour le moment.
           </p>
           <p className="mt-2 text-xs text-neutral-400">
             Vos dossiers apparaîtront ici dès qu&apos;un suivi sera ouvert par
@@ -76,22 +63,15 @@ export default async function MesMontrePage({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-neutral-900 truncate">
+                      {wf.product?.name ?? wf.title}
+                    </p>
+                    <p className="text-xs text-neutral-400 truncate mt-0.5">
                       {wf.title}
                     </p>
-                    {wf.product?.name && (
-                      <p className="text-xs text-neutral-400 truncate mt-0.5">
-                        {wf.product.name}
-                      </p>
-                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[wf.watch_status] ?? 'bg-stone-100 text-stone-600'}`}
-                  >
-                    {STATUS_LABELS[wf.watch_status] ?? wf.watch_status}
-                  </span>
+                <div className="flex items-center justify-end">
                   <span className="text-xs text-neutral-400">
                     {new Date(wf.createdAt).toLocaleDateString('fr-FR')}
                   </span>

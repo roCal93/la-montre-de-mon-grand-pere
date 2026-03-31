@@ -15,11 +15,13 @@ export const Footer = ({
   const isEn = locale === 'en'
   const privacyLabel = isEn ? 'Privacy Policy' : 'Politique de confidentialité'
   const legalLabel = isEn ? 'Legal Notice' : 'Mentions légales'
+  const shippingLabel = isEn ? 'Shipping' : 'Livraison'
+  const warrantyLabel = isEn ? 'Warranty' : 'Garantie'
   const rightsLabel = isEn ? 'All rights reserved.' : 'Tous droits réservés.'
   const madeWithLabel = isEn ? 'Made with passion by' : 'Fait avec passion par'
 
   return (
-    <footer className="backdrop-blur-sm bg-white/10 border-t border-gray-200 text-gray-700 py-8 text-center">
+    <footer className="relative z-10 -mt-12 backdrop-blur-sm bg-white/10 border-t border-gray-200 text-gray-700 py-8 text-center">
       <div className="space-y-3">
         <p className="text-sm">
           {siteName} © {currentYear}. {rightsLabel}
@@ -39,6 +41,24 @@ export const Footer = ({
             className="text-gray-500 hover:text-gray-900 hover:underline"
           >
             {legalLabel}
+          </Link>
+          <span aria-hidden="true" className="text-gray-400">
+            •
+          </span>
+          <Link
+            href={`/${locale}/livraison`}
+            className="text-gray-500 hover:text-gray-900 hover:underline"
+          >
+            {shippingLabel}
+          </Link>
+          <span aria-hidden="true" className="text-gray-400">
+            •
+          </span>
+          <Link
+            href={`/${locale}/garantie`}
+            className="text-gray-500 hover:text-gray-900 hover:underline"
+          >
+            {warrantyLabel}
           </Link>
         </div>
         <p className="text-sm text-gray-500">

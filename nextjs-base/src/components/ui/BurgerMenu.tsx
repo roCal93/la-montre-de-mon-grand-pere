@@ -264,7 +264,7 @@ export const BurgerMenu = ({
               })}
               {!hideLanguageSwitcher && (
                 <div className="py-4 border-t border-gray-200 flex justify-center">
-                  <div className="flex items-center justify-center gap-6">
+                  <div className="flex items-center justify-center gap-10">
                     <AccountButton />
                     <LanguageSwitcher
                       side="right"

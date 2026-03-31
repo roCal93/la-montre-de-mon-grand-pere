@@ -1,10 +1,22 @@
 import { auth } from '@/auth'
 import { EspaceClientSidebar } from '@/components/espace-client/EspaceClientSidebar'
 import { Layout } from '@/components/layout'
+import type { Metadata } from 'next'
 
 interface Props {
   children: React.ReactNode
   params: Promise<{ locale: string }>
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return {
+    title: locale === 'fr' ? 'Espace client' : 'Customer area',
+  }
 }
 
 export default async function EspaceClientLayout({ children, params }: Props) {

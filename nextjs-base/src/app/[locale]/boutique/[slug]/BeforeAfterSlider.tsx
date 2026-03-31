@@ -23,8 +23,8 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
 
   if (!activePair) return null
 
-  const beforeAlt = activePair.beforeAlt ?? 'Avant restauration'
-  const afterAlt = activePair.afterAlt ?? 'Après restauration'
+  const beforeAlt = activePair.beforeAlt ?? 'Avant réparation'
+  const afterAlt = activePair.afterAlt ?? 'Après réparation'
 
   const setPos = (clientX: number) => {
     const rect = wrapRef.current?.getBoundingClientRect()

@@ -77,25 +77,23 @@ export function WishlistButton({
       aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
       title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
       className={[
-        'flex items-center justify-center rounded-full border-2 h-11 w-11 text-lg transition-colors disabled:opacity-50',
-        isFavorite
-          ? 'border-red-400 text-red-500 bg-red-50'
-          : 'border-stone-200 text-stone-400 bg-white hover:border-red-300 hover:text-red-400',
+        'flex items-center justify-center transition-opacity disabled:opacity-50',
+        isFavorite ? 'text-stone-900' : 'text-stone-300 hover:text-stone-700',
         className,
       ].join(' ')}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        fill={isFavorite ? 'currentColor' : 'none'}
-        stroke="currentColor"
+        fill={isFavorite ? '#9ca3af' : 'none'}
+        stroke={isFavorite ? '#111827' : 'currentColor'}
         strokeWidth={1.5}
-        className="h-4 w-4"
+        className="h-8 w-8"
       >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+          d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
         />
       </svg>
     </button>

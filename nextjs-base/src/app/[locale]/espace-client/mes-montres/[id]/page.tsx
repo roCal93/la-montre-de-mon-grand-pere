@@ -15,8 +15,7 @@ interface MediaFile {
 interface WatchFile {
   documentId: string
   title: string
-  watch_status: 'waiting' | 'in_progress' | 'completed'
-  restoration_notes?: string
+  repair_notes?: string
   createdAt: string
   updatedAt: string
   photos_before?: MediaFile[]
@@ -28,29 +27,6 @@ interface WatchFile {
 
 interface StrapiSingle<T> {
   data: T
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  waiting: 'En attente',
-  in_progress: 'En cours de restauration',
-  completed: 'Restauration terminée',
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  waiting: 'bg-amber-100 text-amber-800',
-  in_progress: 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800',
-}
-
-const TIMELINE_STEPS = [
-  { key: 'waiting', label: 'Dossier ouvert' },
-  { key: 'in_progress', label: 'En cours de restauration' },
-  { key: 'completed', label: 'Restauration terminée' },
-]
-
-function statusIndex(status: string): number {
-  const idx = TIMELINE_STEPS.findIndex((s) => s.key === status)
-  return idx === -1 ? 0 : idx
 }
 
 export default async function WatchFileDetailPage({
@@ -70,7 +46,6 @@ export default async function WatchFileDetailPage({
   const watchFile = data?.data
   if (!watchFile || error) notFound()
 
-  const currentStep = statusIndex(watchFile.watch_status)
   const beforePhotos = watchFile.photos_before ?? []
   const afterPhotos = watchFile.photos_after ?? []
 
@@ -85,64 +60,22 @@ export default async function WatchFileDetailPage({
         </Link>
       </div>
 
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-serif font-bold text-stone-900">
-            {watchFile.title}
-          </h1>
-          {watchFile.product?.name && (
-            <p className="mt-1 text-sm text-stone-500">
-              {watchFile.product.name}
-            </p>
-          )}
-        </div>
-        <span
-          className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${STATUS_COLORS[watchFile.watch_status] ?? 'bg-stone-100 text-stone-600'}`}
-        >
-          {STATUS_LABELS[watchFile.watch_status] ?? watchFile.watch_status}
-        </span>
+      <div>
+        <h1 className="text-2xl font-serif font-bold text-stone-900">
+          {watchFile.product?.name ?? watchFile.title}
+        </h1>
+        <p className="mt-1 text-sm text-stone-500">{watchFile.title}</p>
       </div>
 
-      {/* Timeline */}
-      <section className="mt-8 rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-stone-800 mb-6">
-          Suivi de restauration
-        </h2>
-        <ol className="relative border-l border-stone-200 space-y-6 ml-2">
-          {TIMELINE_STEPS.map((step, i) => {
-            const isDone = i <= currentStep
-            return (
-              <li key={step.key} className="ml-6">
-                <span
-                  className={[
-                    'absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-white text-xs',
-                    isDone
-                      ? 'bg-amber-700 text-white'
-                      : 'bg-stone-200 text-stone-400',
-                  ].join(' ')}
-                >
-                  {isDone ? '✓' : i + 1}
-                </span>
-                <p
-                  className={`text-sm font-medium ${isDone ? 'text-stone-900' : 'text-stone-400'}`}
-                >
-                  {step.label}
-                </p>
-              </li>
-            )
-          })}
-        </ol>
-      </section>
-
       {/* Notes from the atelier */}
-      {watchFile.restoration_notes && (
+      {watchFile.repair_notes && (
         <section className="mt-6 rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
           <h2 className="text-base font-semibold text-stone-800 mb-3">
             Notes de l&apos;atelier
           </h2>
           <div
             className="prose prose-sm prose-stone max-w-none text-stone-600"
-            dangerouslySetInnerHTML={{ __html: watchFile.restoration_notes }}
+            dangerouslySetInnerHTML={{ __html: watchFile.repair_notes }}
           />
         </section>
       )}

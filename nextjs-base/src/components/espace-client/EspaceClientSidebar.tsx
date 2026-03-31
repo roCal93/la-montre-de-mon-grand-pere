@@ -24,11 +24,44 @@ export function EspaceClientSidebar({ locale }: { locale: string }) {
     <>
       {/* Mobile toggle */}
       <button
-        className="fixed top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-900 shadow-md md:hidden"
+        className="fixed top-5 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-900 shadow-lg md:hidden"
         onClick={() => setMobileOpen((v) => !v)}
         aria-label="Menu espace client"
       >
-        <span className="text-xs font-semibold">{mobileOpen ? 'X' : 'M'}</span>
+        {mobileOpen ? (
+          /* X icon */
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        ) : (
+          /* Burger icon */
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        )}
       </button>
 
       {/* Overlay mobile */}
@@ -76,7 +109,9 @@ export function EspaceClientSidebar({ locale }: { locale: string }) {
                         aria-hidden
                         className={[
                           'absolute inset-0 z-0 origin-left transform rounded-lg bg-neutral-200/60 transition-transform duration-200 ease-out',
-                          isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
+                          isActive
+                            ? 'scale-x-100'
+                            : 'scale-x-0 group-hover:scale-x-100',
                         ].join(' ')}
                       />
                     </Link>
@@ -86,7 +121,14 @@ export function EspaceClientSidebar({ locale }: { locale: string }) {
             </ul>
           </nav>
 
-          <div className="border-t border-neutral-200 p-4">
+          <div className="border-t border-neutral-200 p-4 space-y-1">
+            <Link
+              href={`/${locale}`}
+              onClick={() => setMobileOpen(false)}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-lg font-medium text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+            >
+              <span>Retour au site</span>
+            </Link>
             <button
               onClick={() => signOut({ callbackUrl: `/${locale}` })}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-lg font-medium text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-900"

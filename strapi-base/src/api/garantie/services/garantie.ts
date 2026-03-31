@@ -1,0 +1,5 @@
+/**
+ * garantie service
+ */
+
+export default {}

@@ -153,7 +153,7 @@ export default async function TableauDeBordPage({
       <p className="mt-4 text-neutral-500">Bonjour {session.user.name}</p>
 
       {/* Stats */}
-      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
         <StatCard
           label="Commandes"
           value={orders.length}
@@ -167,13 +167,6 @@ export default async function TableauDeBordPage({
         <StatCard
           label="Demandes de service"
           value={serviceRequests.length}
-          href={`/${locale}/espace-client/demandes-de-service`}
-        />
-        <StatCard
-          label="Demandes en cours"
-          value={
-            serviceRequests.filter((r) => r.status === 'in_progress').length
-          }
           href={`/${locale}/espace-client/demandes-de-service`}
         />
       </div>

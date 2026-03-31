@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/currency'
 import { draftMode } from 'next/headers'
+import { BoutiqueFilters } from '@/components/sections/BoutiqueFilters/BoutiqueFilters'
 import { createStrapiClient } from '@/lib/strapi-client'
 import { getPageSEO } from '@/lib/seo'
 import { Layout } from '@/components/layout'
@@ -23,6 +24,12 @@ interface StrapiCategory {
   slug: string
 }
 
+interface ConditionRating {
+  label: string
+  value: number
+  note: string
+}
+
 interface StrapiProduct {
   id: number
   documentId: string
@@ -36,6 +43,7 @@ interface StrapiProduct {
   stock: number
   images: StrapiImage[] | null
   category: StrapiCategory | null
+  conditionRatings: ConditionRating[] | null
 }
 
 export async function generateMetadata({
@@ -68,6 +76,7 @@ async function getProducts(locale: string): Promise<StrapiProduct[]> {
   url.searchParams.set('fields[5]', 'active')
   url.searchParams.set('fields[6]', 'shortDescription')
   url.searchParams.set('fields[7]', 'badges')
+  url.searchParams.set('fields[8]', 'conditionRatings')
   url.searchParams.set('populate[images][fields][0]', 'url')
   url.searchParams.set('populate[images][fields][1]', 'alternativeText')
   url.searchParams.set('populate[category][fields][0]', 'name')
@@ -97,7 +106,30 @@ async function getProducts(locale: string): Promise<StrapiProduct[]> {
 
 interface Props {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ categorie?: string; q?: string }>
+  searchParams: Promise<{
+    categorie?: string
+    q?: string
+    prixMin?: string
+    prixMax?: string
+    tri?: string
+    etat?: string
+    page?: string
+  }>
+}
+
+const PAGE_SIZE = 12
+
+function getConditionBucket(
+  conditionRatings: ConditionRating[] | null
+): string {
+  if (!conditionRatings || conditionRatings.length === 0) return 'a-restaurer'
+  const avg =
+    conditionRatings.reduce((sum, r) => sum + r.value, 0) /
+    conditionRatings.length
+  if (avg >= 80) return 'excellent'
+  if (avg >= 60) return 'tres-bon'
+  if (avg >= 40) return 'bon'
+  return 'a-restaurer'
 }
 
 const normalizeContainerWidth = (
@@ -146,9 +178,10 @@ const fetchShopLandingPage = async ({
 
 export default async function BoutiquePage({ params, searchParams }: Props) {
   const { locale } = await params
-  const { categorie, q } = await searchParams
+  const { categorie, q, prixMin, prixMax, tri, etat, page } = await searchParams
   const { isEnabled } = await draftMode()
   const query = q?.trim().toLowerCase() ?? ''
+  const currentPage = Math.max(1, parseInt(page ?? '1', 10) || 1)
 
   const shopPage = await fetchShopLandingPage({
     locale,
@@ -187,6 +220,57 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
         )
       })
     : categoryFiltered
+
+  const prixMinNum = prixMin ? parseFloat(prixMin) : undefined
+  const prixMaxNum = prixMax ? parseFloat(prixMax) : undefined
+
+  const priceFiltered = filtered.filter((product) => {
+    if (prixMinNum !== undefined && product.price < prixMinNum) return false
+    if (prixMaxNum !== undefined && product.price > prixMaxNum) return false
+    return true
+  })
+
+  const conditionFiltered =
+    etat && etat !== 'tous'
+      ? priceFiltered.filter(
+          (product) => getConditionBucket(product.conditionRatings) === etat
+        )
+      : priceFiltered
+
+  const sorted = [...conditionFiltered].sort((a, b) => {
+    if (tri === 'prix-asc') return a.price - b.price
+    if (tri === 'prix-desc') return b.price - a.price
+    return 0
+  })
+
+  const prices = products
+    .map((p) => p.price)
+    .filter((p): p is number => typeof p === 'number' && !isNaN(p))
+  const catalogueMin = prices.length > 0 ? Math.floor(Math.min(...prices)) : 0
+  const catalogueMax =
+    prices.length > 0 ? Math.ceil(Math.max(...prices)) : 10000
+
+  const totalProducts = sorted.length
+  const pageCount = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE))
+  const safePage = Math.min(currentPage, pageCount)
+  const paginated = sorted.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  )
+
+  const baseFilterQs = [
+    q ? `q=${encodeURIComponent(q)}` : '',
+    prixMin ? `prixMin=${prixMin}` : '',
+    prixMax ? `prixMax=${prixMax}` : '',
+    tri ? `tri=${tri}` : '',
+    etat ? `etat=${etat}` : '',
+    categorie ? `categorie=${categorie}` : '',
+  ]
+    .filter(Boolean)
+    .join('&')
+
+  const buildPageHref = (p: number) =>
+    `/${locale}/boutique?${[baseFilterQs, `page=${p}`].filter(Boolean).join('&')}`
 
   return (
     <Layout locale={locale}>
@@ -233,6 +317,14 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
             {categorie ? (
               <input type="hidden" name="categorie" value={categorie} />
             ) : null}
+            {prixMin ? (
+              <input type="hidden" name="prixMin" value={prixMin} />
+            ) : null}
+            {prixMax ? (
+              <input type="hidden" name="prixMax" value={prixMax} />
+            ) : null}
+            {tri ? <input type="hidden" name="tri" value={tri} /> : null}
+            {etat ? <input type="hidden" name="etat" value={etat} /> : null}
             <input
               type="search"
               name="q"
@@ -253,111 +345,125 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
           </div>
         </form>
 
-        {categories.length > 0 ? (
-          <div className="mb-8 flex flex-wrap gap-2">
-            <Link
-              href={`/${locale}/boutique${query ? `?q=${encodeURIComponent(query)}` : ''}`}
-              className={`border px-[10px] py-[4px] font-[family-name:var(--font-geist-mono)] text-[11px] font-medium uppercase tracking-[0.08em] transition-colors ${
-                !categorie
-                  ? 'border-black bg-black text-white'
-                  : 'border-neutral-300 text-neutral-500 hover:border-black hover:text-black'
-              }`}
-            >
-              {locale === 'fr' ? 'Tout' : 'All'}
-            </Link>
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/${locale}/boutique?categorie=${category.slug}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-                className={`border px-[10px] py-[4px] font-[family-name:var(--font-geist-mono)] text-[11px] font-medium uppercase tracking-[0.08em] transition-colors ${
-                  categorie === category.slug
-                    ? 'border-black bg-black text-white'
-                    : 'border-neutral-300 text-neutral-500 hover:border-black hover:text-black'
-                }`}
-              >
-                {category.name}
-              </Link>
-            ))}
-          </div>
-        ) : null}
+        <BoutiqueFilters
+          key={`${prixMin ?? ''}-${prixMax ?? ''}`}
+          locale={locale}
+          catalogueMin={catalogueMin}
+          catalogueMax={catalogueMax}
+          currentParams={{ categorie, q, prixMin, prixMax, tri, etat }}
+          categories={categories}
+        />
 
-        {filtered.length === 0 ? (
+        {sorted.length === 0 ? (
           <p className="text-neutral-500">
-            {query
-              ? locale === 'fr'
-                ? 'Aucune montre ne correspond a votre recherche.'
-                : 'No watches match your search.'
-              : locale === 'fr'
-                ? 'Aucun produit disponible.'
-                : 'No products available.'}
+            {locale === 'fr'
+              ? 'Aucune montre ne correspond à vos critères.'
+              : 'No watches match your criteria.'}
           </p>
         ) : (
-          <ul className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-            {filtered.map((product) => {
-              const img = product.images?.[0]
-              const imgUrl = img
-                ? img.url.startsWith('http')
-                  ? img.url
-                  : `${process.env.NEXT_PUBLIC_STRAPI_URL}${img.url}`
-                : null
-              const isSoldOut = !product.active || product.stock <= 0
+          <>
+            <ul className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+              {paginated.map((product) => {
+                const img = product.images?.[0]
+                const imgUrl = img
+                  ? img.url.startsWith('http')
+                    ? img.url
+                    : `${process.env.NEXT_PUBLIC_STRAPI_URL}${img.url}`
+                  : null
+                const isSoldOut = !product.active || product.stock <= 0
 
-              return (
-                <li key={product.id}>
-                  <Link
-                    href={`/${locale}/boutique/${product.slug}`}
-                    className="group block"
-                  >
-                    <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg">
-                      <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
-                        {imgUrl ? (
-                          <Image
-                            src={imgUrl}
-                            alt={img?.alternativeText ?? product.name}
-                            fill
-                            className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] ${
-                              isSoldOut ? 'opacity-60' : ''
-                            }`}
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          />
-                        ) : null}
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/[0.03] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                        {isSoldOut ? (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">
-                              {locale === 'fr' ? 'Vendu' : 'Sold'}
-                            </span>
-                          </div>
-                        ) : null}
-                      </div>
-
-                      <div className="space-y-2.5 p-3 sm:p-4">
-                        <h2 className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80">
-                          {product.name}
-                        </h2>
-                        {product.category ? (
-                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600">
-                            {product.category.name}
-                          </p>
-                        ) : null}
-                        <div className="flex items-baseline gap-2">
-                          <span className="font-[family-name:var(--font-geist-mono)] text-[13px] font-semibold tracking-[0.02em] text-neutral-900">
-                            {formatPrice(product.price)}
-                          </span>
-                          {product.compareAtPrice &&
-                          product.compareAtPrice > product.price ? (
-                            <span className="text-[12px] text-neutral-400 line-through">
-                              {formatPrice(product.compareAtPrice)}
-                            </span>
+                return (
+                  <li key={product.id}>
+                    <Link
+                      href={`/${locale}/boutique/${product.slug}`}
+                      className="group block"
+                    >
+                      <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg">
+                        <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
+                          {imgUrl ? (
+                            <Image
+                              src={imgUrl}
+                              alt={img?.alternativeText ?? product.name}
+                              fill
+                              className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] ${
+                                isSoldOut ? 'opacity-60' : ''
+                              }`}
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            />
+                          ) : null}
+                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/[0.03] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                          {isSoldOut ? (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">
+                                {locale === 'fr' ? 'Vendu' : 'Sold'}
+                              </span>
+                            </div>
                           ) : null}
                         </div>
-                      </div>
-                    </article>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
+
+                        <div className="space-y-2.5 p-3 sm:p-4">
+                          <h2 className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80">
+                            {product.name}
+                          </h2>
+                          {product.category ? (
+                            <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600">
+                              {product.category.name}
+                            </p>
+                          ) : null}
+                          <div className="flex items-baseline gap-2">
+                            <span className="font-[family-name:var(--font-geist-mono)] text-[13px] font-semibold tracking-[0.02em] text-neutral-900">
+                              {formatPrice(product.price)}
+                            </span>
+                            {product.compareAtPrice &&
+                            product.compareAtPrice > product.price ? (
+                              <span className="text-[12px] text-neutral-400 line-through">
+                                {formatPrice(product.compareAtPrice)}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </article>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+
+            {pageCount > 1 ? (
+              <nav
+                className="mt-10 grid grid-cols-3 items-center"
+                aria-label={
+                  locale === 'fr' ? 'Pagination boutique' : 'Shop pagination'
+                }
+              >
+                <div>
+                  {safePage > 1 ? (
+                    <Link
+                      href={buildPageHref(safePage - 1)}
+                      className="border border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500 transition-colors hover:border-black hover:text-black"
+                    >
+                      {locale === 'fr' ? '← Précédent' : '← Previous'}
+                    </Link>
+                  ) : null}
+                </div>
+                <span className="text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400">
+                  {locale === 'fr'
+                    ? `Page ${safePage} sur ${pageCount}`
+                    : `Page ${safePage} of ${pageCount}`}
+                </span>
+                <div className="flex justify-end">
+                  {safePage < pageCount ? (
+                    <Link
+                      href={buildPageHref(safePage + 1)}
+                      className="border border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500 transition-colors hover:border-black hover:text-black"
+                    >
+                      {locale === 'fr' ? 'Suivant →' : 'Next →'}
+                    </Link>
+                  ) : null}
+                </div>
+              </nav>
+            ) : null}
+          </>
         )}
       </main>
     </Layout>

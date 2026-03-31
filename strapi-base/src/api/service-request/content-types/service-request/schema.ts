@@ -14,7 +14,7 @@ export default {
   "attributes": {
     "type": {
       "type": "enumeration",
-      "enum": ["reparation", "nettoyage", "restauration", "expertise"],
+      "enum": ["retour_garantie", "reparation", "nettoyage", "autre"],
       "required": true
     },
     "watch_description": {
@@ -43,6 +43,11 @@ export default {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
+    },
+    "watch_file": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::watch-file.watch-file"
     }
   }
 };

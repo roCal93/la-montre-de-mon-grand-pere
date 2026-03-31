@@ -28,7 +28,7 @@ interface Props {
   searchParams: Promise<{ page?: string; q?: string }>
 }
 
-const PAGE_SIZE = 9
+const PAGE_SIZE = 12
 
 const normalizeContainerWidth = (
   width: unknown
@@ -365,38 +365,38 @@ export default async function BlogPage({ params, searchParams }: Props) {
 
         {(hasPreviousPage || hasNextPage) && pagination ? (
           <nav
-            className="mt-10 flex items-center justify-between"
+            className="mt-10 grid grid-cols-3 items-center"
             aria-label={
               locale === 'fr' ? 'Pagination du blog' : 'Blog pagination'
             }
           >
-            {hasPreviousPage ? (
-              <Link
-                href={`/${locale}/blog?page=${pagination.page - 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-                className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-              >
-                {locale === 'fr' ? 'Page precedente' : 'Previous page'}
-              </Link>
-            ) : (
-              <span />
-            )}
+            <div>
+              {hasPreviousPage ? (
+                <Link
+                  href={`/${locale}/blog?page=${pagination.page - 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
+                  className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+                >
+                  {locale === 'fr' ? 'Page précédente' : 'Previous page'}
+                </Link>
+              ) : null}
+            </div>
 
-            <span className="text-sm text-neutral-500">
+            <span className="text-center text-sm text-neutral-500">
               {locale === 'fr'
                 ? `Page ${pagination.page} sur ${pagination.pageCount}`
                 : `Page ${pagination.page} of ${pagination.pageCount}`}
             </span>
 
-            {hasNextPage ? (
-              <Link
-                href={`/${locale}/blog?page=${pagination.page + 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-                className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-              >
-                {locale === 'fr' ? 'Page suivante' : 'Next page'}
-              </Link>
-            ) : (
-              <span />
-            )}
+            <div className="flex justify-end">
+              {hasNextPage ? (
+                <Link
+                  href={`/${locale}/blog?page=${pagination.page + 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
+                  className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+                >
+                  {locale === 'fr' ? 'Page suivante' : 'Next page'}
+                </Link>
+              ) : null}
+            </div>
           </nav>
         ) : null}
       </main>

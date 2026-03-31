@@ -17,10 +17,10 @@ interface StrapiList<T> {
 }
 
 const TYPE_LABELS: Record<string, string> = {
+  retour_garantie: 'Retour sous garantie',
   reparation: 'Réparation',
   nettoyage: 'Nettoyage',
-  restauration: 'Restauration',
-  expertise: 'Expertise',
+  autre: 'Autre',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -76,7 +76,7 @@ export default async function DemandesDeServicePage({
         </Link>
       </div>
       <p className="text-sm text-neutral-500 mb-8">
-        Réparation, nettoyage, restauration ou expertise de votre montre.
+        Réparation, nettoyage et suivi de vos montres.
       </p>
 
       {requests.length === 0 ? (
