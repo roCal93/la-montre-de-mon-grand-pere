@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { StrapiMedia } from '@/types/strapi'
 import { cleanImageUrl } from '@/lib/strapi'
@@ -30,25 +30,6 @@ type BackgroundBlockProps = {
   overlayColor?: string
   overlayOpacity?: number
   scope?: 'section' | 'global'
-}
-
-function hexToRgba(hex: string, opacity: number) {
-  if (!hex) return ''
-  if (hex.startsWith('#')) {
-    let h = hex.replace('#', '')
-    if (h.length === 3) {
-      h = h
-        .split('')
-        .map((c) => c + c)
-        .join('')
-    }
-    const bigint = parseInt(h, 16)
-    const r = (bigint >> 16) & 255
-    const g = (bigint >> 8) & 255
-    const b = bigint & 255
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`
-  }
-  return hex
 }
 
 const BackgroundBlock = ({
@@ -128,7 +109,11 @@ const BackgroundBlock = ({
   )
   const [isDesktopViewport, setIsDesktopViewport] = useState(false)
   const [viewportKey, setViewportKey] = useState(0) // force re-render on viewport change
-  const [mounted, setMounted] = useState(false)
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  )
   const backgroundStyles: React.CSSProperties = {}
   const prevStylesRef = useRef<Record<string, string | null>>({})
 
@@ -263,10 +248,6 @@ const BackgroundBlock = ({
     repeat,
     fixed,
   ])
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   if (scope === 'global') {
     if (overlayColor && overlayOpacity && mounted) {

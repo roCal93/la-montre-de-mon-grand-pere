@@ -1,15 +1,13 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/components/cart/CartContext'
 
 export default function CheckoutSuccessPage() {
   const params = useParams()
-  const searchParams = useSearchParams()
   const locale = (params?.locale as string) ?? 'fr'
-  const sessionId = searchParams.get('session_id')
   const { clearCartItems } = useCart()
   const router = useRouter()
 

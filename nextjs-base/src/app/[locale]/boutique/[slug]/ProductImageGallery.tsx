@@ -22,6 +22,13 @@ export default function ProductImageGallery({
   const thumbnailsRef = useRef<HTMLDivElement>(null)
   const [isZoomed, setIsZoomed] = useState(false)
   const [zoomOrigin, setZoomOrigin] = useState('50% 50%')
+  const [prevSelectedIndex, setPrevSelectedIndex] = useState(selectedIndex)
+
+  if (prevSelectedIndex !== selectedIndex) {
+    setPrevSelectedIndex(selectedIndex)
+    setIsZoomed(false)
+    setZoomOrigin('50% 50%')
+  }
 
   const selectedImage = useMemo(
     () => images[selectedIndex] || images[0],
@@ -40,11 +47,6 @@ export default function ProductImageGallery({
       inline: 'center',
       block: 'nearest',
     })
-  }, [selectedIndex])
-
-  useEffect(() => {
-    setIsZoomed(false)
-    setZoomOrigin('50% 50%')
   }, [selectedIndex])
 
   const goToPreviousThumbnail = () => {

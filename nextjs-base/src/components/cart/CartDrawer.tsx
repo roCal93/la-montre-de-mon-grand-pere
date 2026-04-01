@@ -31,6 +31,7 @@ export function CartDrawer() {
   useEffect(() => {
     if (!isOpen) return
     const header = document.getElementById('site-header')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHeaderOffset(header?.getBoundingClientRect().height ?? 0)
   }, [isOpen])
 
