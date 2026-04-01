@@ -46,7 +46,6 @@ async function createOrderInStrapi(
   // Stripe payload can vary by API version/event context. Resolve shipping data from multiple sources.
   const shippingName =
     session.collected_information?.shipping_details?.name ??
-    session.shipping_details?.name ??
     session.customer_details?.name ??
     ''
 
@@ -56,7 +55,6 @@ async function createOrderInStrapi(
 
   const shippingDetails =
     session.collected_information?.shipping_details?.address ??
-    session.shipping_details?.address ??
     session.customer_details?.address ??
     null
 
@@ -189,8 +187,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             : []
           const locale = session.metadata?.locale ?? 'fr'
           await decrementStockInStrapi(cartItems)
-          revalidateTag('products')
-          revalidatePath(`/${locale}`, 'page')
+          revalidateTag('products', {})
           revalidatePath(`/${locale}/boutique`, 'page')
           for (const item of cartItems) {
             revalidatePath(`/${locale}/boutique/${item.slug}`, 'page')
@@ -212,8 +209,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const locale2 = session.metadata?.locale ?? 'fr'
         await createOrderInStrapi(session)
         await decrementStockInStrapi(cartItems)
-        revalidateTag('products')
-        revalidatePath(`/${locale2}`, 'page')
+        revalidateTag('products', {})
         revalidatePath(`/${locale2}/boutique`, 'page')
         for (const item of cartItems) {
           revalidatePath(`/${locale2}/boutique/${item.slug}`, 'page')

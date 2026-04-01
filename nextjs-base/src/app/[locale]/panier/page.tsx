@@ -48,9 +48,9 @@ const fetchCartLandingPage = async ({
     populate:
       'sections.blocks.cards.image,sections.blocks.image,sections.blocks.imageDesktop,sections.blocks.buttons.file,sections.blocks.items.images.image,sections.blocks.items.images.link,sections.blocks.examples,sections.blocks.workItems.image,sections.blocks.workItems.categories,sections.blocks.privacyPolicy,sections.blocks.markerImage,sections.blocks.openingDays,sections.blocks.category',
     locale,
-    publicationState: isDraft ? 'preview' : 'live',
+    publicationState: (isDraft ? 'preview' : 'live') as 'preview' | 'live',
     pagination: { page: 1, pageSize: 1 },
-  } as const
+  }
 
   const panierRes: PageCollectionResponse = await client.findMany('pages', {
     ...baseQuery,

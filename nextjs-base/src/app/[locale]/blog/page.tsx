@@ -309,7 +309,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
               )
 
               return (
-                <li key={article.id}>
+                <li key={article.slug}>
                   <Link
                     href={`/${locale}/blog/${article.slug}`}
                     className="group block"
