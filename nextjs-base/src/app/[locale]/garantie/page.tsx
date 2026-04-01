@@ -15,7 +15,7 @@ type GarantieResponse = {
   data?: GarantieData | null
 }
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,

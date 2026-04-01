@@ -7,9 +7,6 @@ import { Hero } from '@/components/sections/Hero'
 import { SectionGeneric } from '@/components/sections/SectionGeneric'
 import { PageCollectionResponse, StrapiBlock } from '@/types/strapi'
 import { DynamicBlock } from '@/types/custom'
-import { draftMode } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { defaultLocale } from '@/lib/locales'
 
 type OpeningDay = {
   dayLabel: string
@@ -41,7 +38,7 @@ const getSharedOpeningDays = (sections: unknown[]): OpeningDay[] => {
   return []
 }
 
-export const revalidate = 60 // Revalidate every minute for faster updates
+export const dynamic = 'force-dynamic'
 
 const fetchHomePageData = async (locale: string, isDraft: boolean) => {
   const apiToken = isDraft
@@ -144,9 +141,9 @@ const getHomePageData = async (locale: string) =>
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string } | Promise<{ locale: string }>
+  params: Promise<{ locale: string }>
 }) {
-  const { locale } = await Promise.resolve(params)
+  const { locale } = await params
 
   // Fetch home data to get the first image for preload
   const res = await getHomePageData(locale)
@@ -227,27 +224,19 @@ export default async function HomeLocale({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams?: { draft?: string } | Promise<{ draft?: string }>
+  searchParams?: Promise<{ draft?: string }>
 }) {
   const { locale } = await params
 
-  const sparams = searchParams ? await Promise.resolve(searchParams) : undefined
-  const { isEnabled } = await draftMode()
+  const sparams = searchParams ? await searchParams : undefined
   const isDraft = sparams?.draft === 'true'
 
   // Bypass cache when Draft Mode is enabled (preview mode) regardless of draft/published status
-  const res =
-    isEnabled || isDraft
-      ? await fetchHomePageData(locale, isDraft)
-      : await getHomePageData(locale)
+  const res = isDraft
+    ? await fetchHomePageData(locale, true)
+    : await getHomePageData(locale)
 
   const page = res?.data?.[0]
-
-  // If Strapi doesn't have the home page in this locale, we serve the default locale.
-  // Redirect so the URL matches the served locale.
-  if (page?.locale && page.locale !== locale && page.locale === defaultLocale) {
-    redirect(`/${defaultLocale}`)
-  }
 
   if (!page) {
     return (

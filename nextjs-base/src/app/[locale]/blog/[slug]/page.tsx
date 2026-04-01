@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { draftMode } from 'next/headers'
 import { Layout } from '@/components/layout'
 import { SectionGeneric } from '@/components/sections/SectionGeneric'
 import { buildMetadata, type Hreflang } from '@/lib/seo'
@@ -9,7 +8,7 @@ import { fetchBlogArticleBySlug } from '@/lib/blog'
 import type { DynamicBlock } from '@/types/custom'
 import type { Metadata } from 'next'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 
 const normalizeContainerWidth = (
@@ -74,12 +73,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
   const { locale, slug } = await params
-  const { isEnabled } = await draftMode()
 
   const article = await fetchBlogArticleBySlug({
     slug,
     locale,
-    isDraft: isEnabled,
+    isDraft: false,
   })
 
   if (!article) {
@@ -120,12 +118,11 @@ interface Props {
 
 export default async function BlogArticlePage({ params }: Props) {
   const { locale, slug } = await params
-  const { isEnabled } = await draftMode()
 
   const article = await fetchBlogArticleBySlug({
     slug,
     locale,
-    isDraft: isEnabled,
+    isDraft: false,
   })
 
   if (!article) {

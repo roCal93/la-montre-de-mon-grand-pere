@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/currency'
-import { draftMode } from 'next/headers'
 import { BoutiqueFilters } from '@/components/sections/BoutiqueFilters/BoutiqueFilters'
 import { createStrapiClient } from '@/lib/strapi-client'
 import { getPageSEO } from '@/lib/seo'
@@ -52,9 +51,8 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  const { isEnabled } = await draftMode()
 
-  return (await getPageSEO('boutique', isEnabled, locale)) || {}
+  return (await getPageSEO('boutique', false, locale)) || {}
 }
 
 async function getProducts(locale: string): Promise<StrapiProduct[]> {
@@ -179,13 +177,12 @@ const fetchShopLandingPage = async ({
 export default async function BoutiquePage({ params, searchParams }: Props) {
   const { locale } = await params
   const { categorie, q, prixMin, prixMax, tri, etat, page } = await searchParams
-  const { isEnabled } = await draftMode()
   const query = q?.trim().toLowerCase() ?? ''
   const currentPage = Math.max(1, parseInt(page ?? '1', 10) || 1)
 
   const shopPage = await fetchShopLandingPage({
     locale,
-    isDraft: isEnabled,
+    isDraft: false,
   })
   const shopSections = (shopPage?.sections || []).sort(
     (a, b) => (a.order || 0) - (b.order || 0)

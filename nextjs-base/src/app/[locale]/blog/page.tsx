@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { draftMode } from 'next/headers'
 import { fetchBlogArticles, type BlogArticle } from '@/lib/blog'
 import { createStrapiClient } from '@/lib/strapi-client'
 import { getPageSEO } from '@/lib/seo'
@@ -10,7 +9,7 @@ import type { DynamicBlock } from '@/types/custom'
 import type { Page, PageCollectionResponse, StrapiEntity } from '@/types/strapi'
 import type { Metadata } from 'next'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,
@@ -18,9 +17,8 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  const { isEnabled } = await draftMode()
 
-  return (await getPageSEO('blog', isEnabled, locale)) || {}
+  return (await getPageSEO('blog', false, locale)) || {}
 }
 
 interface Props {
@@ -145,7 +143,6 @@ type BlogPagination = {
 export default async function BlogPage({ params, searchParams }: Props) {
   const { locale } = await params
   const { page, q } = await searchParams
-  const { isEnabled } = await draftMode()
   const query = q?.trim() ?? ''
   const normalizedQuery = normalizeSearchText(query)
 
@@ -159,7 +156,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
   if (normalizedQuery) {
     const allArticlesRes = await fetchBlogArticles({
       locale,
-      isDraft: isEnabled,
+      isDraft: false,
       page: 1,
       pageSize: 1000,
       includeSections: true,
@@ -184,7 +181,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
   } else {
     const articleRes = await fetchBlogArticles({
       locale,
-      isDraft: isEnabled,
+      isDraft: false,
       page: safePage,
       pageSize: PAGE_SIZE,
     })
@@ -202,7 +199,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
 
   const blogPage = await fetchBlogLandingPage({
     locale,
-    isDraft: isEnabled,
+    isDraft: false,
   })
   const blogSections = (blogPage?.sections || []).sort(
     (a, b) => (a.order || 0) - (b.order || 0)

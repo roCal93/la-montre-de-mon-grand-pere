@@ -1,4 +1,3 @@
-import { draftMode } from 'next/headers'
 import type { Metadata } from 'next'
 import { getPageSEO } from '@/lib/seo'
 import { createStrapiClient } from '@/lib/strapi-client'
@@ -75,22 +74,20 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  const { isEnabled } = await draftMode()
 
   const seo =
-    (await getPageSEO('panier', isEnabled, locale)) ||
-    (await getPageSEO('cart', isEnabled, locale))
+    (await getPageSEO('panier', false, locale)) ||
+    (await getPageSEO('cart', false, locale))
 
   return seo || {}
 }
 
 export default async function PanierPage({ params }: PanierPageProps) {
   const { locale } = await params
-  const { isEnabled } = await draftMode()
 
   const cartPage = await fetchCartLandingPage({
     locale,
-    isDraft: isEnabled,
+    isDraft: false,
   })
   const cartSections = (cartPage?.sections || []).sort(
     (a, b) => (a.order || 0) - (b.order || 0)
