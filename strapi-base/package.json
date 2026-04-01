@@ -56,7 +56,14 @@
       "ajv": ">=8.18.0",
       "esbuild": ">=0.25.0",
       "markdown-it": ">=14.1.1",
-      "tmp": ">=0.2.4"
+      "tmp": ">=0.2.4",
+      "handlebars": ">=4.7.9",
+      "picomatch@2": "2.3.2",
+      "picomatch@4": "4.0.4",
+      "brace-expansion@1": "1.1.13",
+      "brace-expansion@2": "2.0.3",
+      "brace-expansion@>=4": "5.0.5",
+      "yaml@1": "1.10.3"
     },
     "onlyBuiltDependencies": [
       "@swc/core",
