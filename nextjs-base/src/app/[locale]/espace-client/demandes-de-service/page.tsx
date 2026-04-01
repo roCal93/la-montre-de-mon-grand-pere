@@ -17,10 +17,10 @@ interface StrapiList<T> {
 }
 
 const TYPE_LABELS: Record<string, string> = {
+  retour_garantie: 'Retour sous garantie',
   reparation: 'Réparation',
   nettoyage: 'Nettoyage',
-  restauration: 'Restauration',
-  expertise: 'Expertise',
+  autre: 'Autre',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -60,31 +60,35 @@ export default async function DemandesDeServicePage({
   return (
     <div>
       <div className="flex items-center justify-between gap-4 mb-2">
-        <h1 className="text-2xl font-serif font-bold text-stone-900">
-          Demandes de service
-        </h1>
+        <div>
+          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.18em] text-neutral-500">
+            Espace client
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
+            Demandes de service
+          </h1>
+        </div>
         <Link
           href={`/${locale}/espace-client/demandes-de-service/nouvelle`}
-          className="shrink-0 rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 transition-colors"
+          className="shrink-0 border border-black bg-black px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[11px] font-semibold uppercase tracking-[0.1em] text-white hover:bg-neutral-900 transition-colors"
         >
           + Nouvelle demande
         </Link>
       </div>
-      <p className="text-sm text-stone-500 mb-8">
-        Réparation, nettoyage, restauration ou expertise de votre montre.
+      <p className="text-sm text-neutral-500 mb-8">
+        Réparation, nettoyage et suivi de vos montres.
       </p>
 
       {requests.length === 0 ? (
-        <div className="mt-4 rounded-2xl border border-dashed border-stone-200 bg-white py-16 px-6 text-center">
-          <p className="text-4xl mb-3">🔧</p>
-          <p className="text-stone-500 text-sm">
+        <div className="mt-4 border border-dashed border-neutral-200 bg-white py-16 px-6 text-center">
+          <p className="text-neutral-500 text-sm">
             Aucune demande de service pour le moment.
           </p>
           <Link
             href={`/${locale}/espace-client/demandes-de-service/nouvelle`}
-            className="mt-4 inline-block text-sm text-amber-800 hover:underline"
+            className="mt-4 inline-block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black"
           >
-            Créer votre première demande →
+            Créer votre première demande
           </Link>
         </div>
       ) : (
@@ -92,19 +96,19 @@ export default async function DemandesDeServicePage({
           {requests.map((req) => (
             <li
               key={req.documentId}
-              className="rounded-xl border border-stone-100 bg-white p-5 shadow-sm"
+              className="border border-neutral-200 bg-white p-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-stone-900">
+                  <p className="text-sm font-semibold text-neutral-900">
                     {TYPE_LABELS[req.type] ?? req.type}
                   </p>
                   {req.watch_description && (
-                    <p className="mt-0.5 text-xs text-stone-400 truncate">
+                    <p className="mt-0.5 text-xs text-neutral-400 truncate">
                       {req.watch_description}
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-stone-400">
+                  <p className="mt-1 text-xs text-neutral-400">
                     {new Date(req.createdAt).toLocaleDateString('fr-FR', {
                       day: 'numeric',
                       month: 'long',

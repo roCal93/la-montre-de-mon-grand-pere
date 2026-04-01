@@ -60,6 +60,11 @@ async function getProduct(
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
 
+  if (!strapiUrl) {
+    console.error('[getProduct] NEXT_PUBLIC_STRAPI_URL is not configured')
+    return null
+  }
+
   const buildUrl = (includeExtendedFields: boolean) => {
     const url = new URL(`${strapiUrl}/api/products`)
     url.searchParams.set('filters[slug][$eq]', slug)
@@ -99,39 +104,55 @@ async function getProduct(
 
   const url = buildUrl(true)
 
-  const res = await fetch(url.toString(), {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    cache: 'no-store',
-  })
+  try {
+    const res = await fetch(url.toString(), {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
+    })
 
-  if (!res.ok) {
-    const body = await res.text()
-    if (res.status === 400 && body.includes('Invalid key')) {
-      const fallbackRes = await fetch(buildUrl(false).toString(), {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        cache: 'no-store',
-      })
+    if (!res.ok) {
+      const body = await res.text()
+      if (res.status === 400 && body.includes('Invalid key')) {
+        try {
+          const fallbackRes = await fetch(buildUrl(false).toString(), {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            cache: 'no-store',
+            signal: AbortSignal.timeout(8000),
+          })
 
-      if (!fallbackRes.ok) {
-        const fallbackBody = await fallbackRes.text()
-        console.error(
-          `[getProduct:fallback] Strapi ${fallbackRes.status} for slug="${slug}":`,
-          fallbackBody
-        )
-        return null
+          if (!fallbackRes.ok) {
+            const fallbackBody = await fallbackRes.text()
+            console.error(
+              `[getProduct:fallback] Strapi ${fallbackRes.status} for slug="${slug}":`,
+              fallbackBody
+            )
+            return null
+          }
+
+          const fallbackJson = (await fallbackRes.json()) as {
+            data: StrapiProduct[]
+          }
+          return fallbackJson.data?.[0] ?? null
+        } catch (fallbackError) {
+          console.error('[getProduct:fallback] fetch failed:', fallbackError)
+          return null
+        }
       }
 
-      const fallbackJson = (await fallbackRes.json()) as {
-        data: StrapiProduct[]
-      }
-      return fallbackJson.data?.[0] ?? null
+      console.error(
+        `[getProduct] Strapi ${res.status} for slug="${slug}":`,
+        body
+      )
+      return null
     }
 
-    console.error(`[getProduct] Strapi ${res.status} for slug="${slug}":`, body)
+    const json = (await res.json()) as { data: StrapiProduct[] }
+    return json.data?.[0] ?? null
+  } catch (error) {
+    console.error(`[getProduct] fetch failed for slug="${slug}":`, error)
     return null
   }
-  const json = (await res.json()) as { data: StrapiProduct[] }
-  return json.data?.[0] ?? null
 }
 
 interface Props {
@@ -341,7 +362,7 @@ export default async function ProductPage({ params }: Props) {
           <div className="mt-8">
             <SectionLabel>
               {locale === 'fr'
-                ? 'Avant / Après restauration'
+                ? 'Avant / Après réparation'
                 : 'Before / After restoration'}
             </SectionLabel>
             <BeforeAfterSlider pairs={beforeAfterPairs} locale={locale} />
@@ -401,11 +422,11 @@ export default async function ProductPage({ params }: Props) {
           </div>
         )}
 
-        {/* ── Travaux de restauration ── */}
+        {/* ── Travaux de réparation ── */}
         {hasRestoration && (
           <div className="mt-8">
             <SectionLabel>
-              {locale === 'fr' ? 'Travaux de restauration' : 'Restoration work'}
+              {locale === 'fr' ? 'Travaux de réparation' : 'Repair work'}
             </SectionLabel>
             <div className="border border-neutral-200 p-5">
               <p className="mb-4 font-[family-name:var(--font-geist-mono)] text-[12px] text-neutral-400">
@@ -441,26 +462,60 @@ export default async function ProductPage({ params }: Props) {
         {/* ── Footer strip ── */}
         <div className="mt-12 grid grid-cols-4 divide-x divide-neutral-200 border-t border-neutral-200 pt-6">
           {[
-            { val: '12 mois', key: locale === 'fr' ? 'Garantie' : 'Warranty' },
-            { val: '48 h', key: locale === 'fr' ? 'Expédition' : 'Shipping' },
-            { val: '14 jours', key: locale === 'fr' ? 'Retour' : 'Return' },
+            {
+              val: '12 mois',
+              key: locale === 'fr' ? 'Garantie' : 'Warranty',
+              href: `/${locale}/garantie`,
+            },
+            {
+              val: '48 h',
+              key: locale === 'fr' ? 'Expédition' : 'Shipping',
+              href: `/${locale}/livraison`,
+            },
+            {
+              val: '14 jours',
+              key: locale === 'fr' ? 'Retour' : 'Return',
+              href: `/${locale}/livraison`,
+            },
             {
               val: locale === 'fr' ? 'Sécurisé' : 'Secure',
               key: locale === 'fr' ? 'Paiement' : 'Payment',
+              href:
+                locale === 'fr'
+                  ? 'https://stripe.com/fr/security'
+                  : 'https://stripe.com/security',
             },
-          ].map(({ val, key }) => (
-            <div
-              key={key}
-              className="flex flex-col items-center gap-1 px-2 text-center"
-            >
-              <span className="font-[family-name:var(--font-geist-mono)] text-[14px] font-medium">
-                {val}
-              </span>
-              <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400">
-                {key}
-              </span>
-            </div>
-          ))}
+          ].map(({ val, key, href }) =>
+            href ? (
+              <Link
+                key={key}
+                href={href}
+                {...(href.startsWith('http')
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
+                className="flex flex-col items-center gap-1 px-2 text-center transition-opacity hover:opacity-60"
+              >
+                <span className="font-[family-name:var(--font-geist-mono)] text-[14px] font-medium">
+                  {val}
+                </span>
+                <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400">
+                  {key}
+                </span>
+              </Link>
+            ) : (
+              <div
+                key={key}
+                className="flex flex-col items-center gap-1 px-2 text-center"
+              >
+                <span className="font-[family-name:var(--font-geist-mono)] text-[14px] font-medium">
+                  {val}
+                </span>
+                <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400">
+                  {key}
+                </span>
+              </div>
+            )
+          )}
         </div>
       </main>
     </Layout>

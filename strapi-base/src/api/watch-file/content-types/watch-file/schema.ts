@@ -14,15 +14,10 @@ export default {
   "attributes": {
     "title": {
       "type": "string",
+      "default": "Dossier montre",
       "required": true
     },
-    "status": {
-      "type": "enumeration",
-      "enum": ["waiting", "in_progress", "completed"],
-      "default": "waiting",
-      "required": true
-    },
-    "restoration_notes": {
+    "repair_notes": {
       "type": "richtext"
     },
     "technician_notes": {
@@ -49,7 +44,12 @@ export default {
     "order": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "api::order.order"
+      "target": "api::order.order",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
     },
     "product": {
       "type": "relation",

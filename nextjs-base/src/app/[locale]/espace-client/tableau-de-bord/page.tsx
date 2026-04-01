@@ -2,6 +2,9 @@ import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import Link from 'next/link'
+import Image from 'next/image'
+import { formatPrice } from '@/lib/currency'
+import { cleanImageUrl } from '@/lib/strapi'
 
 interface StrapiList<T> {
   data: T[]
@@ -12,13 +15,23 @@ interface Order {
   status: string
   createdAt: string
   total: number
-  lineItems: { quantity: number }[]
+  lineItems: { quantity: number; productName?: string; productSlug?: string }[]
+}
+
+interface ProductImage {
+  formats?: { small?: { url: string }; thumbnail?: { url: string } }
+  url: string
+}
+
+interface Product {
+  slug: string
+  images: ProductImage[]
 }
 
 interface WatchFile {
   documentId: string
   title: string
-  status: 'waiting' | 'in_progress' | 'completed'
+  watch_status: 'waiting' | 'in_progress' | 'completed'
 }
 
 interface ServiceRequest {
@@ -61,10 +74,12 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-stone-100 bg-white p-6 shadow-sm hover:border-amber-200 hover:shadow-md transition-all"
+      className="group border border-neutral-200 bg-white p-6 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all"
     >
-      <p className="text-2xl font-bold text-stone-900">{value}</p>
-      <p className="mt-1 text-sm text-stone-500 group-hover:text-stone-700 transition-colors">
+      <p className="text-2xl font-semibold tracking-tight text-neutral-900">
+        {value}
+      </p>
+      <p className="mt-1 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.08em] text-neutral-500 group-hover:text-neutral-700 transition-colors">
         {label}
       </p>
     </Link>
@@ -82,11 +97,12 @@ export default async function TableauDeBordPage({
 
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
+  const headers = { Authorization: `Bearer ${token}` }
 
   const [ordersRes, watchFilesRes, serviceRequestsRes] = await Promise.all([
     fetch(
       `${strapiUrl}/api/orders?filters[customerEmail][$eq]=${encodeURIComponent(session.user.email)}&sort=createdAt:desc&pagination[limit]=3&populate=*`,
-      { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
+      { headers, cache: 'no-store' }
     ).then((r) =>
       r.ok ? (r.json() as Promise<StrapiList<Order>>) : { data: [] }
     ),
@@ -105,18 +121,39 @@ export default async function TableauDeBordPage({
   const serviceRequests = serviceRequestsRes.data?.data ?? []
 
   const lastOrder = orders[0] ?? null
+  const lastOrderFirstItem = lastOrder?.lineItems?.[0] ?? null
+  const lastOrderTotalQty =
+    lastOrder?.lineItems?.reduce((s, i) => s + i.quantity, 0) ?? 0
+  const lastOrderOtherCount = (lastOrder?.lineItems?.length ?? 0) - 1
+
+  let lastOrderImageUrl: string | undefined
+  if (lastOrderFirstItem?.productSlug) {
+    const prodRes = await fetch(
+      `${strapiUrl}/api/products?filters[slug][$eq]=${encodeURIComponent(lastOrderFirstItem.productSlug)}&fields[0]=slug&populate[images]=true`,
+      { headers, cache: 'no-store' }
+    )
+    if (prodRes.ok) {
+      const prodJson = (await prodRes.json()) as StrapiList<Product>
+      const product = prodJson.data?.[0]
+      const img = product?.images?.[0]
+      const url =
+        img?.formats?.small?.url ?? img?.formats?.thumbnail?.url ?? img?.url
+      lastOrderImageUrl = cleanImageUrl(url)
+    }
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-serif font-bold text-stone-900">
+      <p className="font-[family-name:var(--font-geist-mono)] uppercase tracking-[0.18em] text-neutral-500">
+        Espace client
+      </p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
         Tableau de bord
       </h1>
-      <p className="mt-1 text-sm text-stone-500">
-        Bonjour {session.user.name} 👋
-      </p>
+      <p className="mt-4 text-neutral-500">Bonjour {session.user.name}</p>
 
       {/* Stats */}
-      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
         <StatCard
           label="Commandes"
           value={orders.length}
@@ -132,70 +169,73 @@ export default async function TableauDeBordPage({
           value={serviceRequests.length}
           href={`/${locale}/espace-client/demandes-de-service`}
         />
-        <StatCard
-          label="Demandes en cours"
-          value={
-            serviceRequests.filter((r) => r.status === 'in_progress').length
-          }
-          href={`/${locale}/espace-client/demandes-de-service`}
-        />
       </div>
 
       {/* Last order */}
       {lastOrder && (
         <section className="mt-10">
-          <h2 className="text-base font-semibold text-stone-800 mb-4">
+          <h2 className="font-[family-name:var(--font-geist-mono)] uppercase tracking-[0.14em] text-neutral-500 mb-4">
             Dernière commande
           </h2>
-          <div className="rounded-xl border border-stone-100 bg-white p-5 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-mono text-stone-500">
-                  #{lastOrder.documentId.slice(-8).toUpperCase()}
-                </p>
-                <p className="mt-1 text-sm text-stone-700">
-                  {new Date(lastOrder.createdAt).toLocaleDateString('fr-FR', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </p>
-                <p className="mt-1 text-xs text-stone-400">
-                  {lastOrder.lineItems?.reduce((s, i) => s + i.quantity, 0) ??
-                    0}{' '}
-                  article(s)
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <span
-                  className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[lastOrder.status] ?? 'bg-stone-100 text-stone-600'}`}
-                >
-                  {STATUS_LABELS[lastOrder.status] ?? lastOrder.status}
-                </span>
-                <p className="text-sm font-semibold text-stone-900">
-                  {new Intl.NumberFormat('fr-FR', {
-                    style: 'currency',
-                    currency: 'EUR',
-                  }).format(lastOrder.total)}
-                </p>
-              </div>
+          <Link
+            href={`/${locale}/espace-client/commandes/${lastOrder.documentId}`}
+            className="flex items-center gap-4 border border-neutral-200 bg-white p-4 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all"
+          >
+            <div className="shrink-0 w-24 h-24 overflow-hidden bg-neutral-100">
+              {lastOrderImageUrl ? (
+                <Image
+                  src={lastOrderImageUrl}
+                  alt={lastOrderFirstItem?.productName ?? ''}
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-neutral-100" />
+              )}
             </div>
-            <div className="mt-4 pt-4 border-t border-stone-100">
-              <Link
-                href={`/${locale}/espace-client/commandes/${lastOrder.documentId}`}
-                className="text-sm text-amber-800 hover:underline"
+
+            <div className="flex-1 min-w-0">
+              <p className="text-xl mb-4 font-semibold text-neutral-900 truncate">
+                {lastOrderFirstItem?.productName ?? 'Commande'}
+                {lastOrderOtherCount > 0 && (
+                  <span className="ml-1.5 text-sm font-normal text-neutral-400">
+                    +{lastOrderOtherCount} autre
+                    {lastOrderOtherCount > 1 ? 's' : ''}
+                  </span>
+                )}
+              </p>
+              <p className="mt-0.5 text-sm text-neutral-400">
+                {new Date(lastOrder.createdAt).toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+                {lastOrderTotalQty > 1 && ` · ${lastOrderTotalQty} articles`}
+              </p>
+              <p className="mt-1 font-[family-name:var(--font-geist-mono)] text-sm text-neutral-400">
+                #{lastOrder.documentId.slice(-8).toUpperCase()}
+              </p>
+            </div>
+
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              <span
+                className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium ${STATUS_COLORS[lastOrder.status] ?? 'bg-stone-100 text-stone-600'}`}
               >
-                Voir le détail →
-              </Link>
+                {STATUS_LABELS[lastOrder.status] ?? lastOrder.status}
+              </span>
+              <p className="font-semibold text-lg text-neutral-900">
+                {formatPrice(lastOrder.total)}
+              </p>
             </div>
-          </div>
+          </Link>
         </section>
       )}
 
       {/* Active watch files */}
       {watchFiles.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-base font-semibold text-stone-800 mb-4">
+          <h2 className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.14em] text-neutral-500 mb-4">
             Dossiers actifs
           </h2>
           <ul className="space-y-2">
@@ -203,15 +243,15 @@ export default async function TableauDeBordPage({
               <li key={wf.documentId}>
                 <Link
                   href={`/${locale}/espace-client/mes-montres/${wf.documentId}`}
-                  className="flex items-center justify-between rounded-xl border border-stone-100 bg-white px-5 py-4 shadow-sm hover:border-amber-200 transition-colors"
+                  className="flex items-center justify-between border border-neutral-200 bg-white px-5 py-4 shadow-sm hover:border-neutral-400 transition-colors"
                 >
-                  <span className="text-sm font-medium text-stone-800">
+                  <span className="text-sm font-medium text-neutral-800">
                     {wf.title}
                   </span>
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[wf.status] ?? 'bg-stone-100 text-stone-600'}`}
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[wf.watch_status] ?? 'bg-stone-100 text-stone-600'}`}
                   >
-                    {STATUS_LABELS[wf.status] ?? wf.status}
+                    {STATUS_LABELS[wf.watch_status] ?? wf.watch_status}
                   </span>
                 </Link>
               </li>

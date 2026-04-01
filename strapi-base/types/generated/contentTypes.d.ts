@@ -618,6 +618,58 @@ export interface ApiCardCard extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiGarantieGarantie extends Struct.SingleTypeSchema {
+  collectionName: 'garantie';
+  info: {
+    description: "Page d'informations sur la garantie et l'authenticite";
+    displayName: 'Garantie';
+    pluralName: 'garanties';
+    singularName: 'garantie';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: true;
+    };
+  };
+  attributes: {
+    content: Schema.Attribute.RichText &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    lastUpdated: Schema.Attribute.Date &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: false;
+        };
+      }>;
+    locale: Schema.Attribute.String;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::garantie.garantie'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiHeaderHeader extends Struct.SingleTypeSchema {
   collectionName: 'headers';
   info: {
@@ -722,6 +774,58 @@ export interface ApiLegalNoticeLegalNotice extends Struct.SingleTypeSchema {
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::legal-notice.legal-notice'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiLivraisonLivraison extends Struct.SingleTypeSchema {
+  collectionName: 'livraison';
+  info: {
+    description: "Page d'informations sur la livraison et les retours";
+    displayName: 'Livraison';
+    pluralName: 'livraisons';
+    singularName: 'livraison';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    i18n: {
+      localized: true;
+    };
+  };
+  attributes: {
+    content: Schema.Attribute.RichText &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    lastUpdated: Schema.Attribute.Date &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: false;
+        };
+      }>;
+    locale: Schema.Attribute.String;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::livraison.livraison'
     >;
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String &
@@ -1234,13 +1338,17 @@ export interface ApiServiceRequestServiceRequest
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'pending'>;
     type: Schema.Attribute.Enumeration<
-      ['reparation', 'nettoyage', 'restauration', 'expertise']
+      ['retour_garantie', 'reparation', 'nettoyage', 'autre']
     > &
       Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     watch_description: Schema.Attribute.String;
+    watch_file: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::watch-file.watch-file'
+    >;
   };
 }
 
@@ -1269,19 +1377,21 @@ export interface ApiWatchFileWatchFile extends Struct.CollectionTypeSchema {
       'api::watch-file.watch-file'
     > &
       Schema.Attribute.Private;
-    order: Schema.Attribute.Relation<'manyToOne', 'api::order.order'>;
+    order: Schema.Attribute.Relation<'manyToOne', 'api::order.order'> &
+      Schema.Attribute.SetPluginOptions<{
+        i18n: {
+          localized: false;
+        };
+      }>;
     photos_after: Schema.Attribute.Media<'images', true>;
     photos_before: Schema.Attribute.Media<'images', true>;
     product: Schema.Attribute.Relation<'manyToOne', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
-    restoration_notes: Schema.Attribute.RichText;
-    status: Schema.Attribute.Enumeration<
-      ['waiting', 'in_progress', 'completed']
-    > &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'waiting'>;
+    repair_notes: Schema.Attribute.RichText;
     technician_notes: Schema.Attribute.RichText & Schema.Attribute.Private;
-    title: Schema.Attribute.String & Schema.Attribute.Required;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Dossier montre'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1984,8 +2094,10 @@ declare module '@strapi/strapi' {
       'api::blog-article.blog-article': ApiBlogArticleBlogArticle;
       'api::blog-category.blog-category': ApiBlogCategoryBlogCategory;
       'api::card.card': ApiCardCard;
+      'api::garantie.garantie': ApiGarantieGarantie;
       'api::header.header': ApiHeaderHeader;
       'api::legal-notice.legal-notice': ApiLegalNoticeLegalNotice;
+      'api::livraison.livraison': ApiLivraisonLivraison;
       'api::order.order': ApiOrderOrder;
       'api::page.page': ApiPagePage;
       'api::privacy-policy.privacy-policy': ApiPrivacyPolicyPrivacyPolicy;

@@ -5,8 +5,8 @@ import { z } from 'zod'
 export const dynamic = 'force-dynamic'
 
 const serviceRequestSchema = z.object({
-  type: z.enum(['reparation', 'nettoyage', 'restauration', 'expertise']),
-  watch_description: z.string().max(200).optional(),
+  type: z.enum(['retour_garantie', 'reparation', 'nettoyage', 'autre']),
+  watch_file_document_id: z.string().min(1),
   description: z.string().min(10).max(2000),
 })
 
@@ -27,18 +27,44 @@ export async function POST(req: NextRequest) {
   }
 
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+
+  // Verify the watch-file belongs to the authenticated user (IDOR prevention)
+  const wfRes = await fetch(
+    `${strapiUrl}/api/watch-files/${parsed.data.watch_file_document_id}?populate[customer]=true`,
+    { headers: { Authorization: `Bearer ${session.user.strapiJwt}` } }
+  )
+  if (!wfRes.ok) {
+    return NextResponse.json(
+      { error: 'Dossier montre introuvable' },
+      { status: 404 }
+    )
+  }
+  const wfJson = (await wfRes.json()) as { data: { title?: string } }
+  const watchTitle = wfJson.data?.title ?? ''
+
   const res = await fetch(`${strapiUrl}/api/service-requests`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${session.user.strapiJwt}`,
     },
-    body: JSON.stringify({ data: parsed.data }),
+    body: JSON.stringify({
+      data: {
+        type: parsed.data.type,
+        description: parsed.data.description,
+        watch_file: {
+          connect: [{ documentId: parsed.data.watch_file_document_id }],
+        },
+      },
+    }),
   })
 
   if (!res.ok) {
     const json = (await res.json()) as { error?: { message?: string } }
-    return NextResponse.json({ error: json?.error?.message ?? 'Erreur Strapi' }, { status: 500 })
+    return NextResponse.json(
+      { error: json?.error?.message ?? 'Erreur Strapi' },
+      { status: 500 }
+    )
   }
 
   const json = await res.json()
@@ -55,7 +81,7 @@ export async function POST(req: NextRequest) {
           <p><strong>Nouvelle demande de service</strong></p>
           <p>Type : <strong>${parsed.data.type}</strong></p>
           <p>Client : ${session.user.name} (${session.user.email})</p>
-          ${parsed.data.watch_description ? `<p>Montre : ${parsed.data.watch_description}</p>` : ''}
+          <p>Montre : ${watchTitle}</p>
           <p>Description :</p>
           <blockquote>${parsed.data.description.replace(/\n/g, '<br>')}</blockquote>
           <p><a href="${process.env.NEXT_PUBLIC_STRAPI_URL}/admin">Voir dans l'admin Strapi</a></p>

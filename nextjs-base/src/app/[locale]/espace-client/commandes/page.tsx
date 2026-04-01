@@ -100,18 +100,21 @@ export default async function CommandesPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-serif font-bold text-stone-900">
+      <p className="font-[family-name:var(--font-geist-mono)] text-[15px] uppercase tracking-[0.18em] text-neutral-500">
+        Espace client
+      </p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
         Mes commandes
       </h1>
 
       {orders.length === 0 ? (
         <div className="mt-12 text-center">
-          <p className="text-stone-500">Aucune commande pour le moment.</p>
+          <p className="text-neutral-500">Aucune commande pour le moment.</p>
           <Link
             href={`/${locale}/boutique`}
-            className="mt-4 inline-block text-sm text-amber-800 hover:underline"
+            className="mt-4 inline-block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black"
           >
-            Découvrir la boutique →
+            Découvrir la boutique
           </Link>
         </div>
       ) : (
@@ -129,36 +132,34 @@ export default async function CommandesPage({
               <li key={order.documentId}>
                 <Link
                   href={`/${locale}/espace-client/commandes/${order.documentId}`}
-                  className="flex items-center gap-4 rounded-xl border border-stone-100 bg-white p-4 shadow-sm hover:border-amber-200 hover:shadow-md transition-all"
+                  className="flex items-center gap-4 border border-neutral-200 bg-white p-4 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all"
                 >
                   {/* Product thumbnail */}
-                  <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-stone-100">
+                  <div className="shrink-0 w-24 h-24 overflow-hidden bg-neutral-100">
                     {imgUrl ? (
                       <Image
                         src={imgUrl}
                         alt={firstItem?.productName ?? ''}
-                        width={64}
-                        height={64}
+                        width={96}
+                        height={96}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-stone-300 text-xl">
-                        ⌚
-                      </div>
+                      <div className="w-full h-full bg-neutral-100" />
                     )}
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-stone-900 truncate">
+                    <p className="text-xl mb-4 font-semibold text-neutral-900 truncate">
                       {firstItem?.productName ?? '—'}
                       {otherCount > 0 && (
-                        <span className="ml-1.5 text-xs font-normal text-stone-400">
+                        <span className="ml-1.5 text-sm font-normal text-neutral-400">
                           +{otherCount} autre{otherCount > 1 ? 's' : ''}
                         </span>
                       )}
                     </p>
-                    <p className="mt-0.5 text-xs text-stone-400">
+                    <p className="mt-0.5 text-sm text-neutral-400">
                       {new Date(order.createdAt).toLocaleDateString('fr-FR', {
                         day: 'numeric',
                         month: 'long',
@@ -166,7 +167,7 @@ export default async function CommandesPage({
                       })}
                       {totalQty > 1 && ` · ${totalQty} articles`}
                     </p>
-                    <p className="mt-1 text-xs font-mono text-stone-300">
+                    <p className="mt-1 font-[family-name:var(--font-geist-mono)] text-sm text-neutral-400">
                       #{order.documentId.slice(-8).toUpperCase()}
                     </p>
                   </div>
@@ -174,11 +175,11 @@ export default async function CommandesPage({
                   {/* Status + price */}
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[order.status] ?? 'bg-stone-100 text-stone-600'}`}
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium ${STATUS_COLORS[order.status] ?? 'bg-stone-100 text-stone-600'}`}
                     >
                       {STATUS_LABELS[order.status] ?? order.status}
                     </span>
-                    <p className="text-sm font-bold text-stone-900">
+                    <p className="font-semibold text-lg text-neutral-900">
                       {formatPrice(order.total)}
                     </p>
                   </div>

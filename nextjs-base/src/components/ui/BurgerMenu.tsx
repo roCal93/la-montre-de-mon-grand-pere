@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { LanguageSwitcher } from '@/components/locale/LanguageSwitcher'
+import { CartButton } from '@/components/cart/CartButton'
+import { AccountButton } from '@/components/espace-client/AccountButton'
 import { scrollToAnchor } from '@/lib/anchor'
 
 interface ProcessedLink {
@@ -262,12 +264,16 @@ export const BurgerMenu = ({
               })}
               {!hideLanguageSwitcher && (
                 <div className="py-4 border-t border-gray-200 flex justify-center">
-                  <LanguageSwitcher
-                    side="right"
-                    dropdownDirection="right"
-                    centerOpenGroup
-                    onOpenChange={(v) => setLangOpen(v)}
-                  />
+                  <div className="flex items-center justify-center gap-10">
+                    <AccountButton />
+                    <LanguageSwitcher
+                      side="right"
+                      dropdownDirection="right"
+                      centerOpenGroup
+                      onOpenChange={(v) => setLangOpen(v)}
+                    />
+                    <CartButton />
+                  </div>
                 </div>
               )}
             </nav>

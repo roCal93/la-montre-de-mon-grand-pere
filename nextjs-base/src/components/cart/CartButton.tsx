@@ -18,7 +18,7 @@ export function CartButton({ className = '' }: Props) {
     <Link
       href={cartHref}
       aria-label={`Panier — ${totalItems} article${totalItems !== 1 ? 's' : ''}`}
-      className={`flex items-center gap-1 px-8 py-2 hover:opacity-75 transition-opacity ${className}`}
+      className={`flex h-9 w-9 items-center justify-center rounded-full text-stone-700 hover:bg-stone-100 transition-colors ${className}`}
     >
       {/* Cart icon */}
       <span className="relative">

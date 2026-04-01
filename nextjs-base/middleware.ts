@@ -10,7 +10,9 @@ const VALID_LOCALES = ['fr', 'en'] as const
 
 function getLocaleFromPath(pathname: string): string {
   const segment = pathname.split('/')[1]
-  return VALID_LOCALES.includes(segment as (typeof VALID_LOCALES)[number]) ? segment : 'fr'
+  return VALID_LOCALES.includes(segment as (typeof VALID_LOCALES)[number])
+    ? segment
+    : 'fr'
 }
 
 function isProtectedEspaceClient(pathname: string): boolean {
@@ -22,7 +24,14 @@ function isProtectedEspaceClient(pathname: string): boolean {
 
 export default auth(function middleware(req: NextRequest & { auth: unknown }) {
   const { pathname } = req.nextUrl
-  const session = (req as NextRequest & { auth: Record<string, unknown> | null }).auth
+  const session = (
+    req as NextRequest & { auth: Record<string, unknown> | null }
+  ).auth
+
+  // Stripe CLI often forwards to /webhook in local dev: keep it out of locale/auth middleware.
+  if (pathname === '/webhook' || pathname === '/webhook/') {
+    return NextResponse.next()
+  }
 
   if (isProtectedEspaceClient(pathname)) {
     if (!session) {
@@ -39,6 +48,5 @@ export default auth(function middleware(req: NextRequest & { auth: unknown }) {
 
 export const config = {
   // Match all request paths except for Next.js internals, API routes, and static files
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
+  matcher: ['/((?!api|webhook|_next|_vercel|.*\\..*).*)'],
 }
-
