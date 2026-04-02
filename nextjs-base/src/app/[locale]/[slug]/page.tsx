@@ -244,10 +244,9 @@ export default async function Page({
     // Resolve locale fallback in-place instead of redirecting late in RSC render,
     // which can trigger ERR_HTTP_HEADERS_SENT during streamed navigation.
     if (locale !== defaultLocale) {
-      const defaultRes =
-        isDraft
-          ? await fetchPageData(slug, defaultLocale, true)
-          : await getPageData(slug, defaultLocale)
+      const defaultRes = isDraft
+        ? await fetchPageData(slug, defaultLocale, true)
+        : await getPageData(slug, defaultLocale)
 
       if (defaultRes.data.length) {
         pageRes = defaultRes
@@ -276,18 +275,16 @@ export default async function Page({
   let sharedOpeningDays = getSharedOpeningDays(sections)
 
   if (sharedOpeningDays.length === 0) {
-    const homeRes =
-      isDraft
-        ? await fetchPageData('home', locale, true)
-        : await getPageData('home', locale)
+    const homeRes = isDraft
+      ? await fetchPageData('home', locale, true)
+      : await getPageData('home', locale)
     const homeSections = homeRes?.data?.[0]?.sections || []
     sharedOpeningDays = getSharedOpeningDays(homeSections)
 
     if (sharedOpeningDays.length === 0 && locale !== defaultLocale) {
-      const homeDefaultRes =
-        isDraft
-          ? await fetchPageData('home', defaultLocale, true)
-          : await getPageData('home', defaultLocale)
+      const homeDefaultRes = isDraft
+        ? await fetchPageData('home', defaultLocale, true)
+        : await getPageData('home', defaultLocale)
       const homeDefaultSections = homeDefaultRes?.data?.[0]?.sections || []
       sharedOpeningDays = getSharedOpeningDays(homeDefaultSections)
     }
