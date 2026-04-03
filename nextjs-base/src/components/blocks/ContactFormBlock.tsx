@@ -168,7 +168,7 @@ const ContactFormBlock = ({
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60"
+                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60 placeholder:text-neutral-500"
                   placeholder={namePlaceholder}
                 />
               </div>
@@ -187,7 +187,7 @@ const ContactFormBlock = ({
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60"
+                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60 placeholder:text-neutral-500"
                   placeholder={emailPlaceholder}
                 />
               </div>
@@ -224,7 +224,7 @@ const ContactFormBlock = ({
                 onChange={handleChange}
                 required
                 rows={5}
-                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60 resize-vertical"
+                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-900/60 resize-vertical placeholder:text-neutral-500"
                 placeholder={messagePlaceholder}
               />
             </div>

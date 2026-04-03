@@ -18,7 +18,7 @@ export function CartButton({ className = '' }: Props) {
     <Link
       href={cartHref}
       aria-label={`Panier — ${totalItems} article${totalItems !== 1 ? 's' : ''}`}
-      className={`flex h-9 w-9 items-center justify-center rounded-full text-stone-700 hover:bg-stone-100 transition-colors ${className}`}
+      className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 dark:border-gray-500 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors ${className}`}
     >
       {/* Cart icon */}
       <span className="relative">
@@ -40,7 +40,7 @@ export function CartButton({ className = '' }: Props) {
         </svg>
 
         {totalItems > 0 && (
-          <span className="absolute -right-3 -top-3 flex h-4 w-4 items-center justify-center rounded-full bg-black text-[10px] font-bold text-white">
+          <span className="absolute -right-3 -top-3 flex h-4 w-4 items-center justify-center rounded-full bg-black dark:bg-white text-[10px] font-bold text-white dark:text-black">
             {totalItems > 99 ? '99+' : totalItems}
           </span>
         )}

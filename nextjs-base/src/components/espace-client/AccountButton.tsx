@@ -28,7 +28,7 @@ export function AccountButton() {
       <Link
         href={href}
         aria-label="Se connecter"
-        className="flex items-center gap-1.5 text-stone-700 hover:text-stone-900 transition-colors"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 dark:border-gray-500 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -54,7 +54,7 @@ export function AccountButton() {
       <Link
         href={href}
         aria-label="Mon espace client"
-        className="flex items-center gap-1.5 text-stone-700 hover:text-stone-900 transition-colors"
+        className="flex h-9 items-center gap-1.5 px-2 rounded-full border border-gray-400 dark:border-gray-500 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -79,23 +79,23 @@ export function AccountButton() {
 
       {/* Dropdown — visible on hover */}
       <div className="absolute right-0 top-full pt-3 hidden group-hover:block z-50">
-        <div className="w-52 rounded-xl border border-stone-200 bg-white shadow-lg overflow-hidden">
+        <div className="w-52 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-lg overflow-hidden">
           <ul className="py-1">
             {menuItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={`/${locale}${item.href}`}
-                  className="block px-4 py-2.5 text-sm text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors"
+                  className="block px-4 py-2.5 text-sm text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-white transition-colors"
                 >
                   {item.label}
                 </Link>
               </li>
             ))}
           </ul>
-          <div className="border-t border-stone-100 py-1">
+          <div className="border-t border-stone-100 dark:border-stone-700 py-1">
             <button
               onClick={() => signOut({ callbackUrl: `/${locale}` })}
-              className="w-full text-left px-4 py-2.5 text-sm text-stone-400 hover:bg-stone-50 hover:text-stone-900 transition-colors"
+              className="w-full text-left px-4 py-2.5 text-sm text-stone-400 dark:text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-white transition-colors"
             >
               Déconnexion
             </button>

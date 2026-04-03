@@ -121,7 +121,9 @@ export default async function ProductListBlock({
             : 'No products available.'}
         </p>
       ) : (
-        <ul className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+        <ul
+          className={`grid gap-10 ${products.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' : products.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-xl mx-auto' : products.length === 3 ? 'grid-cols-1 sm:grid-cols-3 max-w-4xl mx-auto' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'}`}
+        >
           {products.map((product) => {
             const img = product.images?.[0]
             const imgUrl = img ? buildImgUrl(img.url) : null
@@ -130,7 +132,10 @@ export default async function ProductListBlock({
               !product.active || (product.stock !== null && product.stock <= 0)
 
             return (
-              <li key={product.id}>
+              <li
+                key={product.id}
+                className="mx-auto w-full max-w-[280px] sm:max-w-none"
+              >
                 <Link
                   href={`/${locale}/${shopPath}/${product.slug}`}
                   className="group block"
@@ -142,7 +147,7 @@ export default async function ProductListBlock({
                           src={imgUrl}
                           alt={img?.alternativeText ?? product.name}
                           fill
-                          className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] ${
+                          className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] dark:invert ${
                             isSoldOut ? 'opacity-60' : ''
                           }`}
                           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"

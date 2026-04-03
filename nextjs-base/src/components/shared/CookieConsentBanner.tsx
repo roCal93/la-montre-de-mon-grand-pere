@@ -51,7 +51,7 @@ export default function CookieConsentBanner() {
               setConsentCookie('rejected')
               setVisible(false)
             }}
-            className="rounded-full border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            className="rounded-full border border-gray-300 px-5 py-2 text-sm cursor-pointer font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             {labels.reject}
           </button>
@@ -62,7 +62,7 @@ export default function CookieConsentBanner() {
               setVisible(false)
               window.dispatchEvent(new Event('cookie-consent-accepted'))
             }}
-            className="rounded-full bg-[#F88379] px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#e67369]"
+            className="rounded-full bg-black px-5 py-2 text-sm cursor-pointer font-medium text-white transition-colors hover:bg-gray-800"
           >
             {labels.accept}
           </button>

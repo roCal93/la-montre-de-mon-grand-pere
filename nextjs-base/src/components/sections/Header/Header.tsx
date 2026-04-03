@@ -225,11 +225,11 @@ export const Header = memo(
                   alt={logo.alternativeText || title}
                   width={logo.width || 180}
                   height={logo.height || 60}
-                  className="cursor-pointer h-32 w-auto"
+                  className="cursor-pointer h-32 w-auto dark:brightness-0 dark:invert"
                   priority
                 />
               ) : (
-                <h1 className="text-5xl font-caveat cursor-pointer hover:text-gray-600 text-left">
+                <h1 className="text-5xl font-caveat cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 text-left">
                   {title.split(' ').map((word, i) => (
                     <span key={i} className="block">
                       {word}
@@ -269,14 +269,16 @@ export const Header = memo(
                   aria-label={
                     link.anchor ? `${link.label} section` : link.label
                   }
-                  className={`relative inline-flex items-center h-9 px-3 rounded-md overflow-hidden text-lg transition-colors hover:text-gray-600 w-fit ${
-                    active ? 'font-semibold text-black' : 'text-gray-700'
+                  className={`relative inline-flex items-center h-9 px-3 rounded-md overflow-hidden text-lg transition-colors hover:text-gray-600 dark:hover:text-gray-300 w-fit ${
+                    active
+                      ? 'font-semibold text-black dark:text-white'
+                      : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   <span className="relative z-10">{link.label}</span>
                   <motion.span
                     aria-hidden
-                    className="absolute inset-0 z-0 rounded-md bg-gray-200/75 origin-left transform"
+                    className="absolute inset-0 z-0 rounded-md bg-gray-200/75 dark:bg-white/10 origin-left transform"
                     initial={
                       shouldReduceMotion
                         ? {}
@@ -308,7 +310,7 @@ export const Header = memo(
         id="site-header"
         role="banner"
         aria-label="Site header"
-        className="sticky top-0 z-50 backdrop-blur-sm bg-white/10 border-b border-gray-200 flex justify-center min-[850px]:justify-between items-center p-1 relative"
+        className="sticky top-0 z-50 backdrop-blur-sm bg-white/10 dark:bg-black/10 border-b border-gray-200 dark:border-gray-700 flex justify-center min-[850px]:justify-between items-center p-1 relative"
       >
         <Link
           href={`/${currentLocale}`}
@@ -323,11 +325,11 @@ export const Header = memo(
               alt={logo.alternativeText || title}
               width={logo.width || 180}
               height={logo.height || 60}
-              className="cursor-pointer mx-auto min-[850px]:mx-0 h-32 w-auto"
+              className="cursor-pointer mx-auto min-[850px]:mx-0 h-32 w-auto dark:brightness-0 dark:invert"
               priority
             />
           ) : (
-            <h1 className="text-5xl font-caveat cursor-pointer hover:text-gray-600 text-center mx-auto min-[850px]:text-left min-[850px]:mx-0">
+            <h1 className="text-5xl font-caveat cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 text-center mx-auto min-[850px]:text-left min-[850px]:mx-0">
               {title.split(' ').map((word, i) => (
                 <span key={i} className="block min-[850px]:inline">
                   {word}
@@ -358,14 +360,16 @@ export const Header = memo(
                     aria-label={
                       link.anchor ? `${link.label} section` : link.label
                     }
-                    className={`relative flex flex-1 items-center justify-center h-[69px] overflow-hidden text-center text-lg transition-colors hover:text-gray-600 whitespace-nowrap ${
-                      active ? 'font-semibold text-black' : 'text-gray-700'
+                    className={`relative flex flex-1 items-center justify-center h-[69px] overflow-hidden text-center text-lg transition-colors hover:text-gray-600 dark:hover:text-gray-300 whitespace-nowrap ${
+                      active
+                        ? 'font-semibold text-black dark:text-white'
+                        : 'text-gray-700 dark:text-gray-300'
                     }`}
                   >
                     <span className="relative z-10">{link.label}</span>
                     <motion.span
                       aria-hidden
-                      className="absolute inset-0 z-0 bg-[rgba(217,217,217,0.2)] origin-left transform"
+                      className="absolute inset-0 z-0 bg-[rgba(217,217,217,0.2)] dark:bg-white/10 origin-left transform"
                       initial={
                         shouldReduceMotion
                           ? {}
@@ -388,7 +392,7 @@ export const Header = memo(
                   {index < links.length - 1 && (
                     <span
                       aria-hidden
-                      className="h-[69px] w-[1px] bg-gray-500/90"
+                      className="h-[69px] w-[1px] bg-gray-500/90 dark:bg-gray-400/60"
                     />
                   )}
                 </React.Fragment>

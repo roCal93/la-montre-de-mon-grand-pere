@@ -91,7 +91,7 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
                 alt={title || 'Card image'}
                 width={imgWidth}
                 height={imgHeight}
-                className="w-full h-auto object-cover rounded-lg"
+                className="w-full h-auto object-cover rounded-lg dark:invert"
                 sizes="100vw"
                 priority
               />
@@ -103,7 +103,7 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
                 alt={title || 'Card image'}
                 width={imgWidth || 1200}
                 height={imgHeight || 800}
-                className="w-full h-auto object-cover rounded-lg"
+                className="w-full h-auto object-cover rounded-lg dark:invert"
                 sizes="100vw"
               />
             </div>
@@ -114,7 +114,7 @@ export const Card = ({ title, subtitle, content, image }: CardProps) => {
               src={cleanImage}
               alt={title || 'Card image'}
               fill
-              className="object-cover"
+              className="object-cover dark:invert"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>

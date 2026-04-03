@@ -21,7 +21,7 @@ export const Footer = ({
   const madeWithLabel = isEn ? 'Made with passion by' : 'Fait avec passion par'
 
   return (
-    <footer className="relative z-10 -mt-12 backdrop-blur-sm bg-white/10 border-t border-gray-200 text-gray-700 py-8 text-center">
+    <footer className="relative z-10 -mt-12 backdrop-blur-sm bg-white/10 border-t border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-8 text-center">
       <div className="space-y-3">
         <p className="text-sm">
           {siteName} © {currentYear}. {rightsLabel}
@@ -29,45 +29,45 @@ export const Footer = ({
         <div className="flex flex-wrap justify-center gap-4 text-sm">
           <Link
             href={`/${locale}/privacy-policy`}
-            className="text-gray-500 hover:text-gray-900 hover:underline"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:underline"
           >
             {privacyLabel}
           </Link>
-          <span aria-hidden="true" className="text-gray-400">
+          <span aria-hidden="true" className="text-gray-400 dark:text-gray-600">
             •
           </span>
           <Link
             href={`/${locale}/legal-notice`}
-            className="text-gray-500 hover:text-gray-900 hover:underline"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:underline"
           >
             {legalLabel}
           </Link>
-          <span aria-hidden="true" className="text-gray-400">
+          <span aria-hidden="true" className="text-gray-400 dark:text-gray-600">
             •
           </span>
           <Link
             href={`/${locale}/livraison`}
-            className="text-gray-500 hover:text-gray-900 hover:underline"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:underline"
           >
             {shippingLabel}
           </Link>
-          <span aria-hidden="true" className="text-gray-400">
+          <span aria-hidden="true" className="text-gray-400 dark:text-gray-600">
             •
           </span>
           <Link
             href={`/${locale}/garantie`}
-            className="text-gray-500 hover:text-gray-900 hover:underline"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:underline"
           >
             {warrantyLabel}
           </Link>
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {madeWithLabel}{' '}
           <a
             href="https://hakuna-mataweb.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-700 hover:text-gray-900 hover:underline"
+            className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:underline"
           >
             Hakuna Mataweb
           </a>
@@ -83,7 +83,7 @@ export const Footer = ({
               width: '30px',
               height: '25px',
             }}
-            className="opacity-40"
+            className="opacity-40 dark:brightness-0 dark:invert dark:opacity-30"
           />
         </div>
       </div>

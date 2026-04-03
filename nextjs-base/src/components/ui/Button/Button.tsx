@@ -25,7 +25,7 @@ type ButtonProps = ButtonAsButton | ButtonAsLink
 const getVariantStyles = (variant: ButtonVariant): string => {
   const styles = {
     primary:
-      "bg-[rgba(217,217,217,0.2)] backdrop-blur-md rounded-[10px] text-center text-black font-['Afacad'] font-normal text-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.65),inset_0_-1px_0_rgba(255,255,255,0.2),0_10px_30px_rgba(0,0,0,0.12)] hover:bg-[rgba(217,217,217,0.28)] active:bg-[rgba(217,217,217,0.35)]",
+      "border border-neutral-200 bg-neutral-100 shadow-[0_0_40px_rgba(0,0,0,0.15)] rounded-2xl text-center text-neutral-900 font-['Afacad'] font-normal text-2xl hover:shadow-[0_0_60px_rgba(0,0,0,0.22)] hover:border-neutral-300 transition-shadow",
     secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
     outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50',
     ghost: 'text-blue-600 hover:bg-blue-50',

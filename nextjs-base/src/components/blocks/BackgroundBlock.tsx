@@ -108,6 +108,7 @@ const BackgroundBlock = ({
     mobileSrc
   )
   const [isDesktopViewport, setIsDesktopViewport] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
   const [viewportKey, setViewportKey] = useState(0) // force re-render on viewport change
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -120,6 +121,16 @@ const BackgroundBlock = ({
   const currentSize = isDesktopViewport && desktopSrc ? sizeDesktop : sizeMobile
   const currentPosition =
     isDesktopViewport && desktopSrc ? positionDesktop : positionMobile
+
+  // dark mode detection — initialize after mount to avoid SSR/client hydration mismatch
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mql = window.matchMedia('(prefers-color-scheme: dark)')
+    setIsDarkMode(mql.matches)
+    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
 
   // responsive image swap
   useEffect(() => {
@@ -186,7 +197,7 @@ const BackgroundBlock = ({
     }
 
     if (type === 'color' && color) {
-      body.style.background = color
+      body.style.background = isDarkMode ? '#000000' : color
     } else if (type === 'gradient' && gradient) {
       body.style.backgroundImage = gradient
     } else if (type === 'image' && currentImageSrc) {
@@ -247,6 +258,7 @@ const BackgroundBlock = ({
     currentSize,
     repeat,
     fixed,
+    isDarkMode,
   ])
 
   if (scope === 'global') {
@@ -259,8 +271,8 @@ const BackgroundBlock = ({
             inset: 0,
             zIndex: 5,
             pointerEvents: 'none',
-            background: overlayColor,
-            opacity: overlayOpacity,
+            background: isDarkMode ? '#000000' : overlayColor,
+            opacity: isDarkMode ? '0.3' : overlayOpacity,
           }}
         />,
         document.body

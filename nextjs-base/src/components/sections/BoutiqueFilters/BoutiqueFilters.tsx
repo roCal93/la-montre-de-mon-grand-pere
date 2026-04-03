@@ -126,11 +126,13 @@ export function BoutiqueFilters({
   const hasAnyActive = hasActiveFilters || !!currentParams.categorie
 
   return (
-    <div className="mb-8 rounded-2xl border border-neutral-200 bg-white p-5">
+    <div className="mb-8 rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-900">
       <div className="flex flex-wrap items-end gap-6">
         {/* Prix */}
         <div className="flex flex-col gap-2">
-          <p className={`${mono} text-neutral-500`}>
+          <p
+            className={`${mono} text-neutral-900 font-semibold dark:text-white`}
+          >
             {isFr ? 'Prix (€)' : 'Price (€)'}
           </p>
           <div className="flex items-center gap-2">
@@ -145,9 +147,11 @@ export function BoutiqueFilters({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handlePriceBlur()
               }}
-              className={`w-24 border border-neutral-300 bg-white px-3 py-2 ${mono} text-neutral-900 outline-none transition-colors focus:border-black`}
+              className={`w-24 border border-neutral-300 bg-white px-3 py-2 ${mono} text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white`}
             />
-            <span className={`${mono} text-neutral-400`}>—</span>
+            <span className={`${mono} text-neutral-400 dark:text-neutral-500`}>
+              —
+            </span>
             <input
               ref={maxRef}
               type="number"
@@ -159,14 +163,16 @@ export function BoutiqueFilters({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handlePriceBlur()
               }}
-              className={`w-24 border border-neutral-300 bg-white px-3 py-2 ${mono} text-neutral-900 outline-none transition-colors focus:border-black`}
+              className={`w-24 border border-neutral-300 bg-white px-3 py-2 ${mono} text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white`}
             />
           </div>
         </div>
 
         {/* Tri */}
         <div className="flex flex-col gap-2">
-          <p className={`${mono} text-neutral-500`}>
+          <p
+            className={`${mono} text-neutral-900 font-semibold dark:text-white`}
+          >
             {isFr ? 'Trier par' : 'Sort by'}
           </p>
           <select
@@ -177,7 +183,7 @@ export function BoutiqueFilters({
                   e.target.value === 'plus-recent' ? undefined : e.target.value,
               })
             }
-            className={`cursor-pointer border border-neutral-300 bg-white px-3 py-2 ${mono} text-neutral-900 outline-none transition-colors focus:border-black`}
+            className={`cursor-pointer border border-neutral-300 bg-white px-3 py-2 ${mono} text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white`}
           >
             {triOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -189,7 +195,9 @@ export function BoutiqueFilters({
 
         {/* État */}
         <div className="flex flex-col gap-2">
-          <p className={`${mono} text-neutral-500`}>
+          <p
+            className={`${mono} text-neutral-900 font-semibold dark:text-white`}
+          >
             {isFr ? 'État' : 'Condition'}
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -206,8 +214,8 @@ export function BoutiqueFilters({
                   }
                   className={`border px-[10px] py-[4px] ${mono} font-medium transition-colors ${
                     isActive
-                      ? 'border-black bg-black text-white'
-                      : 'border-neutral-300 text-neutral-500 hover:border-black hover:text-black'
+                      ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black'
+                      : 'border-neutral-300 text-neutral-700 hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white'
                   }`}
                 >
                   {cond.label}
@@ -222,7 +230,7 @@ export function BoutiqueFilters({
           <button
             type="button"
             onClick={handleReset}
-            className={`self-end border border-neutral-300 px-3 py-2 ${mono} text-neutral-500 transition-colors hover:border-black hover:text-black`}
+            className={`self-end border border-neutral-300 px-3 py-2 ${mono} text-neutral-700 transition-colors hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white`}
           >
             {isFr ? '× Réinitialiser' : '× Reset'}
           </button>
@@ -231,8 +239,10 @@ export function BoutiqueFilters({
 
       {/* Catégories */}
       {categories.length > 0 ? (
-        <div className="mt-5 border-t border-neutral-100 pt-5">
-          <p className={`mb-2 ${mono} text-neutral-500`}>
+        <div className="mt-5 border-t border-neutral-100 pt-5 dark:border-neutral-700">
+          <p
+            className={`mb-2 ${mono} text-neutral-900 font-semibold dark:text-white`}
+          >
             {isFr ? 'Catégorie' : 'Category'}
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -240,8 +250,8 @@ export function BoutiqueFilters({
               href={allCategoryHref}
               className={`border px-[10px] py-[4px] ${mono} font-medium transition-colors ${
                 !currentParams.categorie
-                  ? 'border-black bg-black text-white'
-                  : 'border-neutral-300 text-neutral-500 hover:border-black hover:text-black'
+                  ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black'
+                  : 'border-neutral-300 text-neutral-700 hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white'
               }`}
             >
               {isFr ? 'Tout' : 'All'}
@@ -252,8 +262,8 @@ export function BoutiqueFilters({
                 href={getCategoryHref(category.slug)}
                 className={`border px-[10px] py-[4px] ${mono} font-medium transition-colors ${
                   currentParams.categorie === category.slug
-                    ? 'border-black bg-black text-white'
-                    : 'border-neutral-300 text-neutral-500 hover:border-black hover:text-black'
+                    ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black'
+                    : 'border-neutral-300 text-neutral-700 hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white'
                 }`}
               >
                 {category.name}

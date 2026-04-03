@@ -331,11 +331,11 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
                   ? 'Rechercher une montre...'
                   : 'Search watches...'
               }
-              className="w-full border border-neutral-300 bg-white px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.08em] outline-none transition-colors focus:border-black"
+              className="w-full border border-neutral-300 bg-white px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.08em] outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-white"
             />
             <button
               type="submit"
-              className="border border-black bg-black px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] font-medium uppercase tracking-[0.08em] text-white transition-colors hover:bg-neutral-900"
+              className="border border-black bg-black px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] font-medium uppercase tracking-[0.08em] text-white transition-colors hover:bg-neutral-900 dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-200"
             >
               {locale === 'fr' ? 'Rechercher' : 'Search'}
             </button>
@@ -375,8 +375,8 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
                       href={`/${locale}/boutique/${product.slug}`}
                       className="group block"
                     >
-                      <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg">
-                        <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
+                      <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+                        <div className="relative aspect-square w-full overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                           {imgUrl ? (
                             <Image
                               src={imgUrl}
@@ -399,7 +399,7 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
                         </div>
 
                         <div className="space-y-2.5 p-3 sm:p-4">
-                          <h2 className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80">
+                          <h2 className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80 dark:text-white dark:group-hover:text-white/80">
                             {product.name}
                           </h2>
                           {product.category ? (
@@ -408,7 +408,7 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
                             </p>
                           ) : null}
                           <div className="flex items-baseline gap-2">
-                            <span className="font-[family-name:var(--font-geist-mono)] text-[13px] font-semibold tracking-[0.02em] text-neutral-900">
+                            <span className="font-[family-name:var(--font-geist-mono)] text-[13px] font-semibold tracking-[0.02em] text-neutral-900 dark:text-white">
                               {formatPrice(product.price)}
                             </span>
                             {product.compareAtPrice &&
@@ -428,7 +428,7 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
 
             {pageCount > 1 ? (
               <nav
-                className="mt-10 grid grid-cols-3 items-center"
+                className="mt-10 mb-10 grid grid-cols-3 items-center"
                 aria-label={
                   locale === 'fr' ? 'Pagination boutique' : 'Shop pagination'
                 }
@@ -437,13 +437,13 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
                   {safePage > 1 ? (
                     <Link
                       href={buildPageHref(safePage - 1)}
-                      className="border border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500 transition-colors hover:border-black hover:text-black"
+                      className="border border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-700 transition-colors hover:border-black hover:text-black dark:border-neutral-400 dark:text-neutral-100 dark:hover:border-white dark:hover:text-white"
                     >
                       {locale === 'fr' ? '← Précédent' : '← Previous'}
                     </Link>
                   ) : null}
                 </div>
-                <span className="text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400">
+                <span className="text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400 dark:text-neutral-300">
                   {locale === 'fr'
                     ? `Page ${safePage} sur ${pageCount}`
                     : `Page ${safePage} of ${pageCount}`}
@@ -452,7 +452,7 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
                   {safePage < pageCount ? (
                     <Link
                       href={buildPageHref(safePage + 1)}
-                      className="border border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500 transition-colors hover:border-black hover:text-black"
+                      className="border border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-700 transition-colors hover:border-black hover:text-black dark:border-neutral-400 dark:text-neutral-100 dark:hover:border-white dark:hover:text-white"
                     >
                       {locale === 'fr' ? 'Suivant →' : 'Next →'}
                     </Link>

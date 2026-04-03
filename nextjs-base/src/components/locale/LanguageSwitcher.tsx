@@ -183,7 +183,7 @@ export function LanguageSwitcher({
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => otherLocales.length > 0 && handleOpenChange(!open)}
-        className="w-9 h-9 rounded-full border hover:border-2 transition-all duration-150 flex items-center justify-center text-sm font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-200"
+        className="w-9 h-9 rounded-full border border-gray-400 dark:border-gray-500 hover:border-2 text-gray-700 dark:text-gray-200 transition-all duration-150 flex items-center justify-center text-sm font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-200"
       >
         {currentLocale.toUpperCase()}
       </button>
@@ -245,7 +245,7 @@ export function LanguageSwitcher({
                     role="menuitem"
                     href={href}
                     onClick={() => handleOpenChange(false)}
-                    className="w-9 h-9 rounded-full border hover:border-2 transition-all duration-150 flex items-center justify-center text-sm font-semibold"
+                    className="w-9 h-9 rounded-full border border-gray-400 dark:border-gray-500 hover:border-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-black transition-all duration-150 flex items-center justify-center text-sm font-semibold"
                   >
                     {loc.toUpperCase()}
                   </Link>

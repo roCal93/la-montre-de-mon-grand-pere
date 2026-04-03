@@ -228,7 +228,7 @@ export const SectionGeneric = ({
       })}
 
       <div
-        className={`relative z-10 ${getContainerWidthClass(containerWidth)} mx-auto`}
+        className={`relative z-10 ${getContainerWidthClass(containerWidth)} mx-auto dark:invert`}
       >
         {title && (
           <h2 className="mb-8 text-center text-[30px] font-medium leading-tight tracking-[0.01em] text-neutral-900 sm:text-[36px]">

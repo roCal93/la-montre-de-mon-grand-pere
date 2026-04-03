@@ -6,7 +6,7 @@ type HeroProps = {
 }
 
 export const Hero = ({ title, subtitle }: HeroProps) => (
-  <section className="bg-white py-14 sm:py-18 lg:py-20">
+  <section className="bg-white dark:bg-black py-14 sm:py-18 lg:py-20">
     <div className="mx-auto flex w-full max-w-5xl flex-col items-center px-4 text-center sm:px-6 lg:px-8">
       {subtitle ? (
         <p className="mb-4 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-500">

@@ -179,20 +179,20 @@ export const BurgerMenu = ({
     <div ref={wrapperRef} className="relative min-[850px]:hidden">
       <button
         onClick={toggleMenu}
-        className="relative flex justify-center items-center w-8 h-8 cursor-pointer group hover:bg-gray-100/60 hover:scale-105 transition transform duration-150"
+        className="relative flex justify-center items-center w-8 h-8 cursor-pointer group hover:bg-gray-100/60 dark:hover:bg-gray-700/60 hover:scale-105 transition transform duration-150"
         aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={isOpen}
         aria-controls="mobile-menu"
         aria-haspopup="true"
       >
         <span
-          className={`absolute left-1 w-6 h-1 bg-gray-800 rounded-full origin-center transition-all duration-200 ease-in-out ${isOpen ? 'rotate-45' : '-translate-y-2.5'}`}
+          className={`absolute left-1 w-6 h-1 bg-gray-800 dark:bg-gray-100 rounded-full origin-center transition-all duration-200 ease-in-out ${isOpen ? 'rotate-45' : '-translate-y-2.5'}`}
         ></span>
         <span
-          className={`absolute left-1 w-6 h-1 bg-gray-800 rounded-full origin-center transition-all duration-200 ease-in-out ${isOpen ? 'opacity-0' : ''}`}
+          className={`absolute left-1 w-6 h-1 bg-gray-800 dark:bg-gray-100 rounded-full origin-center transition-all duration-200 ease-in-out ${isOpen ? 'opacity-0' : ''}`}
         ></span>
         <span
-          className={`absolute left-1 w-6 h-1 bg-gray-800 group-hover:bg-gray-900 rounded-full origin-center transition-all duration-200 ease-in-out ${isOpen ? '-rotate-45' : 'translate-y-2.5'}`}
+          className={`absolute left-1 w-6 h-1 bg-gray-800 dark:bg-gray-100 group-hover:bg-gray-900 dark:group-hover:bg-white rounded-full origin-center transition-all duration-200 ease-in-out ${isOpen ? '-rotate-45' : 'translate-y-2.5'}`}
         ></span>
       </button>
 
@@ -206,7 +206,7 @@ export const BurgerMenu = ({
           ></div>
           <div
             id="mobile-menu"
-            className="fixed right-2 w-64 bg-white/95 backdrop-blur-sm shadow-lg rounded-lg z-50 border border-gray-200"
+            className="fixed right-2 w-64 bg-white/95 dark:bg-black/95 backdrop-blur-sm shadow-lg rounded-lg z-50 border border-gray-200 dark:border-gray-700"
             style={{ top: headerBottom + 8 }}
             role="dialog"
             aria-label="Mobile navigation menu"
@@ -236,13 +236,15 @@ export const BurgerMenu = ({
                         link.anchor ? `${link.label} section` : link.label
                       }
                       className={`relative flex items-center justify-center h-14 w-full overflow-hidden text-lg transition-colors ${
-                        active ? 'font-semibold text-black' : 'text-gray-700'
+                        active
+                          ? 'font-semibold text-black dark:text-white'
+                          : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       <span className="relative z-10">{link.label}</span>
                       <motion.span
                         aria-hidden
-                        className="absolute inset-0 z-0 bg-[rgba(217,217,217,0.2)] origin-left"
+                        className="absolute inset-0 z-0 bg-[rgba(217,217,217,0.2)] dark:bg-white/10 origin-left"
                         initial={{ scaleX: active || hovered ? 1 : 0 }}
                         animate={{ scaleX: active || hovered ? 1 : 0 }}
                         transition={{
@@ -256,14 +258,14 @@ export const BurgerMenu = ({
                     {index < links.length - 1 && (
                       <span
                         aria-hidden
-                        className="mx-12 h-[1px] bg-gray-500/90"
+                        className="mx-12 h-[1px] bg-gray-500/90 dark:bg-gray-400/40"
                       />
                     )}
                   </React.Fragment>
                 )
               })}
               {!hideLanguageSwitcher && (
-                <div className="py-4 border-t border-gray-200 flex justify-center">
+                <div className="py-4 border-t border-gray-200 dark:border-gray-700 flex justify-center">
                   <div className="flex items-center justify-center gap-10">
                     <AccountButton />
                     <LanguageSwitcher
