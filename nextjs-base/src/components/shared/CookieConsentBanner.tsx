@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Button } from '@/components/ui/Button'
 
 const CONSENT_COOKIE_NAME = 'cookie_consent'
 const ONE_YEAR = 60 * 60 * 24 * 365
@@ -21,11 +20,15 @@ export default function CookieConsentBanner() {
   const labels = isEn
     ? {
         text: 'We use optional audience measurement cookies to improve the website. You can accept or refuse these cookies.',
+        learnMore: 'Privacy policy',
+        learnMoreHref: '/en/privacy-policy',
         accept: 'Accept',
         reject: 'Refuse',
       }
     : {
-        text: "Nous utilisons des cookies optionnels de mesure d'audience pour ameliorer le site. Vous pouvez accepter ou refuser ces cookies.",
+        text: "Nous utilisons des cookies optionnels de mesure d'audience pour améliorer le site. Vous pouvez accepter ou refuser ces cookies.",
+        learnMore: 'Politique de confidentialité',
+        learnMoreHref: '/fr/privacy-policy',
         accept: 'Accepter',
         reject: 'Refuser',
       }
@@ -35,29 +38,34 @@ export default function CookieConsentBanner() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-[300] px-4 pb-4">
       <div className="mx-auto max-w-4xl rounded-xl border border-gray-300 bg-white text-gray-900 p-4 shadow-xl">
-        <p className="text-sm leading-relaxed">{labels.text}</p>
+        <p className="text-sm leading-relaxed">
+          {labels.text}{' '}
+          <a href={labels.learnMoreHref} className="underline hover:opacity-75">
+            {labels.learnMore}
+          </a>
+        </p>
         <div className="mt-3 flex flex-wrap gap-3">
-          <Button
+          <button
             type="button"
-            variant="outline"
             onClick={() => {
               setConsentCookie('rejected')
               setVisible(false)
             }}
-            className="!text-sm !leading-normal px-4 py-2"
+            className="rounded-full border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
             {labels.reject}
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
             onClick={() => {
               setConsentCookie('accepted')
               setVisible(false)
+              window.dispatchEvent(new Event('cookie-consent-accepted'))
             }}
-            className="!text-sm !leading-normal px-5 py-2"
+            className="rounded-full bg-[#F88379] px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#e67369]"
           >
             {labels.accept}
-          </Button>
+          </button>
         </div>
       </div>
     </div>

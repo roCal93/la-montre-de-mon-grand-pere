@@ -8,6 +8,7 @@ type PrivacyPolicyModalProps = {
   onClose: () => void
   title?: string
   content?: string
+  lastUpdated?: string
   closeButtonText?: string
 }
 
@@ -16,9 +17,22 @@ const PrivacyPolicyModal = ({
   onClose,
   title,
   content,
+  lastUpdated,
   closeButtonText,
 }: PrivacyPolicyModalProps) => {
   if (!isOpen) return null
+
+  const formattedLastUpdated = lastUpdated
+    ? (() => {
+        const date = new Date(lastUpdated)
+        if (Number.isNaN(date.getTime())) return lastUpdated
+        return new Intl.DateTimeFormat('fr-FR', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        }).format(date)
+      })()
+    : undefined
 
   const formatContent = (text: string) => formatLegalContent(text)
 
@@ -35,12 +49,19 @@ const PrivacyPolicyModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-          <h2
-            id="policy-modal-title"
-            className="text-2xl font-bold text-gray-900"
-          >
-            {title}
-          </h2>
+          <div>
+            <h2
+              id="policy-modal-title"
+              className="text-2xl font-bold text-gray-900"
+            >
+              {title}
+            </h2>
+            {formattedLastUpdated && (
+              <p className="mt-1 text-sm text-gray-500">
+                Dernière mise à jour : {formattedLastUpdated}
+              </p>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-3xl leading-none focus:outline-none focus:ring-2 focus:ring-[#F88379] rounded"
