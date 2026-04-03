@@ -11,6 +11,7 @@ type TextImageBlockProps = {
   verticalAlignment: 'top' | 'center' | 'bottom'
   textAlignment?: 'left' | 'center' | 'right' | 'justify'
   roundedImage?: boolean
+  priority?: boolean
 }
 
 const TextImageBlock = ({
@@ -21,6 +22,7 @@ const TextImageBlock = ({
   verticalAlignment,
   textAlignment = 'left',
   roundedImage = false,
+  priority = false,
 }: TextImageBlockProps) => {
   const imageSrc = cleanImageUrl(image.url)
   const finalImageSrc =
@@ -150,7 +152,8 @@ const TextImageBlock = ({
         height={roundedImage ? 800 : image.height || 600}
         className={`${roundedImage ? 'h-full w-full rounded-full object-cover' : 'h-auto w-full rounded-2xl border border-neutral-200 object-cover'}`}
         sizes="(max-width: 768px) 100vw, 50vw"
-        unoptimized={true}
+        priority={priority}
+        loading={priority ? undefined : 'lazy'}
       />
     </div>
   )

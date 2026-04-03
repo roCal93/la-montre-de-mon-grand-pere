@@ -70,12 +70,13 @@ export const SectionGeneric = ({
       .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
       .join('')
 
-  // Pre-compute the index of the first ImageBlock for LCP priority (only needed in first section)
+  // Pre-compute the index of the first image-bearing block for LCP priority (only needed in first section)
   const firstImageBlockIndex = isFirstSection
     ? contentBlocks.findIndex((b) => {
         const raw = (b as { __component?: string }).__component ?? ''
         const key = raw.split('.').pop() || raw
-        return toPascalStatic(key) === 'ImageBlock'
+        const name = toPascalStatic(key)
+        return name === 'ImageBlock' || name === 'TextImageBlock'
       })
     : -1
 
