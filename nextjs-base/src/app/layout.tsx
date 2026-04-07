@@ -102,6 +102,15 @@ export default async function RootLayout({
       suppressHydrationWarning
       data-disable-dark={disableDark ? 'true' : undefined}
     >
+      <head>
+        {!disableDark && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){try{var t=localStorage.getItem('theme-override');var p=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=t==='dark'||(t!=='light'&&p);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`,
+            }}
+          />
+        )}
+      </head>
       <body
         className={`${afacadSans.variable} ${geistMono.variable} antialiased`}
       >

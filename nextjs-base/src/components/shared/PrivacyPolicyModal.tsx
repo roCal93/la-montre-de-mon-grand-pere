@@ -45,10 +45,10 @@ const PrivacyPolicyModal = ({
       aria-labelledby="policy-modal-title"
     >
       <div
-        className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl"
+        className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl dark:bg-neutral-900"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between dark:bg-neutral-900 dark:border-neutral-700">
           <div>
             <h2
               id="policy-modal-title"
@@ -76,7 +76,7 @@ const PrivacyPolicyModal = ({
           dangerouslySetInnerHTML={{ __html: formatContent(content || '') }}
         />
 
-        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 text-center">
+        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 text-center dark:bg-neutral-800 dark:border-neutral-700">
           <button
             onClick={onClose}
             className="px-6 py-2 bg-[#F88379] text-white rounded-full hover:bg-[#e67369] transition-colors focus:outline-none focus:ring-2 focus:ring-[#F88379] focus:ring-offset-2"

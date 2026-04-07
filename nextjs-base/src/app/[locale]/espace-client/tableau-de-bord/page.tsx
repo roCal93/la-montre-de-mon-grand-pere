@@ -52,14 +52,17 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  waiting: 'bg-amber-100 text-amber-800',
-  in_progress: 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800',
-  pending: 'bg-stone-100 text-stone-600',
-  paid: 'bg-green-100 text-green-800',
-  shipped: 'bg-blue-100 text-blue-800',
-  cancelled: 'bg-red-100 text-red-800',
-  refunded: 'bg-orange-100 text-orange-800',
+  waiting: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300',
+  in_progress: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  completed:
+    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  pending:
+    'bg-stone-100 text-stone-600 dark:bg-neutral-700 dark:text-neutral-300',
+  paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  shipped: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+  refunded:
+    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
 }
 
 function StatCard({
@@ -74,12 +77,12 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="group border border-neutral-200 bg-white p-6 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all"
+      className="group border border-neutral-200 bg-white p-6 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
     >
-      <p className="text-2xl font-semibold tracking-tight text-neutral-900">
+      <p className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white">
         {value}
       </p>
-      <p className="mt-1 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.08em] text-neutral-500 group-hover:text-neutral-700 transition-colors">
+      <p className="mt-1 font-[family-name:var(--font-geist-mono)] text-sm uppercase tracking-[0.08em] text-neutral-500 group-hover:text-neutral-700 transition-colors dark:text-neutral-400 dark:group-hover:text-neutral-200">
         {label}
       </p>
     </Link>
@@ -147,10 +150,12 @@ export default async function TableauDeBordPage({
       <p className="font-[family-name:var(--font-geist-mono)] uppercase tracking-[0.18em] text-neutral-500">
         Espace client
       </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
+      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900 dark:text-white">
         Tableau de bord
       </h1>
-      <p className="mt-4 text-neutral-500">Bonjour {session.user.name}</p>
+      <p className="mt-4 text-neutral-500 dark:text-neutral-400">
+        Bonjour {session.user.name}
+      </p>
 
       {/* Stats */}
       <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -179,9 +184,9 @@ export default async function TableauDeBordPage({
           </h2>
           <Link
             href={`/${locale}/espace-client/commandes/${lastOrder.documentId}`}
-            className="flex items-center gap-4 border border-neutral-200 bg-white p-4 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all"
+            className="flex items-center gap-4 border border-neutral-200 bg-white p-4 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
           >
-            <div className="shrink-0 w-24 h-24 overflow-hidden bg-neutral-100">
+            <div className="shrink-0 w-24 h-24 overflow-hidden bg-neutral-100 dark:bg-neutral-800">
               {lastOrderImageUrl ? (
                 <Image
                   src={lastOrderImageUrl}
@@ -196,7 +201,7 @@ export default async function TableauDeBordPage({
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-xl mb-4 font-semibold text-neutral-900 truncate">
+              <p className="text-xl mb-4 font-semibold text-neutral-900 truncate dark:text-white">
                 {lastOrderFirstItem?.productName ?? 'Commande'}
                 {lastOrderOtherCount > 0 && (
                   <span className="ml-1.5 text-sm font-normal text-neutral-400">
@@ -224,7 +229,7 @@ export default async function TableauDeBordPage({
               >
                 {STATUS_LABELS[lastOrder.status] ?? lastOrder.status}
               </span>
-              <p className="font-semibold text-lg text-neutral-900">
+              <p className="font-semibold text-lg text-neutral-900 dark:text-white">
                 {formatPrice(lastOrder.total)}
               </p>
             </div>
@@ -243,9 +248,9 @@ export default async function TableauDeBordPage({
               <li key={wf.documentId}>
                 <Link
                   href={`/${locale}/espace-client/mes-montres/${wf.documentId}`}
-                  className="flex items-center justify-between border border-neutral-200 bg-white px-5 py-4 shadow-sm hover:border-neutral-400 transition-colors"
+                  className="flex items-center justify-between border border-neutral-200 bg-white px-5 py-4 shadow-sm hover:border-neutral-400 transition-colors dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
                 >
-                  <span className="text-sm font-medium text-neutral-800">
+                  <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
                     {wf.title}
                   </span>
                   <span

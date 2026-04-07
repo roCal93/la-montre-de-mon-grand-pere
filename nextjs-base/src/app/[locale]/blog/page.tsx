@@ -212,7 +212,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
 
   return (
     <Layout locale={locale}>
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <main className="mx-auto mb-10 max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <header className="mb-10 pb-6">
           {!blogPage?.hideTitle ? (
             <h1 className="text-[23px] font-medium leading-snug">
@@ -270,11 +270,11 @@ export default async function BlogPage({ params, searchParams }: Props) {
                   ? 'Rechercher un article...'
                   : 'Search articles...'
               }
-              className="w-full border border-neutral-300 bg-white px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.08em] outline-none transition-colors focus:border-black"
+              className="w-full border border-neutral-300 bg-white px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.08em] outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-white"
             />
             <button
               type="submit"
-              className="border border-black bg-black px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] font-medium uppercase tracking-[0.08em] text-white transition-colors hover:bg-neutral-900"
+              className="border border-black bg-black px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[12px] font-medium uppercase tracking-[0.08em] text-white transition-colors hover:bg-neutral-900 dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-200"
             >
               {locale === 'fr' ? 'Rechercher' : 'Search'}
             </button>
@@ -311,8 +311,8 @@ export default async function BlogPage({ params, searchParams }: Props) {
                     href={`/${locale}/blog/${article.slug}`}
                     className="group block"
                   >
-                    <article className="h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg">
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+                    <article className="h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                         {imageUrl ? (
                           <Image
                             src={imageUrl}
@@ -329,25 +329,25 @@ export default async function BlogPage({ params, searchParams }: Props) {
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/[0.03] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                       </div>
 
-                      <div className="space-y-3.5 p-5">
+                      <div className="space-y-3.5 p-3 sm:p-4">
                         {formattedDate ? (
-                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600">
+                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-400">
                             {formattedDate}
                           </p>
                         ) : null}
 
-                        <h2 className="line-clamp-2 text-[18px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80">
+                        <h2 className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80 dark:text-white dark:group-hover:text-white/80">
                           {article.title}
                         </h2>
 
                         {article.excerpt ? (
-                          <p className="line-clamp-3 border-l-2 border-black pl-3 text-[14px] leading-[1.7] text-neutral-500">
+                          <p className="line-clamp-3 border-l-2 border-black pl-3 text-[13px] leading-[1.7] text-neutral-500 dark:border-white dark:text-neutral-400">
                             {article.excerpt}
                           </p>
                         ) : null}
 
                         {(article.categories || []).length > 0 ? (
-                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-600">
+                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-400">
                             {article.categories?.[0]?.name}
                           </p>
                         ) : null}
@@ -371,7 +371,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
               {hasPreviousPage ? (
                 <Link
                   href={`/${locale}/blog?page=${pagination.page - 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-                  className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+                  className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
                 >
                   {locale === 'fr' ? 'Page précédente' : 'Previous page'}
                 </Link>
@@ -388,7 +388,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
               {hasNextPage ? (
                 <Link
                   href={`/${locale}/blog?page=${pagination.page + 1}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-                  className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+                  className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
                 >
                   {locale === 'fr' ? 'Page suivante' : 'Next page'}
                 </Link>

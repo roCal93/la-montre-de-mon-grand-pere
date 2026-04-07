@@ -44,11 +44,13 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-stone-100 text-stone-600',
-  paid: 'bg-green-100 text-green-800',
-  shipped: 'bg-blue-100 text-blue-800',
-  cancelled: 'bg-red-100 text-red-800',
-  refunded: 'bg-orange-100 text-orange-800',
+  pending:
+    'bg-stone-100 text-stone-600 dark:bg-neutral-700 dark:text-neutral-300',
+  paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  shipped: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+  refunded:
+    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
 }
 
 export default async function CommandesPage({
@@ -103,7 +105,7 @@ export default async function CommandesPage({
       <p className="font-[family-name:var(--font-geist-mono)] text-[15px] uppercase tracking-[0.18em] text-neutral-500">
         Espace client
       </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
+      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900 dark:text-white">
         Mes commandes
       </h1>
 
@@ -112,7 +114,7 @@ export default async function CommandesPage({
           <p className="text-neutral-500">Aucune commande pour le moment.</p>
           <Link
             href={`/${locale}/boutique`}
-            className="mt-4 inline-block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black"
+            className="mt-4 inline-block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black dark:text-neutral-200 dark:hover:text-white"
           >
             Découvrir la boutique
           </Link>
@@ -132,10 +134,10 @@ export default async function CommandesPage({
               <li key={order.documentId}>
                 <Link
                   href={`/${locale}/espace-client/commandes/${order.documentId}`}
-                  className="flex items-center gap-4 border border-neutral-200 bg-white p-4 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all"
+                  className="flex items-center gap-4 border border-neutral-200 bg-white p-4 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
                 >
                   {/* Product thumbnail */}
-                  <div className="shrink-0 w-24 h-24 overflow-hidden bg-neutral-100">
+                  <div className="shrink-0 w-24 h-24 overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                     {imgUrl ? (
                       <Image
                         src={imgUrl}
@@ -151,7 +153,7 @@ export default async function CommandesPage({
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-xl mb-4 font-semibold text-neutral-900 truncate">
+                    <p className="text-xl mb-4 font-semibold text-neutral-900 truncate dark:text-white">
                       {firstItem?.productName ?? '—'}
                       {otherCount > 0 && (
                         <span className="ml-1.5 text-sm font-normal text-neutral-400">
@@ -179,7 +181,7 @@ export default async function CommandesPage({
                     >
                       {STATUS_LABELS[order.status] ?? order.status}
                     </span>
-                    <p className="font-semibold text-lg text-neutral-900">
+                    <p className="font-semibold text-lg text-neutral-900 dark:text-white">
                       {formatPrice(order.total)}
                     </p>
                   </div>

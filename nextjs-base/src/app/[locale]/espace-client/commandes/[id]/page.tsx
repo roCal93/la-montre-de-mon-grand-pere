@@ -61,11 +61,13 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-stone-100 text-stone-600',
-  paid: 'bg-green-100 text-green-800',
-  shipped: 'bg-blue-100 text-blue-800',
-  cancelled: 'bg-red-100 text-red-800',
-  refunded: 'bg-orange-100 text-orange-800',
+  pending:
+    'bg-stone-100 text-stone-600 dark:bg-neutral-700 dark:text-neutral-300',
+  paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  shipped: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+  refunded:
+    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
 }
 
 export default async function CommandeDetailPage({
@@ -129,7 +131,7 @@ export default async function CommandeDetailPage({
       <div className="flex items-center gap-3 mb-2">
         <Link
           href={`/${locale}/espace-client/commandes`}
-          className="text-sm text-stone-500 hover:text-stone-800"
+          className="text-sm text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
         >
           ← Mes commandes
         </Link>
@@ -137,10 +139,10 @@ export default async function CommandeDetailPage({
 
       <div className="flex items-start justify-between gap-4 mt-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-stone-900">
+          <h1 className="text-2xl font-serif font-bold text-neutral-900 dark:text-white">
             Commande #{order.documentId.slice(-8).toUpperCase()}
           </h1>
-          <p className="mt-1 text-sm text-stone-500">
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
             {new Date(order.createdAt).toLocaleDateString('fr-FR', {
               day: 'numeric',
               month: 'long',
@@ -158,19 +160,19 @@ export default async function CommandeDetailPage({
       </div>
 
       {/* Articles */}
-      <section className="mt-8 rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-stone-800 mb-4">
+      <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <h2 className="text-base font-semibold text-neutral-800 mb-4 dark:text-neutral-100">
           {(order.lineItems?.reduce((s, i) => s + i.quantity, 0) ?? 0) > 1
             ? 'Articles'
             : 'Article'}
         </h2>
-        <ul className="divide-y divide-stone-100">
+        <ul className="divide-y divide-neutral-100 dark:divide-neutral-700">
           {order.lineItems?.map((item, i) => {
             const imageUrl = productImages[item.productSlug]
             return (
               <li key={i} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-stone-100">
+                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700">
                     {imageUrl ? (
                       <Image
                         src={imageUrl}
@@ -184,13 +186,15 @@ export default async function CommandeDetailPage({
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-stone-800">
+                    <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
                       {item.productName}
                     </p>
-                    <p className="text-xs text-stone-400">× {item.quantity}</p>
+                    <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                      × {item.quantity}
+                    </p>
                   </div>
                 </div>
-                <p className="text-sm font-medium text-stone-900">
+                <p className="text-sm font-medium text-neutral-900 dark:text-white">
                   {formatPrice(item.unitPrice * item.quantity)}
                 </p>
               </li>
@@ -198,12 +202,12 @@ export default async function CommandeDetailPage({
           })}
         </ul>
 
-        <div className="mt-4 space-y-1.5 border-t border-stone-100 pt-4">
-          <div className="flex justify-between text-sm text-stone-500">
+        <div className="mt-4 space-y-1.5 border-t border-neutral-100 pt-4 dark:border-neutral-700">
+          <div className="flex justify-between text-sm text-neutral-500 dark:text-neutral-400">
             <span>Sous-total</span>
             <span>{formatPrice(order.subtotal)}</span>
           </div>
-          <div className="flex justify-between text-sm text-stone-500">
+          <div className="flex justify-between text-sm text-neutral-500 dark:text-neutral-400">
             <span>Livraison</span>
             <span>
               {order.shippingCost === 0
@@ -211,7 +215,7 @@ export default async function CommandeDetailPage({
                 : formatPrice(order.shippingCost)}
             </span>
           </div>
-          <div className="flex justify-between text-sm font-semibold text-stone-900 pt-1.5 border-t border-stone-100">
+          <div className="flex justify-between text-sm font-semibold text-neutral-900 pt-1.5 border-t border-neutral-100 dark:text-white dark:border-neutral-700">
             <span>Total</span>
             <span>{formatPrice(order.total)}</span>
           </div>
@@ -220,12 +224,12 @@ export default async function CommandeDetailPage({
 
       {/* Shipping address */}
       {addr && (
-        <section className="mt-6 rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-stone-800 mb-3">
+        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+          <h2 className="text-base font-semibold text-neutral-800 mb-3 dark:text-neutral-100">
             Adresse de livraison
           </h2>
-          <address className="not-italic text-sm text-stone-600 leading-6">
-            <p className="font-medium text-stone-800">
+          <address className="not-italic text-sm text-neutral-600 leading-6 dark:text-neutral-300">
+            <p className="font-medium text-neutral-800 dark:text-neutral-100">
               {addr.firstName} {addr.lastName}
             </p>
             <p>{addr.address1}</p>
@@ -244,7 +248,7 @@ export default async function CommandeDetailPage({
           href={`/api/invoice/${order.documentId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-5 py-2.5 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-5 py-2.5 text-sm font-medium text-neutral-700 shadow-sm hover:bg-neutral-50 transition-colors dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
         >
           ↓ Télécharger la facture (PDF)
         </a>

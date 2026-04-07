@@ -88,13 +88,13 @@ export function CartDrawer() {
           top: `${headerOffset}px`,
           height: `calc(100dvh - ${headerOffset}px)`,
         }}
-        className={`fixed right-0 bottom-0 z-50 flex w-full max-w-md flex-col bg-white shadow-xl transition-transform duration-300 ${
+        className={`fixed right-0 bottom-0 z-50 flex w-full max-w-md flex-col bg-white shadow-xl transition-transform duration-300 dark:bg-neutral-900 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-lg font-semibold">
+        <div className="flex items-center justify-between border-b px-6 py-4 dark:border-neutral-700">
+          <h2 className="text-lg font-semibold dark:text-white">
             Panier{' '}
             {items.length > 0 && (
               <span className="ml-1 text-sm font-normal text-neutral-500">
@@ -105,7 +105,7 @@ export function CartDrawer() {
           <button
             onClick={closeCart}
             aria-label="Fermer le panier"
-            className="rounded p-1 hover:bg-neutral-100 transition-colors"
+            className="rounded p-1 hover:bg-neutral-100 transition-colors dark:hover:bg-neutral-700"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -129,7 +129,7 @@ export function CartDrawer() {
               Votre panier est vide.
             </p>
           ) : (
-            <ul role="list" className="divide-y">
+            <ul role="list" className="divide-y dark:divide-neutral-700">
               {items.map((item) => (
                 <CartLineItem
                   key={item.id}
@@ -146,9 +146,9 @@ export function CartDrawer() {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t px-6 py-4 space-y-4">
+          <div className="border-t px-6 py-4 space-y-4 dark:border-neutral-700">
             <div className="flex justify-between text-sm">
-              <span className="text-neutral-600">
+              <span className="text-neutral-600 dark:text-neutral-400">
                 Sous-total (hors livraison)
               </span>
               <span className="font-semibold">{formatPrice(subtotal)}</span>
@@ -161,7 +161,7 @@ export function CartDrawer() {
             </button>
             <button
               onClick={closeCart}
-              className="w-full text-center text-sm text-neutral-500 hover:text-black transition-colors"
+              className="w-full text-center text-sm text-neutral-500 hover:text-black transition-colors dark:text-neutral-400 dark:hover:text-white"
             >
               Continuer mes achats
             </button>

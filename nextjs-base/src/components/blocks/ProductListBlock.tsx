@@ -102,7 +102,7 @@ export default async function ProductListBlock({
   const shopPath = locale === 'fr' ? 'boutique' : 'shop'
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 dark:invert">
       {(title || subtitle) && (
         <div className="mb-8 text-center">
           {title && (
@@ -140,14 +140,14 @@ export default async function ProductListBlock({
                   href={`/${locale}/${shopPath}/${product.slug}`}
                   className="group block"
                 >
-                  <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg">
-                    <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
+                  <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+                    <div className="relative aspect-square w-full overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                       {imgUrl && (
                         <Image
                           src={imgUrl}
                           alt={img?.alternativeText ?? product.name}
                           fill
-                          className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] dark:invert ${
+                          className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] ${
                             isSoldOut ? 'opacity-60' : ''
                           }`}
                           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -164,16 +164,16 @@ export default async function ProductListBlock({
                     </div>
 
                     <div className="space-y-2.5 p-3 sm:p-4">
-                      <p className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80">
+                      <h2 className="line-clamp-2 text-[15px] font-medium leading-snug tracking-[0.01em] transition-colors group-hover:text-black/80 dark:text-white dark:group-hover:text-white/80">
                         {product.name}
-                      </p>
+                      </h2>
                       {product.category ? (
                         <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600">
                           {product.category.name}
                         </p>
                       ) : null}
                       <div className="flex items-baseline gap-2">
-                        <span className="font-[family-name:var(--font-geist-mono)] text-[13px] font-semibold tracking-[0.02em] text-neutral-900">
+                        <span className="font-[family-name:var(--font-geist-mono)] text-[13px] font-semibold tracking-[0.02em] text-neutral-900 dark:text-white">
                           {formatPrice(product.price)}
                         </span>
                         {product.compareAtPrice &&

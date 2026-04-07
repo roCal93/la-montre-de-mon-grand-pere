@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { LanguageSwitcher } from '@/components/locale/LanguageSwitcher'
 import { CartButton } from '@/components/cart/CartButton'
 import { AccountButton } from '@/components/espace-client/AccountButton'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { scrollToAnchor } from '@/lib/anchor'
 
 interface ProcessedLink {
@@ -266,15 +267,18 @@ export const BurgerMenu = ({
               })}
               {!hideLanguageSwitcher && (
                 <div className="py-4 border-t border-gray-200 dark:border-gray-700 flex justify-center">
-                  <div className="flex items-center justify-center gap-10">
-                    <AccountButton />
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-5">
+                      <AccountButton />
+                      <ThemeToggle />
+                      <CartButton />
+                    </div>
                     <LanguageSwitcher
                       side="right"
                       dropdownDirection="right"
                       centerOpenGroup
                       onOpenChange={(v) => setLangOpen(v)}
                     />
-                    <CartButton />
                   </div>
                 </div>
               )}

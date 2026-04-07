@@ -175,22 +175,42 @@ export function BoutiqueFilters({
           >
             {isFr ? 'Trier par' : 'Sort by'}
           </p>
-          <select
-            value={currentParams.tri ?? 'plus-recent'}
-            onChange={(e) =>
-              navigate({
-                tri:
-                  e.target.value === 'plus-recent' ? undefined : e.target.value,
-              })
-            }
-            className={`cursor-pointer border border-neutral-300 bg-white px-3 py-2 ${mono} text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white`}
-          >
-            {triOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={currentParams.tri ?? 'plus-recent'}
+              onChange={(e) =>
+                navigate({
+                  tri:
+                    e.target.value === 'plus-recent'
+                      ? undefined
+                      : e.target.value,
+                })
+              }
+              className={`w-full cursor-pointer appearance-none border border-neutral-300 bg-white pl-3 pr-9 py-2 ${mono} font-medium text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white`}
+            >
+              {triOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <svg
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 dark:text-neutral-400"
+              width="12"
+              height="12"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m4 6 4 4 4-4"
+              />
+            </svg>
+          </div>
         </div>
 
         {/* État */}

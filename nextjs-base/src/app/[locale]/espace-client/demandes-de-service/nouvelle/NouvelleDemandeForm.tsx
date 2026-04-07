@@ -92,25 +92,25 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
         <div className="flex items-center gap-3 mb-4">
           <Link
             href={`/${locale}/espace-client/demandes-de-service`}
-            className="text-sm text-stone-500 hover:text-stone-800"
+            className="text-sm text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
           >
             ← Demandes de service
           </Link>
         </div>
-        <h1 className="text-2xl font-serif font-bold text-stone-900 mb-4">
+        <h1 className="text-2xl font-serif font-bold text-neutral-900 mb-4 dark:text-white">
           Nouvelle demande de service
         </h1>
-        <div className="rounded-2xl border border-stone-100 bg-white p-8 shadow-sm text-center">
-          <p className="text-stone-600 mb-2">
+        <div className="rounded-2xl border border-neutral-100 bg-white p-8 shadow-sm text-center dark:border-neutral-700 dark:bg-neutral-900">
+          <p className="text-neutral-600 mb-2 dark:text-neutral-300">
             Vous n&apos;avez pas encore de montre dans votre espace client.
           </p>
-          <p className="text-sm text-stone-400 mb-6">
+          <p className="text-sm text-neutral-400 mb-6 dark:text-neutral-500">
             Les demandes de service sont réservées aux montres achetées sur
             notre boutique.
           </p>
           <Link
             href={`/${locale}/boutique`}
-            className="inline-block rounded-lg bg-stone-900 px-6 py-3 text-sm font-medium text-white hover:bg-stone-700 transition-colors"
+            className="inline-block border border-black bg-black px-6 py-3 text-sm font-medium text-white hover:bg-neutral-900 transition-colors dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-200"
           >
             Découvrir la boutique
           </Link>
@@ -124,20 +124,20 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
       <div className="flex items-center gap-3 mb-4">
         <Link
           href={`/${locale}/espace-client/demandes-de-service`}
-          className="text-sm text-stone-500 hover:text-stone-800"
+          className="text-sm text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
         >
           ← Demandes de service
         </Link>
       </div>
 
-      <h1 className="text-2xl font-serif font-bold text-stone-900">
+      <h1 className="text-2xl font-serif font-bold text-neutral-900 dark:text-white">
         Nouvelle demande de service
       </h1>
-      <p className="mt-1 text-sm text-stone-500 mb-8">
+      <p className="mt-1 text-sm text-neutral-500 mb-8 dark:text-neutral-400">
         Sélectionnez la montre concernée et décrivez votre besoin.
       </p>
 
-      <div className="rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
         <form
           onSubmit={handleSubmit(onSubmit)}
           noValidate
@@ -146,7 +146,7 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
           {/* Montre */}
           <div>
             <label
-              className="block text-sm font-medium text-stone-700 mb-1.5"
+              className="block text-sm font-medium text-neutral-700 mb-1.5 dark:text-neutral-300"
               htmlFor="watch_file_document_id"
             >
               Montre concernée
@@ -154,7 +154,7 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
             <select
               id="watch_file_document_id"
               {...register('watch_file_document_id')}
-              className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm focus:border-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-700"
+              className="w-full border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm focus:border-black focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white"
             >
               {watchFiles.map((wf) => (
                 <option key={wf.documentId} value={wf.documentId}>
@@ -171,7 +171,7 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
 
           {/* Type de service */}
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-3">
+            <label className="block text-sm font-medium text-neutral-700 mb-3 dark:text-neutral-300">
               Type de service
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -179,10 +179,10 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
                 <label
                   key={opt.value}
                   className={[
-                    'flex flex-col gap-1 rounded-xl border-2 p-4 cursor-pointer transition-colors',
+                    'flex flex-col gap-1 border-2 p-4 cursor-pointer transition-colors',
                     selectedType === opt.value
-                      ? 'border-amber-700 bg-amber-50'
-                      : 'border-stone-100 hover:border-stone-200',
+                      ? 'border-black bg-neutral-50 dark:border-white dark:bg-neutral-800'
+                      : 'border-neutral-100 hover:border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-500',
                   ].join(' ')}
                 >
                   <input
@@ -191,10 +191,12 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
                     {...register('type')}
                     className="sr-only"
                   />
-                  <span className="text-sm font-medium text-stone-900">
+                  <span className="text-sm font-medium text-neutral-900 dark:text-white">
                     {opt.label}
                   </span>
-                  <span className="text-xs text-stone-500">{opt.desc}</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {opt.desc}
+                  </span>
                 </label>
               ))}
             </div>
@@ -203,7 +205,7 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
           {/* Description */}
           <div>
             <label
-              className="block text-sm font-medium text-stone-700 mb-1.5"
+              className="block text-sm font-medium text-neutral-700 mb-1.5 dark:text-neutral-300"
               htmlFor="description"
             >
               Description de votre demande
@@ -213,7 +215,7 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
               rows={5}
               placeholder="Décrivez le problème, l'état de la montre, ce que vous souhaitez..."
               {...register('description')}
-              className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm focus:border-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-700 resize-none"
+              className="w-full border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm focus:border-black focus:outline-none resize-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-white"
             />
             {errors.description && (
               <p className="mt-1 text-xs text-red-600">
@@ -237,13 +239,13 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-lg bg-stone-900 px-6 py-3 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-60 transition-colors"
+              className="border border-black bg-black px-6 py-3 text-sm font-medium text-white hover:bg-neutral-900 disabled:opacity-60 transition-colors dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-200"
             >
               {isSubmitting ? 'Envoi...' : 'Envoyer la demande'}
             </button>
             <Link
               href={`/${locale}/espace-client/demandes-de-service`}
-              className="text-sm text-stone-500 hover:text-stone-800"
+              className="text-sm text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
             >
               Annuler
             </Link>

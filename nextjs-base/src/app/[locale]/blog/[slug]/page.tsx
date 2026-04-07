@@ -150,7 +150,7 @@ export default async function BlogArticlePage({ params }: Props) {
       <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         <Link
           href={`/${locale}/blog`}
-          className="mb-8 inline-flex items-center font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.1em] text-neutral-400 transition-colors hover:text-black"
+          className="mb-8 inline-flex items-center font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.1em] text-neutral-400 transition-colors hover:text-black dark:hover:text-white"
         >
           {locale === 'fr' ? '← Retour au blog' : '← Back to blog'}
         </Link>

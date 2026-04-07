@@ -54,27 +54,29 @@ export default async function WatchFileDetailPage({
       <div className="flex items-center gap-3 mb-4">
         <Link
           href={`/${locale}/espace-client/mes-montres`}
-          className="text-sm text-stone-500 hover:text-stone-800"
+          className="text-sm text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
         >
           ← Mes montres
         </Link>
       </div>
 
       <div>
-        <h1 className="text-2xl font-serif font-bold text-stone-900">
+        <h1 className="text-2xl font-serif font-bold text-neutral-900 dark:text-white">
           {watchFile.product?.name ?? watchFile.title}
         </h1>
-        <p className="mt-1 text-sm text-stone-500">{watchFile.title}</p>
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          {watchFile.title}
+        </p>
       </div>
 
       {/* Notes from the atelier */}
       {watchFile.repair_notes && (
-        <section className="mt-6 rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-stone-800 mb-3">
+        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+          <h2 className="text-base font-semibold text-neutral-800 mb-3 dark:text-neutral-100">
             Notes de l&apos;atelier
           </h2>
           <div
-            className="prose prose-sm prose-stone max-w-none text-stone-600"
+            className="prose prose-sm max-w-none text-neutral-600 dark:text-neutral-300"
             dangerouslySetInnerHTML={{ __html: watchFile.repair_notes }}
           />
         </section>
@@ -82,14 +84,14 @@ export default async function WatchFileDetailPage({
 
       {/* Photos before / after */}
       {(beforePhotos.length > 0 || afterPhotos.length > 0) && (
-        <section className="mt-6 rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-stone-800 mb-5">
+        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+          <h2 className="text-base font-semibold text-neutral-800 mb-5 dark:text-neutral-100">
             Photos
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {beforePhotos.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">
+                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2 dark:text-neutral-400">
                   Avant
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -99,7 +101,7 @@ export default async function WatchFileDetailPage({
                     return (
                       <div
                         key={i}
-                        className="relative aspect-square rounded-lg overflow-hidden bg-stone-100"
+                        className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700"
                       >
                         <Image
                           src={src}
@@ -116,7 +118,7 @@ export default async function WatchFileDetailPage({
             )}
             {afterPhotos.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">
+                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2 dark:text-neutral-400">
                   Après
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -126,7 +128,7 @@ export default async function WatchFileDetailPage({
                     return (
                       <div
                         key={i}
-                        className="relative aspect-square rounded-lg overflow-hidden bg-stone-100"
+                        className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700"
                       >
                         <Image
                           src={src}
@@ -147,8 +149,8 @@ export default async function WatchFileDetailPage({
 
       {/* Linked order */}
       {watchFile.order && (
-        <section className="mt-6 rounded-2xl border border-stone-100 bg-white p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-stone-800 mb-2">
+        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+          <h2 className="text-base font-semibold text-neutral-800 mb-2 dark:text-neutral-100">
             Commande associée
           </h2>
           <Link

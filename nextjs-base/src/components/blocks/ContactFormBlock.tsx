@@ -238,7 +238,7 @@ const ContactFormBlock = ({
                   checked={formData.consent}
                   onChange={handleChange}
                   required
-                  className="mt-1 h-4 w-4 rounded border border-neutral-300 text-neutral-900 focus:ring-neutral-900/60"
+                  className="mt-1 h-4 w-4 rounded border border-neutral-300 text-neutral-900 focus:ring-neutral-900/60 dark:border-neutral-600 dark:bg-neutral-800 accent-neutral-900 dark:accent-white"
                 />
                 <label htmlFor="consent" className="text-sm text-neutral-800">
                   {consentText}{' '}

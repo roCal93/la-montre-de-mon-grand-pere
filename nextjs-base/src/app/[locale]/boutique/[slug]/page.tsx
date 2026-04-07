@@ -259,11 +259,11 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <Layout locale={locale}>
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-5xl mb-10 px-4 py-10 sm:px-6 lg:px-8">
         {/* Back */}
         <Link
           href={`/${locale}/${shopPath}`}
-          className="mb-8 inline-flex items-center font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.1em] text-neutral-400 transition-colors hover:text-black"
+          className="mb-8 inline-flex items-center font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.1em] text-neutral-400 transition-colors hover:text-black dark:hover:text-white"
         >
           ← {locale === 'fr' ? 'Retour à la boutique' : 'Back to shop'}
         </Link>
@@ -331,7 +331,7 @@ export default async function ProductPage({ params }: Props) {
 
               {/* CTA */}
               {isSoldOut ? (
-                <div className="w-full border border-neutral-200 bg-neutral-50 px-6 py-3 text-center font-[family-name:var(--font-geist-mono)] text-[13px] uppercase tracking-[0.1em] text-neutral-400">
+                <div className="w-full border border-neutral-200 bg-neutral-200 px-6 py-3 text-center font-[family-name:var(--font-geist-mono)] text-[13px] uppercase tracking-[0.1em] text-neutral-600">
                   {locale === 'fr'
                     ? 'Ce produit est vendu'
                     : 'This product is sold'}
@@ -377,20 +377,45 @@ export default async function ProductPage({ params }: Props) {
                 ? 'Spécifications techniques'
                 : 'Technical specifications'}
             </SectionLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x md:divide-neutral-100">
-              {technicalSpecs!.map((spec, i) => (
-                <div
-                  key={i}
-                  className={`flex items-baseline justify-between border-b border-neutral-100 py-2 text-[14px] ${
-                    i % 2 === 0 ? 'md:pr-6' : 'md:pl-6'
-                  }`}
-                >
-                  <span className="font-[family-name:var(--font-geist-mono)] text-[12px] text-neutral-400">
-                    {spec.key}
-                  </span>
-                  <span className="font-medium">{spec.val}</span>
-                </div>
-              ))}
+            <div className="border border-neutral-200 divide-y divide-neutral-200 dark:border-neutral-700 dark:divide-neutral-700">
+              {Array.from(
+                { length: Math.ceil(technicalSpecs!.length / 2) },
+                (_, rowIndex) => {
+                  const left = technicalSpecs![rowIndex * 2]
+                  const right = technicalSpecs![rowIndex * 2 + 1]
+                  return (
+                    <div
+                      key={rowIndex}
+                      className={`grid grid-cols-2 divide-x divide-neutral-200 dark:divide-neutral-700 ${
+                        rowIndex % 2 === 0
+                          ? 'bg-neutral-50 dark:bg-neutral-800/50'
+                          : 'bg-white dark:bg-neutral-900'
+                      }`}
+                    >
+                      <div className="flex items-baseline justify-between px-4 py-2.5 text-[14px]">
+                        <span className="font-[family-name:var(--font-geist-mono)] text-[12px] text-neutral-400 dark:text-neutral-500">
+                          {left.key}
+                        </span>
+                        <span className="font-medium dark:text-neutral-100">
+                          {left.val}
+                        </span>
+                      </div>
+                      {right ? (
+                        <div className="flex items-baseline justify-between px-4 py-2.5 text-[14px]">
+                          <span className="font-[family-name:var(--font-geist-mono)] text-[12px] text-neutral-400 dark:text-neutral-500">
+                            {right.key}
+                          </span>
+                          <span className="font-medium dark:text-neutral-100">
+                            {right.val}
+                          </span>
+                        </div>
+                      ) : (
+                        <div />
+                      )}
+                    </div>
+                  )
+                }
+              )}
             </div>
           </div>
         )}
@@ -404,16 +429,16 @@ export default async function ProductPage({ params }: Props) {
             <div className="flex flex-col gap-3">
               {conditionRatings!.map((r) => (
                 <div key={r.label} className="flex items-center gap-4">
-                  <span className="w-24 flex-shrink-0 font-[family-name:var(--font-geist-mono)] text-[12px] text-neutral-400">
+                  <span className="w-24 flex-shrink-0 font-[family-name:var(--font-geist-mono)] text-[12px] text-neutral-400 dark:text-neutral-500">
                     {r.label}
                   </span>
-                  <div className="flex-1 h-[3px] bg-neutral-100">
+                  <div className="flex-1 h-[3px] bg-neutral-100 dark:bg-neutral-700">
                     <div
-                      className="h-full bg-black"
+                      className="h-full bg-black dark:bg-white"
                       style={{ width: `${r.value}%` }}
                     />
                   </div>
-                  <span className="w-20 text-right font-[family-name:var(--font-geist-mono)] text-[12px] text-neutral-600">
+                  <span className="w-20 text-right font-[family-name:var(--font-geist-mono)] text-[12px] text-neutral-600 dark:text-neutral-300">
                     {r.note}
                   </span>
                 </div>

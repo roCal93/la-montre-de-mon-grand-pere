@@ -59,8 +59,8 @@ export default async function GarantiePage({
 
   return (
     <Layout locale={locale}>
-      <section className="bg-gray-50 px-4 py-20">
-        <div className="max-w-4xl ml-auto mr-4 md:mr-10 rounded-xl border border-gray-200 bg-white p-6 md:p-10 text-gray-900 text-left shadow-sm">
+      <section className="bg-gray-50 px-4 py-20 dark:bg-neutral-950">
+        <div className="max-w-4xl ml-auto mr-4 md:mr-10 rounded-xl border border-gray-200 bg-white p-6 md:p-10 text-gray-900 text-left shadow-sm dark:bg-neutral-900 dark:border-neutral-700 dark:text-white">
           <h1 className="text-3xl md:text-4xl font-semibold mb-6">
             {data.title}
           </h1>

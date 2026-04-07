@@ -122,14 +122,21 @@ const BackgroundBlock = ({
   const currentPosition =
     isDesktopViewport && desktopSrc ? positionDesktop : positionMobile
 
-  // dark mode detection — initialize after mount to avoid SSR/client hydration mismatch
+  // dark mode detection — follow the site's `.dark` class so it stays in sync with ThemeToggle
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const mql = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDarkMode(mql.matches)
-    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches)
-    mql.addEventListener('change', handler)
-    return () => mql.removeEventListener('change', handler)
+    const root = document.documentElement
+    const updateFromClass = () => setIsDarkMode(root.classList.contains('dark'))
+
+    updateFromClass()
+
+    const observer = new MutationObserver(updateFromClass)
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+
+    return () => observer.disconnect()
   }, [])
 
   // responsive image swap

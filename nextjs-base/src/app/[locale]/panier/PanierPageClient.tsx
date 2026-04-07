@@ -88,7 +88,7 @@ export default function PanierPageClient({
             </button>
             <Link
               href={`/${locale}/boutique`}
-              className="block text-center text-sm text-neutral-500 transition-colors hover:text-black"
+              className="block text-center text-sm text-neutral-500 transition-colors hover:text-neutral-400"
             >
               {locale === 'fr' ? 'Continuer mes achats' : 'Continue shopping'}
             </Link>

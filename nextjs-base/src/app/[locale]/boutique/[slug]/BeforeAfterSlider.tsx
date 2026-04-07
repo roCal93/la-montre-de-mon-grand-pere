@@ -108,7 +108,7 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
         </div>
 
         {/* Tags */}
-        <span className="pointer-events-none absolute bottom-3 left-3 border border-neutral-300 bg-white px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500">
+        <span className="pointer-events-none absolute bottom-3 left-3 border border-neutral-300 bg-white px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500 dark:bg-neutral-800 dark:border-neutral-600 dark:text-neutral-400">
           {locale === 'fr' ? 'Avant' : 'Before'}
         </span>
         <span className="pointer-events-none absolute bottom-3 right-3 bg-black px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-white">

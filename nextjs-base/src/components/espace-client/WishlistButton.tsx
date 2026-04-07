@@ -78,7 +78,9 @@ export function WishlistButton({
       title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
       className={[
         'flex items-center justify-center transition-opacity disabled:opacity-50',
-        isFavorite ? 'text-stone-900' : 'text-stone-300 hover:text-stone-700',
+        isFavorite
+          ? 'text-stone-900 dark:text-white'
+          : 'text-stone-300 hover:text-stone-700 dark:text-neutral-500 dark:hover:text-neutral-200',
         className,
       ].join(' ')}
     >

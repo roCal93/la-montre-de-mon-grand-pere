@@ -100,13 +100,13 @@ export default function ProfilPage({
       <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.18em] text-neutral-500">
         Espace client
       </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
+      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900 dark:text-white">
         Mon profil
       </h1>
 
       {/* Profile info */}
-      <section className="mt-8 border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.14em] text-neutral-500 mb-5">
+      <section className="mt-8 border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <h2 className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.14em] text-neutral-500 mb-5 dark:text-neutral-400">
           Informations personnelles
         </h2>
         <form
@@ -116,7 +116,7 @@ export default function ProfilPage({
         >
           <div>
             <label
-              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600"
+              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-400"
               htmlFor="username"
             >
               Nom / Prénom
@@ -125,7 +125,7 @@ export default function ProfilPage({
               id="username"
               type="text"
               {...profileForm.register('username')}
-              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black"
+              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white"
             />
             {profileForm.formState.errors.username && (
               <p className="mt-1 text-xs text-red-600">
@@ -136,7 +136,7 @@ export default function ProfilPage({
 
           <div>
             <label
-              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600"
+              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-400"
               htmlFor="email"
             >
               Email
@@ -145,7 +145,7 @@ export default function ProfilPage({
               id="email"
               type="email"
               {...profileForm.register('email')}
-              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black"
+              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white"
             />
             {profileForm.formState.errors.email && (
               <p className="mt-1 text-xs text-red-600">
@@ -160,7 +160,7 @@ export default function ProfilPage({
             </p>
           )}
           {profileSuccess && (
-            <p className="border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            <p className="border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
               Profil mis à jour !
             </p>
           )}
@@ -169,7 +169,7 @@ export default function ProfilPage({
             <button
               type="submit"
               disabled={profileForm.formState.isSubmitting}
-              className="border border-black bg-black px-5 py-2.5 font-[family-name:var(--font-geist-mono)] text-[11px] font-semibold uppercase tracking-[0.1em] text-white hover:bg-neutral-900 disabled:opacity-60 transition-colors"
+              className="border border-black bg-black px-5 py-2.5 font-[family-name:var(--font-geist-mono)] text-[11px] font-semibold uppercase tracking-[0.1em] text-white hover:bg-neutral-800 disabled:opacity-60 transition-colors dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-200"
             >
               {profileForm.formState.isSubmitting
                 ? 'Sauvegarde…'
@@ -180,8 +180,8 @@ export default function ProfilPage({
       </section>
 
       {/* Change password */}
-      <section className="mt-6 border border-neutral-200 bg-white p-6 shadow-sm">
-        <h2 className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.14em] text-neutral-500 mb-5">
+      <section className="mt-6 border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <h2 className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.14em] text-neutral-500 mb-5 dark:text-neutral-400">
           Changer le mot de passe
         </h2>
         <form
@@ -191,7 +191,7 @@ export default function ProfilPage({
         >
           <div>
             <label
-              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600"
+              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-400"
               htmlFor="currentPassword"
             >
               Mot de passe actuel
@@ -201,13 +201,13 @@ export default function ProfilPage({
               type="password"
               autoComplete="current-password"
               {...passwordForm.register('currentPassword')}
-              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black"
+              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white"
             />
           </div>
 
           <div>
             <label
-              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600"
+              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-400"
               htmlFor="newPassword"
             >
               Nouveau mot de passe
@@ -217,7 +217,7 @@ export default function ProfilPage({
               type="password"
               autoComplete="new-password"
               {...passwordForm.register('password')}
-              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black"
+              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white"
             />
             {passwordForm.formState.errors.password && (
               <p className="mt-1 text-xs text-red-600">
@@ -228,7 +228,7 @@ export default function ProfilPage({
 
           <div>
             <label
-              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600"
+              className="mb-1.5 block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-400"
               htmlFor="confirmPassword"
             >
               Confirmer le nouveau mot de passe
@@ -238,7 +238,7 @@ export default function ProfilPage({
               type="password"
               autoComplete="new-password"
               {...passwordForm.register('passwordConfirmation')}
-              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black"
+              className="w-full border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 outline-none transition-colors focus:border-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-white"
             />
             {passwordForm.formState.errors.passwordConfirmation && (
               <p className="mt-1 text-xs text-red-600">
@@ -253,7 +253,7 @@ export default function ProfilPage({
             </p>
           )}
           {passwordSuccess && (
-            <p className="border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            <p className="border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
               Mot de passe modifié avec succès !
             </p>
           )}
@@ -262,7 +262,7 @@ export default function ProfilPage({
             <button
               type="submit"
               disabled={passwordForm.formState.isSubmitting}
-              className="border border-black bg-black px-5 py-2.5 font-[family-name:var(--font-geist-mono)] text-[11px] font-semibold uppercase tracking-[0.1em] text-white hover:bg-neutral-900 disabled:opacity-60 transition-colors"
+              className="border border-black bg-black px-5 py-2.5 font-[family-name:var(--font-geist-mono)] text-[11px] font-semibold uppercase tracking-[0.1em] text-white hover:bg-neutral-800 disabled:opacity-60 transition-colors dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-200"
             >
               {passwordForm.formState.isSubmitting
                 ? 'Changement…'

@@ -46,7 +46,7 @@ export default async function FavorisPage({
       <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.18em] text-neutral-500">
         Espace client
       </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900">
+      <h1 className="mt-2 text-3xl font-semibold tracking-[0.01em] text-neutral-900 dark:text-white">
         Mes favoris
       </h1>
       <p className="mt-1 text-sm text-neutral-500 mb-8">
@@ -55,13 +55,13 @@ export default async function FavorisPage({
       </p>
 
       {items.length === 0 ? (
-        <div className="border border-dashed border-neutral-200 bg-white py-16 px-6 text-center">
-          <p className="text-neutral-500 text-sm">
+        <div className="border border-dashed border-neutral-200 bg-white py-16 px-6 text-center dark:border-neutral-700 dark:bg-neutral-900">
+          <p className="text-neutral-500 text-sm dark:text-neutral-400">
             Aucun favori pour le moment.
           </p>
           <Link
             href={`/${locale}/boutique`}
-            className="mt-4 inline-block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black"
+            className="mt-4 inline-block font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black dark:text-neutral-200 dark:hover:text-white"
           >
             Découvrir la boutique
           </Link>
@@ -76,10 +76,10 @@ export default async function FavorisPage({
             return (
               <li
                 key={item.documentId}
-                className="group border border-neutral-200 bg-white shadow-sm overflow-hidden hover:border-neutral-400 hover:shadow-md transition-all"
+                className="group border border-neutral-200 bg-white shadow-sm overflow-hidden hover:border-neutral-400 hover:shadow-md transition-all dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
               >
                 <Link href={`/${locale}/boutique/${product.slug}`}>
-                  <div className="relative aspect-square bg-stone-100">
+                  <div className="relative aspect-square bg-neutral-100 dark:bg-neutral-800">
                     {imgUrl ? (
                       <Image
                         src={imgUrl}
@@ -95,7 +95,7 @@ export default async function FavorisPage({
                     )}
                     {product.stock === 0 && (
                       <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-                        <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-stone-500 shadow">
+                        <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-neutral-500 shadow dark:text-neutral-300">
                           Épuisé
                         </span>
                       </div>
@@ -105,18 +105,18 @@ export default async function FavorisPage({
 
                 <div className="p-4">
                   <Link href={`/${locale}/boutique/${product.slug}`}>
-                    <p className="text-sm font-semibold text-neutral-900 truncate hover:text-black transition-colors">
+                    <p className="text-sm font-semibold text-neutral-900 truncate hover:text-black transition-colors dark:text-white dark:hover:text-neutral-300">
                       {product.name}
                     </p>
                   </Link>
-                  <p className="mt-1 text-sm font-medium text-neutral-700">
+                  <p className="mt-1 text-sm font-medium text-neutral-700 dark:text-neutral-300">
                     {formatPrice(product.price)}
                   </p>
 
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <Link
                       href={`/${locale}/boutique/${product.slug}`}
-                      className="flex-1 text-center border border-black bg-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[10px] font-semibold uppercase tracking-[0.1em] text-white hover:bg-neutral-900 transition-colors"
+                      className="flex-1 text-center border border-black bg-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[10px] font-semibold uppercase tracking-[0.1em] text-white hover:bg-neutral-800 transition-colors dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-200"
                     >
                       Voir la montre
                     </Link>

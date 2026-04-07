@@ -19,7 +19,7 @@ export function WishlistRemoveButton({ itemId }: { itemId: string }) {
       onClick={handleRemove}
       disabled={loading}
       aria-label="Retirer des favoris"
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-stone-200 text-stone-400 hover:border-red-200 hover:text-red-500 disabled:opacity-40 transition-colors"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-stone-200 text-stone-400 hover:border-red-200 hover:text-red-500 disabled:opacity-40 transition-colors dark:border-neutral-600 dark:text-neutral-500"
     >
       {loading ? (
         <span className="block h-3 w-3 rounded-full border border-current opacity-50" />
