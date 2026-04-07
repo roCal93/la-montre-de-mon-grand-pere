@@ -1,6 +1,10 @@
 import type { MetadataRoute } from 'next'
 
-const siteBase = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://ton-site.com').replace(/\/$/, '')
+const siteBase = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.SITE_URL ||
+  'https://ton-site.com'
+).replace(/\/$/, '')
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -8,7 +12,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/'],
+        disallow: ['/api/', '/admin/', '/*/espace-client/', '/espace-client/'],
       },
     ],
     sitemap: `${siteBase}/sitemap.xml`,

@@ -1,4 +1,5 @@
 import { createStrapiClient } from '@/lib/strapi-client'
+import { unstable_cache } from 'next/cache'
 import { getPageSEO } from '@/lib/seo'
 import { cleanImageUrl } from '@/lib/strapi'
 import { getHreflangAlternates } from '@/lib/hreflang'
@@ -37,8 +38,6 @@ const getSharedOpeningDays = (sections: unknown[]): OpeningDay[] => {
 
   return []
 }
-
-export const dynamic = 'force-dynamic'
 
 const fetchHomePageData = async (locale: string, isDraft: boolean) => {
   const apiToken = isDraft
@@ -130,13 +129,11 @@ const normalizeContainerWidth = (
   return 'medium'
 }
 
-const getHomePageData = async (locale: string) =>
-  fetchHomePageData(locale, false)
-// unstable_cache(
-//   async (locale: string) => fetchHomePageData(locale, false),
-//   ['home-page'],
-//   { revalidate: 3600, tags: ['strapi-pages'] }
-// )
+const getHomePageData = unstable_cache(
+  async (locale: string) => fetchHomePageData(locale, false),
+  ['home-page'],
+  { revalidate: 3600, tags: ['strapi-pages'] }
+)
 
 export async function generateMetadata({
   params,

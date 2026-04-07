@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
-export const dynamic = 'force-dynamic'
-
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 
 /** DELETE /api/wishlist/[id] — remove a wishlist item */

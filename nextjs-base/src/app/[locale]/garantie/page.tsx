@@ -15,8 +15,6 @@ type GarantieResponse = {
   data?: GarantieData | null
 }
 
-export const dynamic = 'force-dynamic'
-
 export async function generateMetadata({
   params,
 }: {

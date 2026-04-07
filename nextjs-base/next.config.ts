@@ -44,11 +44,6 @@ const nextConfig: NextConfig = {
         hostname: 'res.cloudinary.com',
         pathname: '/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'traduction-amanda-production.up.railway.app',
-        pathname: '/uploads/**',
-      },
     ],
     unoptimized: process.env.NODE_ENV === 'development', // Activer l'optimisation en production
     formats: ['image/webp', 'image/avif'], // Formats modernes pour réduire la taille

@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { z } from 'zod'
 
-export const dynamic = 'force-dynamic'
-
 const schema = z.object({
   username: z.string().min(2),
   email: z.string().email(),

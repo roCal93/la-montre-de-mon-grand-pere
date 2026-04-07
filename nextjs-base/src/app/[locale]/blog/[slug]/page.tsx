@@ -8,7 +8,6 @@ import { fetchBlogArticleBySlug } from '@/lib/blog'
 import type { DynamicBlock } from '@/types/custom'
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 
 const normalizeContainerWidth = (

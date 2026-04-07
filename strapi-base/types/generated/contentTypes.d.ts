@@ -1398,6 +1398,43 @@ export interface ApiWatchFileWatchFile extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiWebhookErrorWebhookError
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'webhook_errors';
+  info: {
+    description: 'Persistent logs for webhook processing failures';
+    displayName: 'Webhook Error';
+    pluralName: 'webhook-errors';
+    singularName: 'webhook-error';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    eventId: Schema.Attribute.String & Schema.Attribute.Required;
+    eventType: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::webhook-error.webhook-error'
+    > &
+      Schema.Attribute.Private;
+    message: Schema.Attribute.Text & Schema.Attribute.Required;
+    occurredAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    provider: Schema.Attribute.Enumeration<['stripe', 'strapi', 'other']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'stripe'>;
+    publishedAt: Schema.Attribute.DateTime;
+    stack: Schema.Attribute.Text;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiWishlistItemWishlistItem
   extends Struct.CollectionTypeSchema {
   collectionName: 'wishlist_items';
@@ -2106,6 +2143,7 @@ declare module '@strapi/strapi' {
       'api::section.section': ApiSectionSection;
       'api::service-request.service-request': ApiServiceRequestServiceRequest;
       'api::watch-file.watch-file': ApiWatchFileWatchFile;
+      'api::webhook-error.webhook-error': ApiWebhookErrorWebhookError;
       'api::wishlist-item.wishlist-item': ApiWishlistItemWishlistItem;
       'api::work-category.work-category': ApiWorkCategoryWorkCategory;
       'api::work-item.work-item': ApiWorkItemWorkItem;

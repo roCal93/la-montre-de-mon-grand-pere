@@ -62,7 +62,8 @@ export function buildMetadata({
           alt: title,
         },
       ],
-      siteName: process.env.NEXT_PUBLIC_SITE_NAME || 'Amanda Traduction',
+      siteName:
+        process.env.NEXT_PUBLIC_SITE_NAME || 'La Montre de Mon Grand-Pere',
       type: 'website',
       locale:
         alternates && alternates.length > 0

@@ -6,8 +6,6 @@ import { CartProvider } from '@/components/cart/CartContext'
 import { CartDrawer } from '@/components/cart/CartDrawer'
 import { AuthProvider } from '@/components/espace-client/AuthProvider'
 
-export const dynamic = 'force-dynamic'
-
 interface LocaleLayoutProps {
   children: React.ReactNode
   params: Promise<{

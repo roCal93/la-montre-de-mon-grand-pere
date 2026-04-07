@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { z } from 'zod'
 
-export const dynamic = 'force-dynamic'
-
 const serviceRequestSchema = z.object({
   type: z.enum(['retour_garantie', 'reparation', 'nettoyage', 'autre']),
   watch_file_document_id: z.string().min(1),

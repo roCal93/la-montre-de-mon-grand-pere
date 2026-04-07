@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  renderToBuffer,
+} from '@react-pdf/renderer'
 import { createElement } from 'react'
 import { formatPrice } from '@/lib/currency'
-
-export const dynamic = 'force-dynamic'
 
 interface LineItem {
   productName: string
@@ -39,15 +44,33 @@ interface Order {
 }
 
 const styles = StyleSheet.create({
-  page: { padding: 48, fontFamily: 'Helvetica', fontSize: 10, color: '#1c1917' },
+  page: {
+    padding: 48,
+    fontFamily: 'Helvetica',
+    fontSize: 10,
+    color: '#1c1917',
+  },
   header: { marginBottom: 32 },
   title: { fontSize: 22, fontFamily: 'Helvetica-Bold', marginBottom: 4 },
   subtitle: { fontSize: 10, color: '#78716c' },
   section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 11, fontFamily: 'Helvetica-Bold', marginBottom: 8, color: '#44403c' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+  sectionTitle: {
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold',
+    marginBottom: 8,
+    color: '#44403c',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   bold: { fontFamily: 'Helvetica-Bold' },
-  divider: { borderBottomWidth: 1, borderBottomColor: '#e7e5e4', marginVertical: 12 },
+  divider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#e7e5e4',
+    marginVertical: 12,
+  },
   footer: { marginTop: 40, fontSize: 8, color: '#a8a29e', textAlign: 'center' },
   badge: {
     alignSelf: 'flex-start',
@@ -79,14 +102,26 @@ function InvoiceDocument({ order }: { order: Order }) {
       createElement(
         View,
         { style: styles.header },
-        createElement(Text, { style: styles.title }, 'La Montre de Mon Grand-Père'),
-        createElement(Text, { style: styles.subtitle }, 'Facture / Bon de commande')
+        createElement(
+          Text,
+          { style: styles.title },
+          'La Montre de Mon Grand-Père'
+        ),
+        createElement(
+          Text,
+          { style: styles.subtitle },
+          'Facture / Bon de commande'
+        )
       ),
       // Meta
       createElement(
         View,
         { style: styles.section },
-        createElement(Text, { style: styles.badge }, `Statut : ${order.status.toUpperCase()}`),
+        createElement(
+          Text,
+          { style: styles.badge },
+          `Statut : ${order.status.toUpperCase()}`
+        ),
         createElement(
           View,
           { style: styles.row },
@@ -112,7 +147,11 @@ function InvoiceDocument({ order }: { order: Order }) {
             View,
             { key: i, style: styles.row },
             createElement(Text, null, `${item.productName}  ×${item.quantity}`),
-            createElement(Text, { style: styles.bold }, formatPrice(item.unitPrice * item.quantity))
+            createElement(
+              Text,
+              { style: styles.bold },
+              formatPrice(item.unitPrice * item.quantity)
+            )
           )
         )
       ),
@@ -135,7 +174,9 @@ function InvoiceDocument({ order }: { order: Order }) {
           createElement(
             Text,
             null,
-            order.shippingCost === 0 ? 'Offerte' : formatPrice(order.shippingCost)
+            order.shippingCost === 0
+              ? 'Offerte'
+              : formatPrice(order.shippingCost)
           )
         ),
         createElement(View, { style: styles.divider }),
@@ -151,10 +192,19 @@ function InvoiceDocument({ order }: { order: Order }) {
         createElement(
           View,
           { style: styles.section },
-          createElement(Text, { style: styles.sectionTitle }, 'Adresse de livraison'),
-          createElement(Text, null, `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`),
+          createElement(
+            Text,
+            { style: styles.sectionTitle },
+            'Adresse de livraison'
+          ),
+          createElement(
+            Text,
+            null,
+            `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`
+          ),
           createElement(Text, null, order.shippingAddress.address1),
-          order.shippingAddress.address2 && createElement(Text, null, order.shippingAddress.address2),
+          order.shippingAddress.address2 &&
+            createElement(Text, null, order.shippingAddress.address2),
           createElement(
             Text,
             null,
@@ -176,7 +226,8 @@ export async function GET(
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   const session = await auth()
-  if (!session) {
+  const sessionEmail = session?.user?.email?.trim().toLowerCase()
+  if (!session || !sessionEmail) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
@@ -184,25 +235,31 @@ export async function GET(
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
 
-  const res = await fetch(
-    `${strapiUrl}/api/orders/${orderId}?populate=*`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
+  const query =
+    `${strapiUrl}/api/orders` +
+    `?filters[documentId][$eq]=${encodeURIComponent(orderId)}` +
+    `&filters[customerEmail][$eqi]=${encodeURIComponent(sessionEmail)}` +
+    '&populate=*'
+
+  const res = await fetch(query, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
 
   if (!res.ok) {
     return NextResponse.json({ error: 'Commande introuvable' }, { status: 404 })
   }
 
-  const json = (await res.json()) as { data: Order }
-  const order = json.data
-
-  // IDOR check: only the owner can download their invoice
-  if (order.customerEmail.toLowerCase() !== session.user.email.toLowerCase()) {
+  const json = (await res.json()) as { data?: Order[] }
+  const order = json.data?.[0]
+  if (!order) {
     return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buffer: Buffer = await renderToBuffer(createElement(InvoiceDocument as any, { order }) as any)
+  const buffer: Buffer = await renderToBuffer(
+    createElement(InvoiceDocument as any, { order }) as any
+  )
 
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,

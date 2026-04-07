@@ -1,12 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { validateStripeWebhookSignature } from '@/lib/webhook-validation'
+import { checkRateLimit } from '@/lib/rate-limit'
 import type Stripe from 'stripe'
 
 export const runtime = 'nodejs'
 
 // Stripe requires the raw body to validate the signature — disable body parsing.
 export const dynamic = 'force-dynamic'
+
+async function persistWebhookError(params: {
+  eventId: string
+  eventType: string
+  error: unknown
+}): Promise<void> {
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  const writeToken = process.env.STRAPI_WRITE_API_TOKEN
+  const collection =
+    process.env.STRAPI_WEBHOOK_ERROR_COLLECTION || 'webhook-errors'
+
+  if (!strapiUrl || !writeToken) return
+
+  const message =
+    params.error instanceof Error
+      ? params.error.message
+      : String(params.error ?? 'Unknown error')
+  const stack =
+    params.error instanceof Error && params.error.stack
+      ? params.error.stack.slice(0, 4000)
+      : null
+
+  try {
+    const response = await fetch(`${strapiUrl}/api/${collection}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${writeToken}`,
+      },
+      body: JSON.stringify({
+        data: {
+          provider: 'stripe',
+          eventId: params.eventId,
+          eventType: params.eventType,
+          message,
+          stack,
+          occurredAt: new Date().toISOString(),
+        },
+      }),
+    })
+
+    if (!response.ok) {
+      const text = await response.text()
+      console.warn(
+        `[webhook] Failed to persist error log (${response.status}): ${text}`
+      )
+    }
+  } catch (persistErr) {
+    console.warn('[webhook] Failed to persist webhook error log:', persistErr)
+  }
+}
+
+async function hasExistingOrderForSession(
+  sessionId: string | null | undefined
+): Promise<boolean> {
+  if (!sessionId) return false
+
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  const writeToken = process.env.STRAPI_WRITE_API_TOKEN
+
+  if (!strapiUrl || !writeToken) {
+    throw new Error('Strapi env vars (URL or WRITE TOKEN) are not configured')
+  }
+
+  const url =
+    `${strapiUrl}/api/orders` +
+    `?filters[stripeSessionId][$eq]=${encodeURIComponent(sessionId)}` +
+    '&fields[0]=documentId&pagination[page]=1&pagination[pageSize]=1'
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${writeToken}` },
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(
+      `Strapi idempotency lookup failed (${response.status}): ${text}`
+    )
+  }
+
+  const json = (await response.json()) as { data?: unknown[] }
+  return Array.isArray(json.data) && json.data.length > 0
+}
 
 async function createOrderInStrapi(
   session: Stripe.Checkout.Session
@@ -171,11 +256,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
+  // Idempotency guard by Stripe event ID (works distributed with Upstash when configured)
+  const eventDedup = await checkRateLimit({
+    key: `stripe:event:${event.id}`,
+    limit: 1,
+    windowMs: 7 * 24 * 60 * 60 * 1000,
+  })
+  if (!eventDedup.allowed) {
+    return NextResponse.json({ received: true, duplicate: true })
+  }
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         if (session.payment_status === 'paid') {
+          const alreadyProcessed = await hasExistingOrderForSession(session.id)
+          if (alreadyProcessed) break
+
           await createOrderInStrapi(session)
           const cartItems = session.metadata?.cartItems
             ? (JSON.parse(session.metadata.cartItems) as Array<{
@@ -198,6 +296,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       // Handle async payment confirmation (e.g. bank transfer)
       case 'checkout.session.async_payment_succeeded': {
         const session = event.data.object as Stripe.Checkout.Session
+        const alreadyProcessed = await hasExistingOrderForSession(session.id)
+        if (alreadyProcessed) break
+
         const cartItems = session.metadata?.cartItems
           ? (JSON.parse(session.metadata.cartItems) as Array<{
               id: number
@@ -221,7 +322,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         break
     }
   } catch (err) {
-    console.error(`[webhook] Failed to process event ${event.type}:`, err)
+    await persistWebhookError({
+      eventId: event.id,
+      eventType: event.type,
+      error: err,
+    })
+
+    console.error(
+      `[webhook] Failed to process event ${event.type} (${event.id}):`,
+      err
+    )
     return NextResponse.json(
       { error: 'Webhook handler error' },
       { status: 500 }

@@ -48,8 +48,8 @@ interface Order {
   notes?: string
 }
 
-interface StrapiSingle<T> {
-  data: T
+interface StrapiList<T> {
+  data: T[]
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -78,22 +78,24 @@ export default async function CommandeDetailPage({
   const { locale, id } = await params
   const session = await auth()
   if (!session) redirect(`/${locale}/espace-client/connexion`)
+  const sessionEmail = session.user.email.trim().toLowerCase()
 
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
-  const res = await fetch(`${strapiUrl}/api/orders/${id}?populate=*`, {
+  const query =
+    `${strapiUrl}/api/orders` +
+    `?filters[documentId][$eq]=${encodeURIComponent(id)}` +
+    `&filters[customerEmail][$eqi]=${encodeURIComponent(sessionEmail)}` +
+    '&populate=*'
+
+  const res = await fetch(query, {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
   })
   if (!res.ok) notFound()
-  const json = (await res.json()) as StrapiSingle<Order>
-  const order = json.data
+  const json = (await res.json()) as StrapiList<Order>
+  const order = json.data?.[0]
   if (!order) notFound()
-
-  // IDOR check: ensure the order belongs to this user (by email)
-  if (order.customerEmail.toLowerCase() !== session.user.email.toLowerCase()) {
-    notFound()
-  }
 
   const addr = order.shippingAddress
 

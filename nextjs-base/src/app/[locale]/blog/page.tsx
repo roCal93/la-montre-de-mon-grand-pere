@@ -9,8 +9,6 @@ import type { DynamicBlock } from '@/types/custom'
 import type { Page, PageCollectionResponse, StrapiEntity } from '@/types/strapi'
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-dynamic'
-
 export async function generateMetadata({
   params,
 }: {

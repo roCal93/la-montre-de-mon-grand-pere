@@ -14,8 +14,6 @@ type PolicyResponse = {
   data?: PolicyData | null
 }
 
-export const dynamic = 'force-dynamic'
-
 export default async function PrivacyPolicyPage({
   params,
 }: {

@@ -1,4 +1,5 @@
 import { createStrapiClient } from '@/lib/strapi-client'
+import { unstable_cache } from 'next/cache'
 import { buildMetadata, type Hreflang } from '@/lib/seo'
 import { Layout } from '@/components/layout'
 import { Hero } from '@/components/sections/Hero'
@@ -42,8 +43,6 @@ const getSharedOpeningDays = (sections: unknown[]): OpeningDay[] => {
 
   return []
 }
-
-export const dynamic = 'force-dynamic'
 
 const fetchPageData = async (
   slug: string,
@@ -108,21 +107,17 @@ const fetchPageDataFallback = async (slug: string, isDraft: boolean) => {
   return fallbackRes
 }
 
-const getPageData = async (slug: string, locale: string) =>
-  fetchPageData(slug, locale, false)
-// unstable_cache(
-//   async (slug: string, locale: string) => fetchPageData(slug, locale, false),
-//   ['page-data'],
-//   { revalidate: 3600, tags: ['strapi-pages'] }
-// )
+const getPageData = unstable_cache(
+  async (slug: string, locale: string) => fetchPageData(slug, locale, false),
+  ['page-data'],
+  { revalidate: 3600, tags: ['strapi-pages'] }
+)
 
-const getPageDataFallback = async (slug: string) =>
-  fetchPageDataFallback(slug, false)
-// unstable_cache(
-//   async (slug: string) => fetchPageDataFallback(slug, false),
-//   ['page-data-fallback'],
-//   { revalidate: 3600, tags: ['strapi-pages'] }
-// )
+const getPageDataFallback = unstable_cache(
+  async (slug: string) => fetchPageDataFallback(slug, false),
+  ['page-data-fallback'],
+  { revalidate: 3600, tags: ['strapi-pages'] }
+)
 
 // Normalize container width coming from Strapi to the allowed values
 const normalizeContainerWidth = (

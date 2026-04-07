@@ -1,5 +1,6 @@
 import NextAuth, { CredentialsSignin } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 declare module 'next-auth' {
   interface Session {
@@ -24,11 +25,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: 'Email', type: 'email' },
         password: { label: 'Mot de passe', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const email = credentials?.email as string | undefined
         const password = credentials?.password as string | undefined
 
-        if (!email || !password) throw new CredentialsSignin('Email et mot de passe requis')
+        if (!email || !password)
+          throw new CredentialsSignin('Email et mot de passe requis')
+
+        const normalizedEmail = email.trim().toLowerCase()
+        const ipHeader = request?.headers?.get('x-forwarded-for')
+        const ip =
+          ipHeader?.split(',')[0]?.trim() ||
+          request?.headers?.get('x-real-ip') ||
+          'unknown'
+
+        const rateLimit = await checkRateLimit({
+          key: `auth:${normalizedEmail}:${ip}`,
+          limit: 5,
+          windowMs: 15 * 60 * 1000,
+        })
+        if (!rateLimit.allowed) {
+          throw new CredentialsSignin('Trop de tentatives, reessayez plus tard')
+        }
 
         const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
         if (!strapiUrl) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
@@ -36,7 +54,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const res = await fetch(`${strapiUrl}/api/auth/local`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier: email, password }),
+          body: JSON.stringify({ identifier: normalizedEmail, password }),
         })
 
         if (!res.ok) {
@@ -45,7 +63,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const data = (await res.json()) as {
           jwt: string
-          user: { id: number; documentId: string; email: string; username: string }
+          user: {
+            id: number
+            documentId: string
+            email: string
+            username: string
+          }
         }
 
         return {
@@ -61,7 +84,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, user }: { token: Record<string, any>; user?: Record<string, any> }) {
+    async jwt({
+      token,
+      user,
+    }: {
+      token: Record<string, any>
+      user?: Record<string, any>
+    }) {
       if (user) {
         token.strapiJwt = user.strapiJwt as string
         token.strapiDocumentId = user.strapiDocumentId as string
@@ -69,7 +98,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async session({ session, token }: { session: any; token: Record<string, any> }) {
+    async session({
+      session,
+      token,
+    }: {
+      session: any
+      token: Record<string, any>
+    }) {
       session.user.strapiJwt = token.strapiJwt as string
       session.user.strapiDocumentId = token.strapiDocumentId as string
       return session
