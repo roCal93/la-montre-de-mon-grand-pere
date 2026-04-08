@@ -3,6 +3,8 @@ import { execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
+const npmUserAgent = process.env.npm_config_user_agent || '';
+const usingPnpm = npmUserAgent.includes('pnpm/');
 
 if (process.env.SKIP_ENSURE_NATIVE_DEPS === '1') {
     process.exit(0);
@@ -20,9 +22,13 @@ try {
 
     if (!bindingExists) {
         console.log('[ensure-native-deps] Compiling better-sqlite3...');
-        execSync('npm rebuild better-sqlite3', {
+        execSync(usingPnpm ? 'pnpm rebuild better-sqlite3' : 'npm rebuild better-sqlite3', {
             stdio: 'inherit',
             cwd: process.cwd(),
+            env: {
+                ...process.env,
+                SKIP_ENSURE_NATIVE_DEPS: '1',
+            },
         });
         console.log('[ensure-native-deps] ✅ better-sqlite3 compiled successfully');
     } else {
@@ -94,29 +100,75 @@ function isPackageDirPresent(pkgName) {
     return existsSync(path);
 }
 
+// In pnpm, optional native packages may not be hoisted at root level.
+// Resolve from the parent package location when possible.
+function isResolvableFromParent(pkgName, parentPkgName) {
+    if (!pkgName || !parentPkgName) return true;
+    try {
+        const parentPkgJson = require.resolve(`${parentPkgName}/package.json`);
+        const parentDir = parentPkgJson.slice(0, -'package.json'.length);
+        require.resolve(pkgName, { paths: [parentDir] });
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 const missing = [];
-if (!isModulePresent(rollupPackage) && !isPackageDirPresent(rollupPackage)) missing.push(rollupPackage);
-if (!isModulePresent(swcPackage) && !isPackageDirPresent(swcPackage)) missing.push(swcPackage);
+if (
+    !isModulePresent(rollupPackage) &&
+    !isPackageDirPresent(rollupPackage) &&
+    !isResolvableFromParent(rollupPackage, 'rollup')
+) {
+    missing.push(rollupPackage);
+}
+if (
+    !isModulePresent(swcPackage) &&
+    !isPackageDirPresent(swcPackage) &&
+    !isResolvableFromParent(swcPackage, '@swc/core')
+) {
+    missing.push(swcPackage);
+}
 
 if (missing.length === 0) {
     process.exit(0);
 }
 
 console.log(`[ensure-native-deps] Missing native optional deps on linux/${arch}: ${missing.join(', ')}`);
-console.log('[ensure-native-deps] Running npm install --include=optional to repair...');
+console.log(
+    `[ensure-native-deps] Running ${usingPnpm ? 'pnpm install --include=optional' : 'npm install --include=optional'} to repair...`
+);
 
-execSync('npm install --include=optional --no-audit --no-fund', {
+execSync(
+    usingPnpm
+        ? 'pnpm install --no-frozen-lockfile --prefer-offline --include=optional'
+        : 'npm install --include=optional --no-audit --no-fund',
+    {
     stdio: 'inherit',
     env: {
         ...process.env,
         // Ensure optional deps are not omitted.
         NPM_CONFIG_OPTIONAL: 'true',
+        SKIP_ENSURE_NATIVE_DEPS: '1',
     },
-});
+}
+);
 
 const stillMissing = [];
-if (!isModulePresent(rollupPackage) && !isPackageDirPresent(rollupPackage)) stillMissing.push(rollupPackage);
-if (!isModulePresent(swcPackage) && !isPackageDirPresent(swcPackage)) stillMissing.push(swcPackage);
+if (
+    !isModulePresent(rollupPackage) &&
+    !isPackageDirPresent(rollupPackage) &&
+    !isResolvableFromParent(rollupPackage, 'rollup')
+) {
+    stillMissing.push(rollupPackage);
+}
+if (
+    !isModulePresent(swcPackage) &&
+    !isPackageDirPresent(swcPackage) &&
+    !isResolvableFromParent(swcPackage, '@swc/core')
+) {
+    stillMissing.push(swcPackage);
+}
 
 if (stillMissing.length === 0) {
     process.exit(0);
@@ -131,18 +183,36 @@ for (const pkgName of stillMissing) {
     const version = pkgName.startsWith('@rollup/') ? rollupVersion : swcCoreVersion;
     const spec = version ? `${pkgName}@${version}` : pkgName;
     console.log(`[ensure-native-deps] Forcing install: ${spec}`);
-    execSync(`npm install --no-save --no-package-lock --no-audit --no-fund ${spec}`, {
-        stdio: 'inherit',
-        env: {
-            ...process.env,
-            NPM_CONFIG_OPTIONAL: 'true',
-        },
-    });
+    execSync(
+        usingPnpm
+            ? `pnpm add --save-optional --save-exact ${spec}`
+            : `npm install --no-save --no-package-lock --no-audit --no-fund ${spec}`,
+        {
+            stdio: 'inherit',
+            env: {
+                ...process.env,
+                NPM_CONFIG_OPTIONAL: 'true',
+                SKIP_ENSURE_NATIVE_DEPS: '1',
+            },
+        }
+    );
 }
 
 const finalMissing = [];
-if (!isModulePresent(rollupPackage) && !isPackageDirPresent(rollupPackage)) finalMissing.push(rollupPackage);
-if (!isModulePresent(swcPackage) && !isPackageDirPresent(swcPackage)) finalMissing.push(swcPackage);
+if (
+    !isModulePresent(rollupPackage) &&
+    !isPackageDirPresent(rollupPackage) &&
+    !isResolvableFromParent(rollupPackage, 'rollup')
+) {
+    finalMissing.push(rollupPackage);
+}
+if (
+    !isModulePresent(swcPackage) &&
+    !isPackageDirPresent(swcPackage) &&
+    !isResolvableFromParent(swcPackage, '@swc/core')
+) {
+    finalMissing.push(swcPackage);
+}
 
 if (finalMissing.length > 0) {
     console.error(`[ensure-native-deps] Still missing after repair: ${finalMissing.join(', ')}`);
