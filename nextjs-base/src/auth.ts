@@ -1,6 +1,13 @@
 import NextAuth, { CredentialsSignin } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import type { Session, User } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
 import { checkRateLimit } from '@/lib/rate-limit'
+
+type StrapiJWT = JWT & {
+  strapiJwt?: string
+  strapiDocumentId?: string
+}
 
 declare module 'next-auth' {
   interface Session {
@@ -83,30 +90,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
 
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({
-      token,
-      user,
-    }: {
-      token: Record<string, any>
-      user?: Record<string, any>
-    }) {
+    async jwt({ token, user }: { token: StrapiJWT; user?: User }) {
       if (user) {
-        token.strapiJwt = user.strapiJwt as string
-        token.strapiDocumentId = user.strapiDocumentId as string
+        token.strapiJwt = user.strapiJwt
+        token.strapiDocumentId = user.strapiDocumentId
       }
       return token
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async session({
-      session,
-      token,
-    }: {
-      session: any
-      token: Record<string, any>
-    }) {
-      session.user.strapiJwt = token.strapiJwt as string
-      session.user.strapiDocumentId = token.strapiDocumentId as string
+    async session({ session, token }: { session: Session; token: StrapiJWT }) {
+      session.user.strapiJwt = token.strapiJwt ?? ''
+      session.user.strapiDocumentId = token.strapiDocumentId ?? ''
       return session
     },
   },

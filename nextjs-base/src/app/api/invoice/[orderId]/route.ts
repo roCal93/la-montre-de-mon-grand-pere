@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import {
   Document,
+  type DocumentProps,
   Page,
   Text,
   View,
   StyleSheet,
   renderToBuffer,
 } from '@react-pdf/renderer'
-import { createElement } from 'react'
+import { createElement, type ReactElement } from 'react'
 import { formatPrice } from '@/lib/currency'
 
 interface LineItem {
@@ -256,10 +257,10 @@ export async function GET(
     return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buffer: Buffer = await renderToBuffer(
-    createElement(InvoiceDocument as any, { order }) as any
-  )
+  const pdfDocument = createElement(InvoiceDocument, {
+    order,
+  }) as unknown as ReactElement<DocumentProps>
+  const buffer: Buffer = await renderToBuffer(pdfDocument)
 
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,

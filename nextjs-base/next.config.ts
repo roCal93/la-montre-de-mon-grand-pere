@@ -1,5 +1,13 @@
 import type { NextConfig } from 'next'
 
+function normalizeOrigin(input: string): string | null {
+  try {
+    return new URL(input).origin
+  } catch {
+    return null
+  }
+}
+
 function getAllowedOrigins() {
   const allowedEnv =
     process.env.ALLOWED_ORIGINS || process.env.NEXT_PUBLIC_ALLOWED_ORIGINS
@@ -12,19 +20,31 @@ function getAllowedOrigins() {
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean)
-      .forEach((u) => set.add(u))
+      .forEach((u) => {
+        const origin = normalizeOrigin(u)
+        if (origin) set.add(origin)
+      })
   } else {
-    set.add(strapiOrigin)
-    if (!strapiOrigin.includes('localhost')) {
-      const host = strapiOrigin.replace(/^https?:\/\//, '').replace(/\/$/, '')
-      const base = host.replace(/^www\./, '')
-      set.add(`https://${base}`)
-      set.add(`https://www.${base}`)
-      set.add(`https://*.${base}`)
-    }
+    const strapi = normalizeOrigin(strapiOrigin)
+    if (strapi) set.add(strapi)
   }
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.SITE_URL ||
+    'http://localhost:3000'
+  const siteOrigin = normalizeOrigin(siteUrl)
+  if (siteOrigin) set.add(siteOrigin)
+
   return Array.from(set)
+}
+
+function getSiteOrigin(): string {
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.SITE_URL ||
+    'http://localhost:3000'
+  return normalizeOrigin(siteUrl) || 'http://localhost:3000'
 }
 
 const nextConfig: NextConfig = {
@@ -67,19 +87,17 @@ const nextConfig: NextConfig = {
   async headers() {
     const strapiOrigin =
       process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
+    const normalizedStrapiOrigin = normalizeOrigin(strapiOrigin) || strapiOrigin
+    const siteOrigin = getSiteOrigin()
     const isProd = process.env.NODE_ENV === 'production'
 
-    // Note: we rely on CSP `frame-ancestors` for iframe control (X-Frame-Options
-    // cannot express multiple allowed origins and would break Strapi preview embeds).
-    //
-    // ⚠️ Security note: 'unsafe-inline' is kept for compatibility with Next.js inline scripts
-    // For production, consider implementing nonces or moving to Next.js App Router with CSP support
     const csp = [
       "default-src 'self';",
-      `img-src 'self' data: https: ${strapiOrigin};`,
-      `script-src 'self' 'unsafe-inline' https://vercel.live${isProd ? '' : " 'unsafe-eval'"};`,
-      "style-src 'self' 'unsafe-inline';",
-      `connect-src 'self' ${strapiOrigin} https://*.railway.app https://*.vercel.app;`,
+      `img-src 'self' data: https://res.cloudinary.com ${normalizedStrapiOrigin};`,
+      `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"};`,
+      "style-src 'self';",
+      "style-src-attr 'unsafe-inline';",
+      `connect-src 'self' ${normalizedStrapiOrigin};`,
       "font-src 'self' data:;",
       "object-src 'none';",
       "base-uri 'self';",
@@ -115,6 +133,32 @@ const nextConfig: NextConfig = {
     }
 
     return [
+      {
+        source: '/robots.txt',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: siteOrigin,
+          },
+          {
+            key: 'Vary',
+            value: 'Origin',
+          },
+        ],
+      },
+      {
+        source: '/sitemap.xml',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: siteOrigin,
+          },
+          {
+            key: 'Vary',
+            value: 'Origin',
+          },
+        ],
+      },
       {
         source: '/(.*)',
         headers: securityHeaders,
