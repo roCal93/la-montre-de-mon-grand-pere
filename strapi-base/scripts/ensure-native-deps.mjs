@@ -12,8 +12,25 @@ function buildChildEnv() {
     // Reusing pnpm inside postinstall can fail if these inherited flags are not valid
     // for the nested command (e.g. add/rebuild).
     delete env.npm_config_frozen_lockfile;
+    delete env.NPM_CONFIG_FROZEN_LOCKFILE;
     delete env.npm_config_prefer_offline;
+    delete env.NPM_CONFIG_PREFER_OFFLINE;
     delete env.npm_config_lockfile;
+    delete env.NPM_CONFIG_LOCKFILE;
+    // Defensive cleanup for any remaining lockfile/offline flags forwarded by CI.
+    for (const key of Object.keys(env)) {
+        const normalized = key.toLowerCase();
+        if (!normalized.startsWith('npm_config_')) continue;
+        if (
+            normalized.includes('frozen_lockfile') ||
+            normalized.includes('frozen-lockfile') ||
+            normalized.includes('prefer_offline') ||
+            normalized.includes('prefer-offline') ||
+            normalized.endsWith('lockfile')
+        ) {
+            delete env[key];
+        }
+    }
     return env;
 }
 
@@ -152,7 +169,7 @@ console.log(
 
 execSync(
     usingPnpm
-        ? 'pnpm install --no-frozen-lockfile --prefer-offline --include=optional'
+        ? 'pnpm install --include=optional'
         : 'npm install --include=optional --no-audit --no-fund',
     {
     stdio: 'inherit',
@@ -182,6 +199,16 @@ if (
 }
 
 if (stillMissing.length === 0) {
+    process.exit(0);
+}
+
+if (usingPnpm) {
+    console.warn(
+        `[ensure-native-deps] Optional native deps still unresolved under pnpm: ${stillMissing.join(', ')}`
+    );
+    console.warn(
+        '[ensure-native-deps] Skipping force-install in pnpm lifecycle script; build step will surface any real missing binary.'
+    );
     process.exit(0);
 }
 
