@@ -6,6 +6,17 @@ const require = createRequire(import.meta.url);
 const npmUserAgent = process.env.npm_config_user_agent || '';
 const usingPnpm = npmUserAgent.includes('pnpm/');
 
+function buildChildEnv() {
+    const env = { ...process.env };
+    // pnpm install passes command-specific npm_config_* flags to lifecycle scripts.
+    // Reusing pnpm inside postinstall can fail if these inherited flags are not valid
+    // for the nested command (e.g. add/rebuild).
+    delete env.npm_config_frozen_lockfile;
+    delete env.npm_config_prefer_offline;
+    delete env.npm_config_lockfile;
+    return env;
+}
+
 if (process.env.SKIP_ENSURE_NATIVE_DEPS === '1') {
     process.exit(0);
 }
@@ -26,7 +37,7 @@ try {
             stdio: 'inherit',
             cwd: process.cwd(),
             env: {
-                ...process.env,
+                ...buildChildEnv(),
                 SKIP_ENSURE_NATIVE_DEPS: '1',
             },
         });
@@ -146,7 +157,7 @@ execSync(
     {
     stdio: 'inherit',
     env: {
-        ...process.env,
+        ...buildChildEnv(),
         // Ensure optional deps are not omitted.
         NPM_CONFIG_OPTIONAL: 'true',
         SKIP_ENSURE_NATIVE_DEPS: '1',
@@ -190,7 +201,7 @@ for (const pkgName of stillMissing) {
         {
             stdio: 'inherit',
             env: {
-                ...process.env,
+                ...buildChildEnv(),
                 NPM_CONFIG_OPTIONAL: 'true',
                 SKIP_ENSURE_NATIVE_DEPS: '1',
             },
