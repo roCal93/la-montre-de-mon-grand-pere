@@ -33,7 +33,7 @@ export default function PanierPageClient({
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto mb-12 max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
       {!hideTitle ? (
         <h1 className="mb-8 text-3xl font-bold tracking-tight">
           {pageTitle || (locale === 'fr' ? 'Mon panier' : 'My cart')}
