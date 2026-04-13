@@ -1,6 +1,7 @@
 export default ({ env }) => {
   const nodeEnv = env('NODE_ENV', 'development')
   const isProd = nodeEnv === 'production'
+  const remoteTransferEnabled = env.bool('STRAPI_REMOTE_TRANSFER_ENABLED', isProd)
 
   const previewSecret = env('PREVIEW_SECRET') || (isProd ? undefined : 'dev-preview-secret')
   if (!previewSecret) {
@@ -13,7 +14,7 @@ export default ({ env }) => {
     url: env('STRAPI_URL', 'http://localhost:1337'),
     transfer: {
       remote: {
-        enabled: env.bool('STRAPI_REMOTE_TRANSFER_ENABLED', false),
+        enabled: remoteTransferEnabled,
       },
     },
     app: {
