@@ -241,7 +241,7 @@ export const Layout = async ({ children, locale }: LayoutProps) => {
         id="main-content"
         role="main"
         aria-label="Main content"
-        className="flex-1"
+        className="flex-1 pb-16"
       >
         {children}
       </main>
