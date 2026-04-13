@@ -11,6 +11,11 @@ export default ({ env }) => {
     host: env('HOST', '0.0.0.0'),
     port: env.int('PORT', 1337),
     url: env('STRAPI_URL', 'http://localhost:1337'),
+    transfer: {
+      remote: {
+        enabled: env.bool('STRAPI_REMOTE_TRANSFER_ENABLED', false),
+      },
+    },
     app: {
       keys: env.array('APP_KEYS'),
     },
