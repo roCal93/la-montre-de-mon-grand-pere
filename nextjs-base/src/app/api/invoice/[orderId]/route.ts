@@ -12,6 +12,8 @@ import {
 import { createElement, type ReactElement } from 'react'
 import { formatPrice } from '@/lib/currency'
 
+export const runtime = 'nodejs'
+
 interface LineItem {
   productName: string
   productSlug: string
@@ -52,12 +54,18 @@ const styles = StyleSheet.create({
     color: '#1c1917',
   },
   header: { marginBottom: 32 },
-  title: { fontSize: 22, fontFamily: 'Helvetica-Bold', marginBottom: 4 },
+  title: {
+    fontSize: 22,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    marginBottom: 4,
+  },
   subtitle: { fontSize: 10, color: '#78716c' },
   section: { marginBottom: 20 },
   sectionTitle: {
     fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
     marginBottom: 8,
     color: '#44403c',
   },
@@ -66,7 +74,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
-  bold: { fontFamily: 'Helvetica-Bold' },
+  bold: { fontFamily: 'Helvetica', fontWeight: 700 },
   divider: {
     borderBottomWidth: 1,
     borderBottomColor: '#e7e5e4',
@@ -236,6 +244,13 @@ export async function GET(
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
 
+  if (!strapiUrl || !token) {
+    return NextResponse.json(
+      { error: 'Configuration serveur manquante' },
+      { status: 500 }
+    )
+  }
+
   const query =
     `${strapiUrl}/api/orders` +
     `?filters[documentId][$eq]=${encodeURIComponent(orderId)}` +
@@ -257,16 +272,27 @@ export async function GET(
     return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
 
-  const pdfDocument = createElement(InvoiceDocument, {
-    order,
-  }) as unknown as ReactElement<DocumentProps>
-  const buffer: Buffer = await renderToBuffer(pdfDocument)
+  try {
+    const pdfDocument = createElement(InvoiceDocument, {
+      order,
+    }) as unknown as ReactElement<DocumentProps>
+    const buffer: Buffer = await renderToBuffer(pdfDocument)
 
-  return new NextResponse(new Uint8Array(buffer), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="facture-${order.documentId.slice(-8).toUpperCase()}.pdf"`,
-    },
-  })
+    return new NextResponse(new Uint8Array(buffer), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="facture-${order.documentId.slice(-8).toUpperCase()}.pdf"`,
+      },
+    })
+  } catch (error) {
+    console.error('Invoice PDF generation failed', {
+      orderId: order.documentId,
+      error,
+    })
+    return NextResponse.json(
+      { error: 'Erreur de generation de facture' },
+      { status: 500 }
+    )
+  }
 }
