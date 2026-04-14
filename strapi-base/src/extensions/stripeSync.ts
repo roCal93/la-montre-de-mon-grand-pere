@@ -42,11 +42,16 @@ async function syncProduct(documentId: string, entity: any, strapi: any) {
 
   if (result.success && result.pricePriceId) {
     if (entity.stripePriceId !== result.pricePriceId) {
-      await strapi.documents('api::product.product').update({
-        documentId,
-        data: { stripePriceId: result.pricePriceId },
-      });
-      console.log(`[Webhook] stripePriceId saved: ${result.pricePriceId}`);
+      try {
+        await strapi.documents('api::product.product').update({
+          documentId,
+          locale: entity.locale,
+          data: { stripePriceId: result.pricePriceId },
+        });
+        console.log(`[Webhook] stripePriceId saved: ${result.pricePriceId}`);
+      } catch (error) {
+        console.error('[Webhook] Failed to persist stripePriceId:', error);
+      }
     } else {
       console.log(`[Webhook] stripePriceId already up to date: ${result.pricePriceId}`);
     }
@@ -67,7 +72,11 @@ export default (strapi: any) => {
       const fields = Object.keys(event.params?.data ?? {});
       if (fields.length > 0 && fields.every((k) => ['stripePriceId', 'updatedAt'].includes(k))) return;
 
-      await syncProduct(entity.documentId, entity, strapi);
+      try {
+        await syncProduct(entity.documentId, entity, strapi);
+      } catch (error) {
+        console.error('[Webhook] afterCreate sync failed (non-blocking):', error);
+      }
     },
 
     async afterUpdate(event: any) {
@@ -78,7 +87,11 @@ export default (strapi: any) => {
       const fields = Object.keys(event.params?.data ?? {});
       if (fields.length > 0 && fields.every((k) => ['stripePriceId', 'updatedAt'].includes(k))) return;
 
-      await syncProduct(entity.documentId, entity, strapi);
+      try {
+        await syncProduct(entity.documentId, entity, strapi);
+      } catch (error) {
+        console.error('[Webhook] afterUpdate sync failed (non-blocking):', error);
+      }
     },
 
     async beforeDelete(event: any) {
@@ -86,7 +99,11 @@ export default (strapi: any) => {
       if (!data?.documentId) return;
 
       console.log('[Webhook] Product deleted:', data.documentId);
-      await deleteStripeProduct(data.documentId);
+      try {
+        await deleteStripeProduct(data.documentId);
+      } catch (error) {
+        console.error('[Webhook] beforeDelete Stripe cleanup failed (non-blocking):', error);
+      }
     },
   });
 };
