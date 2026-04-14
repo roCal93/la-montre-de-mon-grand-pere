@@ -14,17 +14,14 @@ import { getCart, setCart, clearCart } from "@/lib/cart-storage";
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "HYDRATE":
-      return { items: action.payload };
+      return {
+        items: action.payload.map((item) => ({ ...item, quantity: 1 })),
+      };
 
     case "ADD_ITEM": {
       const existing = state.items.find((i) => i.id === action.payload.id);
       if (existing) {
-        const updated = state.items.map((i) =>
-          i.id === action.payload.id
-            ? { ...i, quantity: i.quantity + 1 }
-            : i
-        );
-        return { items: updated };
+        return { items: state.items };
       }
       return { items: [...state.items, { ...action.payload, quantity: 1 }] };
     }
@@ -43,7 +40,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       return {
         items: state.items.map((i) =>
           i.id === action.payload.id
-            ? { ...i, quantity: action.payload.quantity }
+            ? { ...i, quantity: 1 }
             : i
         ),
       };

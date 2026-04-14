@@ -39,7 +39,6 @@ interface StrapiProduct {
   price: number
   compareAtPrice: number | null
   active: boolean
-  stock: number
   images: StrapiImage[] | null
   category: StrapiCategory | null
   conditionRatings: ConditionRating[] | null
@@ -70,11 +69,10 @@ async function getProducts(locale: string): Promise<StrapiProduct[]> {
   url.searchParams.set('fields[1]', 'slug')
   url.searchParams.set('fields[2]', 'price')
   url.searchParams.set('fields[3]', 'compareAtPrice')
-  url.searchParams.set('fields[4]', 'stock')
-  url.searchParams.set('fields[5]', 'active')
-  url.searchParams.set('fields[6]', 'shortDescription')
-  url.searchParams.set('fields[7]', 'badges')
-  url.searchParams.set('fields[8]', 'conditionRatings')
+  url.searchParams.set('fields[4]', 'active')
+  url.searchParams.set('fields[5]', 'shortDescription')
+  url.searchParams.set('fields[6]', 'badges')
+  url.searchParams.set('fields[7]', 'conditionRatings')
   url.searchParams.set('populate[images][fields][0]', 'url')
   url.searchParams.set('populate[images][fields][1]', 'alternativeText')
   url.searchParams.set('populate[category][fields][0]', 'name')
@@ -367,7 +365,7 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
                     ? img.url
                     : `${process.env.NEXT_PUBLIC_STRAPI_URL}${img.url}`
                   : null
-                const isSoldOut = !product.active || product.stock <= 0
+                const isSoldOut = !product.active
 
                 return (
                   <li key={product.id}>

@@ -182,7 +182,7 @@ async function createOrderInStrapi(
   return { created: true }
 }
 
-async function decrementStockInStrapi(
+async function markProductsAsSoldInStrapi(
   cartItems: Array<{
     id: number
     documentId: string
@@ -199,31 +199,13 @@ async function decrementStockInStrapi(
     cartItems.map(async (item) => {
       if (!item.documentId) return
 
-      // Fetch current stock
-      const getRes = await fetch(
-        `${strapiUrl}/api/products/${item.documentId}?fields[0]=stock&fields[1]=active`,
-        { headers: { Authorization: `Bearer ${writeToken}` } }
-      )
-      if (!getRes.ok) return
-      const { data } = (await getRes.json()) as {
-        data: { stock: number; active: boolean }
-      }
-
-      const newStock = Math.max(0, (data.stock ?? 0) - item.quantity)
-      const updatePayload: Record<string, unknown> = { stock: newStock }
-
-      // When stock reaches 0, deactivate in Strapi (lifecycle hook will archive in Stripe)
-      if (newStock === 0) {
-        updatePayload.active = false
-      }
-
       await fetch(`${strapiUrl}/api/products/${item.documentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${writeToken}`,
         },
-        body: JSON.stringify({ data: updatePayload }),
+        body: JSON.stringify({ data: { active: false } }),
       })
     })
   )
@@ -275,7 +257,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               }>)
             : []
           const locale = session.metadata?.locale ?? 'fr'
-          await decrementStockInStrapi(cartItems)
+          await markProductsAsSoldInStrapi(cartItems)
           revalidateTag('products', {})
           revalidatePath(`/${locale}/boutique`, 'page')
           for (const item of cartItems) {
@@ -299,7 +281,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             }>)
           : []
         const locale2 = session.metadata?.locale ?? 'fr'
-        await decrementStockInStrapi(cartItems)
+        await markProductsAsSoldInStrapi(cartItems)
         revalidateTag('products', {})
         revalidatePath(`/${locale2}/boutique`, 'page')
         for (const item of cartItems) {

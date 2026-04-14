@@ -6,7 +6,10 @@ export function getCart(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(CART_STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as CartItem[]) : [];
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw) as CartItem[];
+    return parsed.map((item) => ({ ...item, quantity: 1 }));
   } catch {
     return [];
   }
@@ -14,7 +17,10 @@ export function getCart(): CartItem[] {
 
 export function setCart(items: CartItem[]): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  localStorage.setItem(
+    CART_STORAGE_KEY,
+    JSON.stringify(items.map((item) => ({ ...item, quantity: 1 })))
+  );
 }
 
 export function clearCart(): void {

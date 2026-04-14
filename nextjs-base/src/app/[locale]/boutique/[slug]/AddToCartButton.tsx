@@ -11,7 +11,6 @@ interface Props {
     slug: string
     price: number
     imageUrl: string | null
-    stock: number
     description?: string | null
   }
 }
@@ -30,15 +29,6 @@ export function AddToCartButton({ product }: Props) {
       description: product.description,
     })
     openCart()
-  }
-
-  if (product.stock === 0) {
-    return (
-      <p className="text-sm text-neutral-500 font-medium">
-        {/* sold out */}
-        Vendu
-      </p>
-    )
   }
 
   return (

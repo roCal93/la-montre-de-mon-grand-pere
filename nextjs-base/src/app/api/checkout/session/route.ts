@@ -31,6 +31,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
     }
 
+    // Watches are unique pieces: keep at most one line per product and force quantity to 1.
+    const uniqueItems = Array.from(
+      new Map(items.map((item) => [item.id, item])).values()
+    ).map((item) => ({ ...item, quantity: 1 }))
+
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
     if (!siteUrl) {
       return NextResponse.json(
@@ -40,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     const lineItems: import('stripe').Stripe.Checkout.SessionCreateParams.LineItem[] =
-      items.map((item) => ({
+      uniqueItems.map((item) => ({
         price_data: {
           currency: 'eur',
           unit_amount: toCents(item.price),
@@ -56,7 +61,7 @@ export async function POST(request: NextRequest) {
             },
           },
         },
-        quantity: item.quantity,
+        quantity: 1,
       }))
 
     const session = await getStripe().checkout.sessions.create({
@@ -72,13 +77,13 @@ export async function POST(request: NextRequest) {
       metadata: {
         locale,
         cartItems: JSON.stringify(
-          items.map((i) => ({
+          uniqueItems.map((i) => ({
             id: i.id,
             documentId: i.documentId,
             name: i.name,
             slug: i.slug,
             price: i.price,
-            quantity: i.quantity,
+            quantity: 1,
           }))
         ),
       },

@@ -18,7 +18,7 @@ async function syncProduct(documentId: string, entity: any, strapi: any) {
   recentlySynced.add(documentId);
   setTimeout(() => recentlySynced.delete(documentId), 3000);
 
-  // If product is inactive (stock = 0), archive it in Stripe and stop
+  // If product is inactive (active=false), archive it in Stripe and stop
   if (!entity.active) {
     if (entity.documentId) {
       console.log('[Webhook] Product inactive, archiving in Stripe:', documentId);
