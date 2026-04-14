@@ -61,6 +61,12 @@ async function syncProduct(documentId: string, entity: any, strapi: any) {
 }
 
 export default (strapi: any) => {
+  const stripeSyncEnabled = process.env.STRIPE_SYNC_ENABLED !== 'false';
+  if (!stripeSyncEnabled) {
+    console.log('[Webhook] Stripe sync disabled via STRIPE_SYNC_ENABLED=false');
+    return;
+  }
+
   strapi.db?.lifecycles.subscribe({
     models: ['api::product.product'],
 
@@ -94,16 +100,8 @@ export default (strapi: any) => {
       }
     },
 
-    async beforeDelete(event: any) {
-      try {
-        const data = event?.params?.data ?? event?.state;
-        if (!data?.documentId) return;
-
-        console.log('[Webhook] Product deleted:', data.documentId);
-        await deleteStripeProduct(data.documentId);
-      } catch (error) {
-        console.error('[Webhook] beforeDelete Stripe cleanup failed (non-blocking):', error);
-      }
-    },
+    // Intentionally no delete hook here:
+    // in Strapi v5, publish flow may perform internal draft deletions.
+    // Triggering external destructive sync on those technical deletions is unsafe.
   });
 };
