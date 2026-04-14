@@ -95,11 +95,11 @@ export default (strapi: any) => {
     },
 
     async beforeDelete(event: any) {
-      const { data = event.state } = event.params;
-      if (!data?.documentId) return;
-
-      console.log('[Webhook] Product deleted:', data.documentId);
       try {
+        const data = event?.params?.data ?? event?.state;
+        if (!data?.documentId) return;
+
+        console.log('[Webhook] Product deleted:', data.documentId);
         await deleteStripeProduct(data.documentId);
       } catch (error) {
         console.error('[Webhook] beforeDelete Stripe cleanup failed (non-blocking):', error);
