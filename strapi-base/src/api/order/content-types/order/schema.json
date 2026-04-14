@@ -14,8 +14,7 @@
   "attributes": {
     "stripeSessionId": {
       "type": "string",
-      "unique": true,
-      "private": true
+      "unique": true
     },
     "stripePaymentIntentId": {
       "type": "string",
