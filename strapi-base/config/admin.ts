@@ -40,25 +40,32 @@ export default ({ env }) => {
       config: {
         allowedOrigins: clientUrl,
         async handler(uid, { documentId, locale, status }) {
-          // Temporary: TS types for `strapi.documents` differ across Strapi versions.
-          // Cast to `any` to bypass the type error until we perform a Strapi/types upgrade.
-          // TODO: remove cast after upgrading to a Strapi version with correct types.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const document = await (strapi as any).documents(uid).findOne({
-            documentId,
-            locale,
-          })
-          const pathname = getPreviewPathname(uid, { locale, document })
+          try {
+            // Keep preview isolated to page documents to avoid blocking publish
+            // workflows of other content types if preview mapping is missing.
+            if (uid !== 'api::page.page') return null
 
-          if (!pathname) return null
+            // In Strapi runtime, `strapi` is available globally.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const document = await (strapi as any).documents(uid).findOne({
+              documentId,
+              locale,
+            })
+            const pathname = getPreviewPathname(uid, { locale, document })
+            if (!pathname || !clientUrl || !previewSecret) return null
 
-          const urlSearchParams = new URLSearchParams({
-            url: pathname,
-            secret: previewSecret,
-            status,
-          })
+            const urlSearchParams = new URLSearchParams({
+              url: pathname,
+              secret: previewSecret,
+              status,
+            })
 
-          return `${clientUrl}/api/preview?${urlSearchParams}`
+            return `${clientUrl}/api/preview?${urlSearchParams}`
+          } catch (error) {
+            // Never block Content Manager actions because of preview integration.
+            strapi.log.error('[admin preview] handler error (non-blocking):', error)
+            return null
+          }
         }
       },
     },
