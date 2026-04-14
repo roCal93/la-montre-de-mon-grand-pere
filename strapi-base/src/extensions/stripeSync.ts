@@ -61,9 +61,9 @@ async function syncProduct(documentId: string, entity: any, strapi: any) {
 }
 
 export default (strapi: any) => {
-  const stripeSyncEnabled = process.env.STRIPE_SYNC_ENABLED !== 'false';
+  const stripeSyncEnabled = process.env.STRIPE_SYNC_ENABLED === 'true';
   if (!stripeSyncEnabled) {
-    console.log('[Webhook] Stripe sync disabled via STRIPE_SYNC_ENABLED=false');
+    console.log('[Webhook] Stripe sync disabled (set STRIPE_SYNC_ENABLED=true to enable)');
     return;
   }
 
