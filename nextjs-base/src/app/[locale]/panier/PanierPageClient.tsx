@@ -82,13 +82,13 @@ export default function PanierPageClient({
             </p>
             <button
               onClick={handleCheckout}
-              className="w-full rounded-md bg-black py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 active:bg-neutral-900"
+              className="w-full rounded-md bg-neutral-900 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-700 active:bg-neutral-600 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 dark:active:bg-neutral-300"
             >
               {locale === 'fr' ? 'Passer commande' : 'Proceed to checkout'}
             </button>
             <Link
               href={`/${locale}/boutique`}
-              className="block text-center text-sm text-neutral-500 transition-colors hover:text-neutral-400"
+              className="block text-center text-sm text-neutral-500 transition-colors hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
             >
               {locale === 'fr' ? 'Continuer mes achats' : 'Continue shopping'}
             </Link>

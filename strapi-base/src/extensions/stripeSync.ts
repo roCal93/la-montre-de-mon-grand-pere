@@ -42,16 +42,11 @@ async function syncProduct(documentId: string, entity: any, strapi: any) {
 
   if (result.success && result.pricePriceId) {
     if (entity.stripePriceId !== result.pricePriceId) {
-      try {
-        await strapi.documents('api::product.product').update({
-          documentId,
-          locale: entity.locale,
-          data: { stripePriceId: result.pricePriceId },
-        });
-        console.log(`[Webhook] stripePriceId saved: ${result.pricePriceId}`);
-      } catch (error) {
-        console.error('[Webhook] Failed to persist stripePriceId:', error);
-      }
+      await strapi.documents('api::product.product').update({
+        documentId,
+        data: { stripePriceId: result.pricePriceId },
+      });
+      console.log(`[Webhook] stripePriceId saved: ${result.pricePriceId}`);
     } else {
       console.log(`[Webhook] stripePriceId already up to date: ${result.pricePriceId}`);
     }
@@ -61,12 +56,6 @@ async function syncProduct(documentId: string, entity: any, strapi: any) {
 }
 
 export default (strapi: any) => {
-  const stripeSyncEnabled = process.env.STRIPE_SYNC_ENABLED === 'true';
-  if (!stripeSyncEnabled) {
-    console.log('[Webhook] Stripe sync disabled (set STRIPE_SYNC_ENABLED=true to enable)');
-    return;
-  }
-
   strapi.db?.lifecycles.subscribe({
     models: ['api::product.product'],
 
@@ -78,11 +67,7 @@ export default (strapi: any) => {
       const fields = Object.keys(event.params?.data ?? {});
       if (fields.length > 0 && fields.every((k) => ['stripePriceId', 'updatedAt'].includes(k))) return;
 
-      try {
-        await syncProduct(entity.documentId, entity, strapi);
-      } catch (error) {
-        console.error('[Webhook] afterCreate sync failed (non-blocking):', error);
-      }
+      await syncProduct(entity.documentId, entity, strapi);
     },
 
     async afterUpdate(event: any) {
@@ -93,15 +78,15 @@ export default (strapi: any) => {
       const fields = Object.keys(event.params?.data ?? {});
       if (fields.length > 0 && fields.every((k) => ['stripePriceId', 'updatedAt'].includes(k))) return;
 
-      try {
-        await syncProduct(entity.documentId, entity, strapi);
-      } catch (error) {
-        console.error('[Webhook] afterUpdate sync failed (non-blocking):', error);
-      }
+      await syncProduct(entity.documentId, entity, strapi);
     },
 
-    // Intentionally no delete hook here:
-    // in Strapi v5, publish flow may perform internal draft deletions.
-    // Triggering external destructive sync on those technical deletions is unsafe.
+    async beforeDelete(event: any) {
+      const { data = event.state } = event.params;
+      if (!data?.documentId) return;
+
+      console.log('[Webhook] Product deleted:', data.documentId);
+      await deleteStripeProduct(data.documentId);
+    },
   });
 };
