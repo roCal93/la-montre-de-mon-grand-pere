@@ -8,6 +8,7 @@ import { LanguageSwitcher } from '@/components/locale/LanguageSwitcher'
 import { CartButton } from '@/components/cart/CartButton'
 import { AccountButton } from '@/components/espace-client/AccountButton'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { GifToggle } from '@/components/ui/GifToggle'
 import { scrollToAnchor } from '@/lib/anchor'
 
 interface ProcessedLink {
@@ -270,6 +271,7 @@ export const BurgerMenu = ({
                   <div className="flex flex-col items-center gap-3">
                     <div className="flex items-center gap-5">
                       <AccountButton />
+                      <GifToggle />
                       <ThemeToggle />
                       <CartButton />
                     </div>

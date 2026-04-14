@@ -17,6 +17,7 @@ import { LanguageSwitcher } from '@/components/locale/LanguageSwitcher'
 import { CartButton } from '@/components/cart/CartButton'
 import { AccountButton } from '@/components/espace-client/AccountButton'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { GifToggle } from '@/components/ui/GifToggle'
 import { scrollToAnchor, scrollToAnchorWithRetry } from '@/lib/anchor'
 import type { StrapiMedia, PageLink } from '@/types/strapi'
 import {
@@ -245,6 +246,7 @@ export const Header = memo(
               <div className="flex-none pr-6 flex items-center gap-2">
                 <AccountButton />
                 <CartButton />
+                <GifToggle />
                 <ThemeToggle />
                 <LanguageSwitcher />
               </div>
@@ -406,6 +408,7 @@ export const Header = memo(
           <div className="hidden min-[850px]:flex min-[850px]:items-center min-[850px]:gap-4 min-[850px]:ml-auto min-[850px]:mr-6">
             <AccountButton />
             <CartButton />
+            <GifToggle />
             <ThemeToggle />
             <LanguageSwitcher />
           </div>
