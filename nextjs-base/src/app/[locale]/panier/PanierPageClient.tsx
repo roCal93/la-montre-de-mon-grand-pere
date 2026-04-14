@@ -33,7 +33,7 @@ export default function PanierPageClient({
   }
 
   return (
-    <div className="mx-auto mb-12 max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto mb-12 max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
       {!hideTitle ? (
         <h1 className="mb-8 text-3xl font-bold tracking-tight">
           {pageTitle || (locale === 'fr' ? 'Mon panier' : 'My cart')}
@@ -53,7 +53,7 @@ export default function PanierPageClient({
           </Link>
         </div>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-24 lg:grid-cols-3">
           <ul role="list" className="divide-y lg:col-span-2">
             {items.map((item) => (
               <CartLineItem
