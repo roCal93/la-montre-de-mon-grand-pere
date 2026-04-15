@@ -20,7 +20,7 @@
     "@stripe/stripe-js": "^9.2.0",
     "framer-motion": "^12.37.0",
     "js-cookie": "^3.0.5",
-    "next": "16.2.2",
+    "next": "16.2.3",
     "next-auth": "5.0.0-beta.30",
     "next-intl": "^4.9.0",
     "react": "19.2.4",
