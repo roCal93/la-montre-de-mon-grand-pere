@@ -55,7 +55,10 @@ const BackgroundBlock = ({
 
   const isGifUrl = (url?: string) => {
     if (!url) return false
-    return /\.gif(?:$|[?#])/i.test(url) || /[?&](?:fm|format|ext)=gif(?:&|$)/i.test(url)
+    return (
+      /\.gif(?:$|[?#])/i.test(url) ||
+      /[?&](?:fm|format|ext)=gif(?:&|$)/i.test(url)
+    )
   }
 
   // normalize different media shapes from Strapi (direct or relation)
@@ -120,7 +123,10 @@ const BackgroundBlock = ({
   const [isDesktopViewport, setIsDesktopViewport] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [areGifsPaused, setAreGifsPaused] = useState(false)
-  const [gifStillSrc, setGifStillSrc] = useState<string | undefined>()
+  const [asyncGifStill, setAsyncGifStill] = useState<{
+    url: string
+    src: string
+  } | null>(null)
   const [viewportKey, setViewportKey] = useState(0) // force re-render on viewport change
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -134,18 +140,17 @@ const BackgroundBlock = ({
   const currentPosition =
     isDesktopViewport && desktopSrc ? positionDesktop : positionMobile
   const pauseCurrentGif = areGifsPaused && isGifUrl(currentImageSrc)
+  const gifStillSrc = (() => {
+    if (!currentImageSrc || !isGifUrl(currentImageSrc)) return undefined
+    const cached = gifStillCache.get(currentImageSrc)
+    if (cached) return cached
+    if (asyncGifStill?.url === currentImageSrc) return asyncGifStill.src
+    return undefined
+  })()
 
   useEffect(() => {
-    if (!currentImageSrc || !isGifUrl(currentImageSrc)) {
-      setGifStillSrc(undefined)
-      return
-    }
-
-    const cached = gifStillCache.get(currentImageSrc)
-    if (cached) {
-      setGifStillSrc(cached)
-      return
-    }
+    if (!currentImageSrc || !isGifUrl(currentImageSrc)) return
+    if (gifStillCache.has(currentImageSrc)) return
 
     let cancelled = false
     const img = new Image()
@@ -158,32 +163,22 @@ const BackgroundBlock = ({
         const canvas = document.createElement('canvas')
         const width = img.naturalWidth || img.width
         const height = img.naturalHeight || img.height
-        if (!width || !height) {
-          setGifStillSrc(undefined)
-          return
-        }
+        if (!width || !height) return
 
         canvas.width = width
         canvas.height = height
 
         const ctx = canvas.getContext('2d')
-        if (!ctx) {
-          setGifStillSrc(undefined)
-          return
-        }
+        if (!ctx) return
 
         // Draw first decodable frame from the GIF into a static image.
         ctx.drawImage(img, 0, 0, width, height)
         const still = canvas.toDataURL('image/png')
         gifStillCache.set(currentImageSrc, still)
-        setGifStillSrc(still)
+        setAsyncGifStill({ url: currentImageSrc, src: still })
       } catch {
-        setGifStillSrc(undefined)
+        // undefined is the fallback
       }
-    }
-
-    img.onerror = () => {
-      if (!cancelled) setGifStillSrc(undefined)
     }
 
     img.src = currentImageSrc
@@ -197,8 +192,7 @@ const BackgroundBlock = ({
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const readPaused = () =>
-      localStorage.getItem(GIF_PAUSE_STORAGE_KEY) === '1'
+    const readPaused = () => localStorage.getItem(GIF_PAUSE_STORAGE_KEY) === '1'
 
     const syncPausedState = (paused: boolean) => {
       setAreGifsPaused(paused)
@@ -323,7 +317,9 @@ const BackgroundBlock = ({
       body.style.backgroundImage = gradient
     } else if (type === 'image' && currentImageSrc) {
       const backgroundSrc = pauseCurrentGif ? gifStillSrc : currentImageSrc
-      body.style.backgroundImage = backgroundSrc ? `url(${backgroundSrc})` : 'none'
+      body.style.backgroundImage = backgroundSrc
+        ? `url(${backgroundSrc})`
+        : 'none'
       body.style.backgroundPosition = currentPosition
       body.style.backgroundSize = currentSize
       body.style.backgroundRepeat = repeat

@@ -21,9 +21,11 @@ export function GifToggle() {
 
   useEffect(() => {
     const initial = readPaused()
-    setPaused(initial)
     applyPausedToDom(initial)
-    const timeoutId = window.setTimeout(() => setMounted(true), 0)
+    const timeoutId = window.setTimeout(() => {
+      setPaused(initial)
+      setMounted(true)
+    }, 0)
 
     const onChange = (event: Event) => {
       const custom = event as CustomEvent<{ paused?: boolean }>
