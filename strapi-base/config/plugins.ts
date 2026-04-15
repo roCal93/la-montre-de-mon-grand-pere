@@ -17,6 +17,7 @@ export default ({ env }) => {
 	if (hasCloudinary) {
 		config.upload = {
 			config: {
+				sizeLimit: env.int('STRAPI_UPLOAD_SIZE_LIMIT_BYTES', 50 * 1024 * 1024),
 				provider: 'cloudinary',
 				providerOptions: env('CLOUDINARY_URL') ? {} : {
 					cloud_name: env('CLOUDINARY_NAME'),

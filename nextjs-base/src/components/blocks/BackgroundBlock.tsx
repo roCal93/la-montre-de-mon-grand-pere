@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom'
 import { StrapiMedia } from '@/types/strapi'
 import { cleanImageUrl } from '@/lib/strapi'
 
+const gifStillCache = new Map<string, string>()
+
 type BackgroundBlockProps = {
   type: 'color' | 'image' | 'gradient'
   color?: string
@@ -48,6 +50,14 @@ const BackgroundBlock = ({
   overlayOpacity = 0,
   scope = 'section',
 }: BackgroundBlockProps) => {
+  const GIF_PAUSE_STORAGE_KEY = 'hakuna-gifs-paused'
+  const GIF_PAUSE_EVENT = 'hakuna:gifs-paused-change'
+
+  const isGifUrl = (url?: string) => {
+    if (!url) return false
+    return /\.gif(?:$|[?#])/i.test(url) || /[?&](?:fm|format|ext)=gif(?:&|$)/i.test(url)
+  }
+
   // normalize different media shapes from Strapi (direct or relation)
   type MediaLike =
     | string
@@ -109,6 +119,8 @@ const BackgroundBlock = ({
   )
   const [isDesktopViewport, setIsDesktopViewport] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [areGifsPaused, setAreGifsPaused] = useState(false)
+  const [gifStillSrc, setGifStillSrc] = useState<string | undefined>()
   const [viewportKey, setViewportKey] = useState(0) // force re-render on viewport change
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -121,6 +133,105 @@ const BackgroundBlock = ({
   const currentSize = isDesktopViewport && desktopSrc ? sizeDesktop : sizeMobile
   const currentPosition =
     isDesktopViewport && desktopSrc ? positionDesktop : positionMobile
+  const pauseCurrentGif = areGifsPaused && isGifUrl(currentImageSrc)
+
+  useEffect(() => {
+    if (!currentImageSrc || !isGifUrl(currentImageSrc)) {
+      setGifStillSrc(undefined)
+      return
+    }
+
+    const cached = gifStillCache.get(currentImageSrc)
+    if (cached) {
+      setGifStillSrc(cached)
+      return
+    }
+
+    let cancelled = false
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+
+    img.onload = () => {
+      if (cancelled) return
+
+      try {
+        const canvas = document.createElement('canvas')
+        const width = img.naturalWidth || img.width
+        const height = img.naturalHeight || img.height
+        if (!width || !height) {
+          setGifStillSrc(undefined)
+          return
+        }
+
+        canvas.width = width
+        canvas.height = height
+
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          setGifStillSrc(undefined)
+          return
+        }
+
+        // Draw first decodable frame from the GIF into a static image.
+        ctx.drawImage(img, 0, 0, width, height)
+        const still = canvas.toDataURL('image/png')
+        gifStillCache.set(currentImageSrc, still)
+        setGifStillSrc(still)
+      } catch {
+        setGifStillSrc(undefined)
+      }
+    }
+
+    img.onerror = () => {
+      if (!cancelled) setGifStillSrc(undefined)
+    }
+
+    img.src = currentImageSrc
+
+    return () => {
+      cancelled = true
+      img.src = ''
+    }
+  }, [currentImageSrc])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const readPaused = () =>
+      localStorage.getItem(GIF_PAUSE_STORAGE_KEY) === '1'
+
+    const syncPausedState = (paused: boolean) => {
+      setAreGifsPaused(paused)
+      document.documentElement.dataset.gifsPaused = paused ? '1' : '0'
+    }
+
+    syncPausedState(readPaused())
+
+    const onPauseChange = (event: Event) => {
+      const custom = event as CustomEvent<{ paused?: boolean }>
+      const next =
+        typeof custom.detail?.paused === 'boolean'
+          ? custom.detail.paused
+          : readPaused()
+      syncPausedState(next)
+    }
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== GIF_PAUSE_STORAGE_KEY) return
+      syncPausedState(readPaused())
+    }
+
+    window.addEventListener(GIF_PAUSE_EVENT, onPauseChange as EventListener)
+    window.addEventListener('storage', onStorage)
+
+    return () => {
+      window.removeEventListener(
+        GIF_PAUSE_EVENT,
+        onPauseChange as EventListener
+      )
+      window.removeEventListener('storage', onStorage)
+    }
+  }, [])
 
   // dark mode detection — follow the site's `.dark` class so it stays in sync with ThemeToggle
   useEffect(() => {
@@ -180,7 +291,10 @@ const BackgroundBlock = ({
     }
 
     if (type === 'image' && currentImageSrc) {
-      backgroundStyles.backgroundImage = `url(${currentImageSrc})`
+      const backgroundSrc = pauseCurrentGif ? gifStillSrc : currentImageSrc
+      backgroundStyles.backgroundImage = backgroundSrc
+        ? `url(${backgroundSrc})`
+        : 'none'
       backgroundStyles.backgroundPosition = currentPosition
       backgroundStyles.backgroundSize = currentSize
       backgroundStyles.backgroundRepeat = repeat
@@ -208,7 +322,8 @@ const BackgroundBlock = ({
     } else if (type === 'gradient' && gradient) {
       body.style.backgroundImage = gradient
     } else if (type === 'image' && currentImageSrc) {
-      body.style.backgroundImage = `url(${currentImageSrc})`
+      const backgroundSrc = pauseCurrentGif ? gifStillSrc : currentImageSrc
+      body.style.backgroundImage = backgroundSrc ? `url(${backgroundSrc})` : 'none'
       body.style.backgroundPosition = currentPosition
       body.style.backgroundSize = currentSize
       body.style.backgroundRepeat = repeat
@@ -266,6 +381,8 @@ const BackgroundBlock = ({
     repeat,
     fixed,
     isDarkMode,
+    pauseCurrentGif,
+    gifStillSrc,
   ])
 
   if (scope === 'global') {

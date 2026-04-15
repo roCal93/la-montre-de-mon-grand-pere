@@ -172,14 +172,14 @@ execSync(
         ? 'pnpm install --include=optional'
         : 'npm install --include=optional --no-audit --no-fund',
     {
-    stdio: 'inherit',
-    env: {
-        ...buildChildEnv(),
-        // Ensure optional deps are not omitted.
-        NPM_CONFIG_OPTIONAL: 'true',
-        SKIP_ENSURE_NATIVE_DEPS: '1',
-    },
-}
+        stdio: 'inherit',
+        env: {
+            ...buildChildEnv(),
+            // Ensure optional deps are not omitted.
+            NPM_CONFIG_OPTIONAL: 'true',
+            SKIP_ENSURE_NATIVE_DEPS: '1',
+        },
+    }
 );
 
 const stillMissing = [];

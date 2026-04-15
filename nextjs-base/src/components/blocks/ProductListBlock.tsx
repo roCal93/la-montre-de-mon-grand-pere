@@ -22,7 +22,6 @@ interface StrapiProduct {
   slug: string
   price: number
   compareAtPrice: number | null
-  stock: number | null
   active: boolean
   images: StrapiImage[] | null
   category: StrapiCategory | null
@@ -49,8 +48,7 @@ async function fetchProducts(
   url.searchParams.set('fields[1]', 'slug')
   url.searchParams.set('fields[2]', 'price')
   url.searchParams.set('fields[3]', 'compareAtPrice')
-  url.searchParams.set('fields[4]', 'stock')
-  url.searchParams.set('fields[5]', 'active')
+  url.searchParams.set('fields[4]', 'active')
   url.searchParams.set('sort', 'createdAt:desc')
   url.searchParams.set('pagination[pageSize]', String(maxItems))
 
@@ -128,8 +126,7 @@ export default async function ProductListBlock({
             const img = product.images?.[0]
             const imgUrl = img ? buildImgUrl(img.url) : null
 
-            const isSoldOut =
-              !product.active || (product.stock !== null && product.stock <= 0)
+            const isSoldOut = !product.active
 
             return (
               <li

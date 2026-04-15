@@ -33,7 +33,7 @@ export default function PanierPageClient({
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto mb-12 max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
       {!hideTitle ? (
         <h1 className="mb-8 text-3xl font-bold tracking-tight">
           {pageTitle || (locale === 'fr' ? 'Mon panier' : 'My cart')}
@@ -53,7 +53,7 @@ export default function PanierPageClient({
           </Link>
         </div>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-24 lg:grid-cols-3">
           <ul role="list" className="divide-y lg:col-span-2">
             {items.map((item) => (
               <CartLineItem
@@ -82,13 +82,13 @@ export default function PanierPageClient({
             </p>
             <button
               onClick={handleCheckout}
-              className="w-full rounded-md bg-black py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 active:bg-neutral-900"
+              className="w-full rounded-md bg-neutral-900 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-700 active:bg-neutral-600 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 dark:active:bg-neutral-300"
             >
               {locale === 'fr' ? 'Passer commande' : 'Proceed to checkout'}
             </button>
             <Link
               href={`/${locale}/boutique`}
-              className="block text-center text-sm text-neutral-500 transition-colors hover:text-neutral-400"
+              className="block text-center text-sm text-neutral-500 transition-colors hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
             >
               {locale === 'fr' ? 'Continuer mes achats' : 'Continue shopping'}
             </Link>

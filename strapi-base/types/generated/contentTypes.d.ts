@@ -1173,14 +1173,6 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
         };
       }>;
     slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
-    stock: Schema.Attribute.Integer &
-      Schema.Attribute.SetMinMax<
-        {
-          min: 0;
-        },
-        number
-      > &
-      Schema.Attribute.DefaultTo<0>;
     stripePriceId: Schema.Attribute.String & Schema.Attribute.Private;
     technicalSpecs: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     updatedAt: Schema.Attribute.DateTime;
