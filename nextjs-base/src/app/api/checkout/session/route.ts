@@ -44,25 +44,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const lineItems: import('stripe').Stripe.Checkout.SessionCreateParams.LineItem[] =
-      uniqueItems.map((item) => ({
-        price_data: {
-          currency: 'eur',
-          unit_amount: toCents(item.price),
-          product_data: {
-            name: item.name,
-            ...(item.description
-              ? { description: stripHtml(item.description).slice(0, 500) }
-              : {}),
-            images: toPublicImageUrl(item.imageUrl),
-            metadata: {
-              strapiId: String(item.id),
-              slug: item.slug,
-            },
+    const lineItems = uniqueItems.map((item) => ({
+      price_data: {
+        currency: 'eur',
+        unit_amount: toCents(item.price),
+        product_data: {
+          name: item.name,
+          ...(item.description
+            ? { description: stripHtml(item.description).slice(0, 500) }
+            : {}),
+          images: toPublicImageUrl(item.imageUrl),
+          metadata: {
+            strapiId: String(item.id),
+            slug: item.slug,
           },
         },
-        quantity: 1,
-      }))
+      },
+      quantity: 1,
+    }))
 
     const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
