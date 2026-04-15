@@ -12,7 +12,7 @@ interface Product {
   name: string
   slug: string
   price: number
-  stock: number
+  active: boolean
   images?: { url: string; alternativeText?: string }[]
 }
 
@@ -93,7 +93,7 @@ export default async function FavorisPage({
                     ) : (
                       <div className="flex h-full items-center justify-center bg-neutral-100" />
                     )}
-                    {product.stock === 0 && (
+                    {!product.active && (
                       <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
                         <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-neutral-500 shadow dark:text-neutral-300">
                           Épuisé

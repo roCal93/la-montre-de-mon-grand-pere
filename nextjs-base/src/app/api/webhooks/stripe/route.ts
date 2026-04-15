@@ -60,42 +60,25 @@ async function persistWebhookError(params: {
   }
 }
 
-async function hasExistingOrderForSession(
-  sessionId: string | null | undefined
-): Promise<boolean> {
-  if (!sessionId) return false
+function isDuplicateStripeSessionError(
+  status: number,
+  responseText: string
+): boolean {
+  if (status !== 400 && status !== 409) return false
 
-  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
-  const writeToken = process.env.STRAPI_WRITE_API_TOKEN
-
-  if (!strapiUrl || !writeToken) {
-    throw new Error('Strapi env vars (URL or WRITE TOKEN) are not configured')
-  }
-
-  const url =
-    `${strapiUrl}/api/orders` +
-    `?filters[stripeSessionId][$eq]=${encodeURIComponent(sessionId)}` +
-    '&fields[0]=documentId&pagination[page]=1&pagination[pageSize]=1'
-
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${writeToken}` },
-    cache: 'no-store',
-  })
-
-  if (!response.ok) {
-    const text = await response.text()
-    throw new Error(
-      `Strapi idempotency lookup failed (${response.status}): ${text}`
-    )
-  }
-
-  const json = (await response.json()) as { data?: unknown[] }
-  return Array.isArray(json.data) && json.data.length > 0
+  const body = responseText.toLowerCase()
+  return (
+    body.includes('stripesessionid') &&
+    (body.includes('unique') ||
+      body.includes('already') ||
+      body.includes('taken') ||
+      body.includes('duplicate'))
+  )
 }
 
 async function createOrderInStrapi(
   session: Stripe.Checkout.Session
-): Promise<void> {
+): Promise<{ created: boolean }> {
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const writeToken = process.env.STRAPI_WRITE_API_TOKEN
 
@@ -184,13 +167,22 @@ async function createOrderInStrapi(
 
   if (!response.ok) {
     const text = await response.text()
+    if (isDuplicateStripeSessionError(response.status, text)) {
+      console.info(
+        `[webhook] Duplicate session ignored (already processed): ${session.id}`
+      )
+      return { created: false }
+    }
+
     throw new Error(
       `Strapi order creation failed (${response.status}): ${text}`
     )
   }
+
+  return { created: true }
 }
 
-async function decrementStockInStrapi(
+async function markProductsAsSoldInStrapi(
   cartItems: Array<{
     id: number
     documentId: string
@@ -207,31 +199,13 @@ async function decrementStockInStrapi(
     cartItems.map(async (item) => {
       if (!item.documentId) return
 
-      // Fetch current stock
-      const getRes = await fetch(
-        `${strapiUrl}/api/products/${item.documentId}?fields[0]=stock&fields[1]=active`,
-        { headers: { Authorization: `Bearer ${writeToken}` } }
-      )
-      if (!getRes.ok) return
-      const { data } = (await getRes.json()) as {
-        data: { stock: number; active: boolean }
-      }
-
-      const newStock = Math.max(0, (data.stock ?? 0) - item.quantity)
-      const updatePayload: Record<string, unknown> = { stock: newStock }
-
-      // When stock reaches 0, deactivate in Strapi (lifecycle hook will archive in Stripe)
-      if (newStock === 0) {
-        updatePayload.active = false
-      }
-
       await fetch(`${strapiUrl}/api/products/${item.documentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${writeToken}`,
         },
-        body: JSON.stringify({ data: updatePayload }),
+        body: JSON.stringify({ data: { active: false } }),
       })
     })
   )
@@ -271,10 +245,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         if (session.payment_status === 'paid') {
-          const alreadyProcessed = await hasExistingOrderForSession(session.id)
-          if (alreadyProcessed) break
+          const { created } = await createOrderInStrapi(session)
+          if (!created) break
 
-          await createOrderInStrapi(session)
           const cartItems = session.metadata?.cartItems
             ? (JSON.parse(session.metadata.cartItems) as Array<{
                 id: number
@@ -284,7 +257,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               }>)
             : []
           const locale = session.metadata?.locale ?? 'fr'
-          await decrementStockInStrapi(cartItems)
+          await markProductsAsSoldInStrapi(cartItems)
           revalidateTag('products', {})
           revalidatePath(`/${locale}/boutique`, 'page')
           for (const item of cartItems) {
@@ -296,8 +269,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       // Handle async payment confirmation (e.g. bank transfer)
       case 'checkout.session.async_payment_succeeded': {
         const session = event.data.object as Stripe.Checkout.Session
-        const alreadyProcessed = await hasExistingOrderForSession(session.id)
-        if (alreadyProcessed) break
+        const { created } = await createOrderInStrapi(session)
+        if (!created) break
 
         const cartItems = session.metadata?.cartItems
           ? (JSON.parse(session.metadata.cartItems) as Array<{
@@ -308,8 +281,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             }>)
           : []
         const locale2 = session.metadata?.locale ?? 'fr'
-        await createOrderInStrapi(session)
-        await decrementStockInStrapi(cartItems)
+        await markProductsAsSoldInStrapi(cartItems)
         revalidateTag('products', {})
         revalidatePath(`/${locale2}/boutique`, 'page')
         for (const item of cartItems) {

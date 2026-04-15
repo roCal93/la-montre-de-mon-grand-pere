@@ -12,6 +12,8 @@ import {
 import { createElement, type ReactElement } from 'react'
 import { formatPrice } from '@/lib/currency'
 
+export const runtime = 'nodejs'
+
 interface LineItem {
   productName: string
   productSlug: string
@@ -44,6 +46,17 @@ interface Order {
   total: number
 }
 
+function asText(value: unknown, fallback = '-'): string {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed.length > 0 ? trimmed : fallback
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  return fallback
+}
+
 const styles = StyleSheet.create({
   page: {
     padding: 48,
@@ -52,12 +65,18 @@ const styles = StyleSheet.create({
     color: '#1c1917',
   },
   header: { marginBottom: 32 },
-  title: { fontSize: 22, fontFamily: 'Helvetica-Bold', marginBottom: 4 },
+  title: {
+    fontSize: 22,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    marginBottom: 4,
+  },
   subtitle: { fontSize: 10, color: '#78716c' },
   section: { marginBottom: 20 },
   sectionTitle: {
     fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
     marginBottom: 8,
     color: '#44403c',
   },
@@ -66,7 +85,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
-  bold: { fontFamily: 'Helvetica-Bold' },
+  bold: { fontFamily: 'Helvetica', fontWeight: 700 },
   divider: {
     borderBottomWidth: 1,
     borderBottomColor: '#e7e5e4',
@@ -86,12 +105,39 @@ const styles = StyleSheet.create({
 })
 
 function InvoiceDocument({ order }: { order: Order }) {
-  const refNum = order.documentId.slice(-8).toUpperCase()
+  const refNum = asText(order.documentId, 'INCONNU').slice(-8).toUpperCase()
   const date = new Date(order.createdAt).toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   })
+  const lineItems = Array.isArray(order.lineItems) ? order.lineItems : []
+  const shippingAddress = order.shippingAddress ?? null
+  const shippingFullName = shippingAddress
+    ? `${asText(shippingAddress.firstName, 'Client')} ${asText(shippingAddress.lastName, '')}`.trim()
+    : ''
+  const shippingAddressLines: ReactElement[] = []
+
+  if (shippingAddress) {
+    shippingAddressLines.push(
+      createElement(Text, null, shippingFullName || 'Client')
+    )
+    shippingAddressLines.push(
+      createElement(Text, null, asText(shippingAddress.address1, 'Adresse non fournie'))
+    )
+    if (shippingAddress.address2) {
+      shippingAddressLines.push(
+        createElement(Text, null, asText(shippingAddress.address2))
+      )
+    }
+    shippingAddressLines.push(
+      createElement(
+        Text,
+        null,
+        `${asText(shippingAddress.postalCode, '00000')} ${asText(shippingAddress.city, 'Ville inconnue')} - ${asText(shippingAddress.country, 'FR')}`
+      )
+    )
+  }
 
   return createElement(
     Document,
@@ -121,7 +167,7 @@ function InvoiceDocument({ order }: { order: Order }) {
         createElement(
           Text,
           { style: styles.badge },
-          `Statut : ${order.status.toUpperCase()}`
+          `Statut : ${asText(order.status, 'inconnu').toUpperCase()}`
         ),
         createElement(
           View,
@@ -132,8 +178,8 @@ function InvoiceDocument({ order }: { order: Order }) {
         createElement(
           View,
           { style: styles.row },
-          createElement(Text, null, `Client : ${order.customerName}`),
-          createElement(Text, null, order.customerEmail)
+          createElement(Text, null, `Client : ${asText(order.customerName, 'Client')}`),
+          createElement(Text, null, asText(order.customerEmail, '-'))
         )
       ),
       // Divider
@@ -143,15 +189,19 @@ function InvoiceDocument({ order }: { order: Order }) {
         View,
         { style: styles.section },
         createElement(Text, { style: styles.sectionTitle }, 'Articles'),
-        ...(order.lineItems ?? []).map((item, i) =>
+        ...lineItems.map((item, i) =>
           createElement(
             View,
             { key: i, style: styles.row },
-            createElement(Text, null, `${item.productName}  ×${item.quantity}`),
+            createElement(
+              Text,
+              null,
+              `${asText(item.productName, 'Article')} x${Number(item.quantity) || 0}`
+            ),
             createElement(
               Text,
               { style: styles.bold },
-              formatPrice(item.unitPrice * item.quantity)
+              formatPrice((Number(item.unitPrice) || 0) * (Number(item.quantity) || 0))
             )
           )
         )
@@ -189,29 +239,18 @@ function InvoiceDocument({ order }: { order: Order }) {
         )
       ),
       // Shipping address
-      order.shippingAddress &&
-        createElement(
-          View,
-          { style: styles.section },
-          createElement(
-            Text,
-            { style: styles.sectionTitle },
-            'Adresse de livraison'
-          ),
-          createElement(
-            Text,
-            null,
-            `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`
-          ),
-          createElement(Text, null, order.shippingAddress.address1),
-          order.shippingAddress.address2 &&
-            createElement(Text, null, order.shippingAddress.address2),
-          createElement(
-            Text,
-            null,
-            `${order.shippingAddress.postalCode} ${order.shippingAddress.city} — ${order.shippingAddress.country}`
+      shippingAddress
+        ? createElement(
+            View,
+            { style: styles.section },
+            createElement(
+              Text,
+              { style: styles.sectionTitle },
+              'Adresse de livraison'
+            ),
+            ...shippingAddressLines
           )
-        ),
+        : null,
       // Footer
       createElement(
         Text,
@@ -236,6 +275,13 @@ export async function GET(
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
 
+  if (!strapiUrl || !token) {
+    return NextResponse.json(
+      { error: 'Configuration serveur manquante' },
+      { status: 500 }
+    )
+  }
+
   const query =
     `${strapiUrl}/api/orders` +
     `?filters[documentId][$eq]=${encodeURIComponent(orderId)}` +
@@ -257,16 +303,27 @@ export async function GET(
     return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
 
-  const pdfDocument = createElement(InvoiceDocument, {
-    order,
-  }) as unknown as ReactElement<DocumentProps>
-  const buffer: Buffer = await renderToBuffer(pdfDocument)
+  try {
+    const pdfDocument = createElement(InvoiceDocument, {
+      order,
+    }) as unknown as ReactElement<DocumentProps>
+    const buffer: Buffer = await renderToBuffer(pdfDocument)
 
-  return new NextResponse(new Uint8Array(buffer), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="facture-${order.documentId.slice(-8).toUpperCase()}.pdf"`,
-    },
-  })
+    return new NextResponse(new Uint8Array(buffer), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="facture-${order.documentId.slice(-8).toUpperCase()}.pdf"`,
+      },
+    })
+  } catch (error) {
+    console.error('Invoice PDF generation failed', {
+      orderId: order.documentId,
+      error,
+    })
+    return NextResponse.json(
+      { error: 'Erreur de generation de facture' },
+      { status: 500 }
+    )
+  }
 }

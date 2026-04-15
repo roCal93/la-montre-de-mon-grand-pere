@@ -142,7 +142,7 @@ export async function syncProductToStripe(
 
 /**
  * Archive (deactivate) a Stripe product by Strapi document ID
- * Used when stock reaches 0 — product stays in Stripe but is no longer purchasable
+ * Used when a product is marked inactive — product stays in Stripe but is no longer purchasable
  */
 export async function archiveStripeProduct(documentId: string): Promise<boolean> {
   try {

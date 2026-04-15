@@ -93,7 +93,18 @@ export default [
   },
   'strapi::poweredBy',
   'strapi::query',
-  'strapi::body',
+  {
+    name: 'strapi::body',
+    config: ({ env }) => ({
+      // Increase body/parser limits to support larger media uploads from admin.
+      formLimit: env('STRAPI_FORM_LIMIT', '50mb'),
+      jsonLimit: env('STRAPI_JSON_LIMIT', '50mb'),
+      textLimit: env('STRAPI_TEXT_LIMIT', '50mb'),
+      formidable: {
+        maxFileSize: env.int('STRAPI_MAX_FILE_SIZE_BYTES', 50 * 1024 * 1024),
+      },
+    }),
+  },
   'strapi::session',
   'strapi::favicon',
   'strapi::public',

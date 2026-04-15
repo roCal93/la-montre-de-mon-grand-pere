@@ -64,11 +64,6 @@ export default {
         "images"
       ]
     },
-    "stock": {
-      "type": "integer",
-      "min": 0,
-      "default": 0
-    },
     "active": {
       "type": "boolean",
       "default": true,

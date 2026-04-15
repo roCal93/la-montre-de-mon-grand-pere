@@ -36,7 +36,6 @@ interface StrapiProduct {
   brand: string | null
   price: number
   compareAtPrice: number | null
-  stock: number
   active: boolean
   badges: string[] | null
   technicalSpecs: TechSpec[] | null
@@ -75,8 +74,7 @@ async function getProduct(
     url.searchParams.set('fields[3]', 'shortDescription')
     url.searchParams.set('fields[4]', 'price')
     url.searchParams.set('fields[5]', 'compareAtPrice')
-    url.searchParams.set('fields[6]', 'stock')
-    url.searchParams.set('fields[7]', 'active')
+    url.searchParams.set('fields[6]', 'active')
 
     if (includeExtendedFields) {
       url.searchParams.set('fields[8]', 'reference')
@@ -186,7 +184,7 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProduct(slug, locale)
   if (!product) notFound()
 
-  const isSoldOut = !product.active || product.stock <= 0
+  const isSoldOut = !product.active
 
   const {
     name,
@@ -196,7 +194,6 @@ export default async function ProductPage({ params }: Props) {
     brand,
     price,
     compareAtPrice,
-    stock,
     images,
     badges,
     technicalSpecs,
@@ -346,7 +343,6 @@ export default async function ProductPage({ params }: Props) {
                       slug,
                       price,
                       imageUrl: firstImgUrl,
-                      stock,
                       description: shortDescription ?? description ?? null,
                     }}
                   />
