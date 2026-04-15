@@ -21,7 +21,7 @@
     "framer-motion": "^12.37.0",
     "js-cookie": "^3.0.5",
     "next": "16.2.3",
-    "next-auth": "5.0.0-beta.30",
+    "next-auth": "5.0.0-beta.31",
     "next-intl": "^4.9.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
