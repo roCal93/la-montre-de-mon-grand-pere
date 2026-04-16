@@ -210,7 +210,7 @@ export const SectionGeneric = ({
   return (
     <section
       id={identifier}
-      className={`relative ${sectionScopedBackgroundBlocks.length > 0 ? 'overflow-hidden' : ''} ${getTopSpacingClass(spacingTop)} ${getBottomSpacingClass(spacingBottom)} px-4`}
+      className={`relative isolate ${sectionScopedBackgroundBlocks.length > 0 ? 'overflow-hidden' : ''} ${getTopSpacingClass(spacingTop)} ${getBottomSpacingClass(spacingBottom)} px-4`}
     >
       {sectionScopedBackgroundBlocks.map((block, index) => {
         const SectionBackgroundBlock = TypedBlocks.BackgroundBlock as
