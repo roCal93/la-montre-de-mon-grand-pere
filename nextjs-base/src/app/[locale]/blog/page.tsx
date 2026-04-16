@@ -329,7 +329,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
 
                       <div className="space-y-3.5 p-3 sm:p-4">
                         {formattedDate ? (
-                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500 dark:text-neutral-400">
+                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-400">
                             {formattedDate}
                           </p>
                         ) : null}
@@ -339,13 +339,13 @@ export default async function BlogPage({ params, searchParams }: Props) {
                         </h2>
 
                         {article.excerpt ? (
-                          <p className="line-clamp-3 border-l-2 border-black pl-3 text-[13px] leading-[1.7] text-neutral-700 dark:border-white dark:text-neutral-300">
+                          <p className="line-clamp-3 border-l-2 border-black pl-3 text-[13px] leading-[1.7] text-neutral-500 dark:border-white dark:text-neutral-400">
                             {article.excerpt}
                           </p>
                         ) : null}
 
                         {(article.categories || []).length > 0 ? (
-                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-500 dark:text-neutral-400">
+                          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-400">
                             {article.categories?.[0]?.name}
                           </p>
                         ) : null}

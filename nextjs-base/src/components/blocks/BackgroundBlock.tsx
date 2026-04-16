@@ -410,7 +410,7 @@ const BackgroundBlock = ({
         style={{
           position: 'absolute',
           inset: 0,
-          zIndex: 0,
+          zIndex: -2,
           pointerEvents: 'none',
           ...backgroundStyles,
         }}
@@ -423,7 +423,7 @@ const BackgroundBlock = ({
           style={{
             position: 'absolute',
             inset: 0,
-            zIndex: 1,
+            zIndex: -1,
             pointerEvents: 'none',
             background: overlayColor,
             opacity: overlayOpacity,
