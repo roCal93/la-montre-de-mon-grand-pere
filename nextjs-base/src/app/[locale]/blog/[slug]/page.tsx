@@ -199,7 +199,7 @@ export default async function BlogArticlePage({ params }: Props) {
                 }
                 fill
                 priority
-                className="object-cover"
+                className="object-contain"
                 sizes="(max-width: 1024px) 100vw, 1000px"
               />
             </div>
