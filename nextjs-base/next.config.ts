@@ -85,27 +85,11 @@ const nextConfig: NextConfig = {
 
   // Autoriser l'admin Strapi à intégrer le site en iframe pour la Preview
   async headers() {
-    const strapiOrigin =
-      process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
-    const normalizedStrapiOrigin = normalizeOrigin(strapiOrigin) || strapiOrigin
     const siteOrigin = getSiteOrigin()
     const isProd = process.env.NODE_ENV === 'production'
 
-    const csp = [
-      "default-src 'self';",
-      `img-src 'self' data: https://res.cloudinary.com ${normalizedStrapiOrigin};`,
-      `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"};`,
-      "style-src 'self';",
-      "style-src-attr 'unsafe-inline';",
-      `connect-src 'self' ${normalizedStrapiOrigin};`,
-      "font-src 'self' data:;",
-      "object-src 'none';",
-      "base-uri 'self';",
-      "form-action 'self';",
-      'upgrade-insecure-requests;',
-      `frame-ancestors 'self' ${getAllowedOrigins().join(' ')};`,
-    ].join(' ')
-
+    // Content-Security-Policy is set dynamically per request in middleware.ts
+    // (nonce-based CSP cannot be a static build-time header)
     const securityHeaders: { key: string; value: string }[] = [
       {
         key: 'X-Content-Type-Options',
@@ -118,10 +102,6 @@ const nextConfig: NextConfig = {
       {
         key: 'Permissions-Policy',
         value: 'geolocation=(), microphone=(), camera=()',
-      },
-      {
-        key: 'Content-Security-Policy',
-        value: csp.replace(/\s{2,}/g, ' ').trim(),
       },
     ]
 

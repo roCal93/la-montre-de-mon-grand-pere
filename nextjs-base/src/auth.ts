@@ -40,9 +40,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new CredentialsSignin('Email et mot de passe requis')
 
         const normalizedEmail = email.trim().toLowerCase()
-        const ipHeader = request?.headers?.get('x-forwarded-for')
+        // Prefer x-vercel-forwarded-for (injected by Vercel, not spoofable by clients)
+        // over x-forwarded-for which can be spoofed behind untrusted proxies
         const ip =
-          ipHeader?.split(',')[0]?.trim() ||
+          request?.headers?.get('x-vercel-forwarded-for') ||
+          request?.headers?.get('x-forwarded-for')?.split(',')[0]?.trim() ||
           request?.headers?.get('x-real-ip') ||
           'unknown'
 

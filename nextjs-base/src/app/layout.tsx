@@ -60,6 +60,14 @@ export default async function RootLayout({
 }>) {
   let locale = defaultLocale
   let cookieConsent: 'accepted' | 'rejected' | undefined
+  let nonce: string | undefined
+
+  // Read the CSP nonce forwarded by middleware via request headers
+  try {
+    nonce = (await headers()).get('x-nonce') ?? undefined
+  } catch {
+    // Not available in static generation context
+  }
 
   try {
     const cookieStore = await cookies()
@@ -106,6 +114,7 @@ export default async function RootLayout({
       <head>
         {!disableDark && (
           <script
+            nonce={nonce}
             dangerouslySetInnerHTML={{
               __html: `(function(){try{var t=localStorage.getItem('theme-override');var p=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=t==='dark'||(t!=='light'&&p);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`,
             }}

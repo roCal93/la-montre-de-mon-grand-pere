@@ -68,13 +68,22 @@ export default {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const watchFiles = await (strapi.documents(WATCH_FILE_UID) as any).findMany({
             filters: { product: { id: { $eq: numericId } } },
+            populate: ['customer'],
             limit: 1,
           })
-          const watchFile = watchFiles[0] as { documentId: string } | undefined
+          const watchFile = watchFiles[0] as { documentId: string; customer?: unknown } | undefined
 
           if (!watchFile) {
             strapi.log.warn(
               `[order lifecycle] No watch-file found for product id=${numericId}`
+            )
+            return
+          }
+
+          // Guard: skip if already assigned to avoid double-assignment on lifecycle retry
+          if (watchFile.customer) {
+            strapi.log.info(
+              `[order lifecycle] Watch-file ${watchFile.documentId} already assigned — skipping`
             )
             return
           }

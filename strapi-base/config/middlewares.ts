@@ -71,16 +71,21 @@ export default [
   {
     name: 'strapi::cors',
     config: {
-      // Allow a set of known origins in production, plus Vercel previews via regex.
+      // Allow a set of known origins in production, plus Vercel previews scoped to this project.
       origin: (ctx: any) => {
         const requestOrigin = ctx.request.header.origin;
-        if (!requestOrigin) return '*';
+        // Reject requests without an Origin header (e.g. server-side curl/scripts)
+        if (!requestOrigin) return '';
 
-        const allowed = process.env.ALLOWED_ORIGINS?.split(',') || [
-          'https://yourdomain.com',
-        ];
+        const allowed = process.env.ALLOWED_ORIGINS?.split(',')
+          .map((s) => s.trim())
+          .filter(Boolean) || ['https://yourdomain.com'];
 
-        const vercelPreview = /^https:\/\/.*\.vercel\.app$/;
+        // Restrict Vercel previews to this specific project only (not all *.vercel.app)
+        const vercelProjectName = process.env.VERCEL_PROJECT_NAME || 'nextjs-base';
+        const vercelPreview = new RegExp(
+          `^https://${vercelProjectName}[a-z0-9-]*\\.vercel\\.app$`
+        );
 
         return allowed.includes(requestOrigin) || vercelPreview.test(requestOrigin)
           ? requestOrigin
@@ -96,10 +101,11 @@ export default [
   {
     name: 'strapi::body',
     config: ({ env }) => ({
-      // Increase body/parser limits to support larger media uploads from admin.
+      // formLimit/formidable stay at 50mb for media uploads from admin.
+      // jsonLimit is kept small to limit DoS via large JSON payloads.
       formLimit: env('STRAPI_FORM_LIMIT', '50mb'),
-      jsonLimit: env('STRAPI_JSON_LIMIT', '50mb'),
-      textLimit: env('STRAPI_TEXT_LIMIT', '50mb'),
+      jsonLimit: env('STRAPI_JSON_LIMIT', '5mb'),
+      textLimit: env('STRAPI_TEXT_LIMIT', '5mb'),
       formidable: {
         maxFileSize: env.int('STRAPI_MAX_FILE_SIZE_BYTES', 50 * 1024 * 1024),
       },
