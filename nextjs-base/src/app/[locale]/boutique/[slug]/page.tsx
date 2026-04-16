@@ -382,7 +382,7 @@ export default async function ProductPage({ params }: Props) {
                   return (
                     <div
                       key={rowIndex}
-                      className={`grid grid-cols-2 divide-x divide-neutral-200 dark:divide-neutral-700 ${
+                      className={`grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-neutral-200 dark:divide-neutral-700 ${
                         rowIndex % 2 === 0
                           ? 'bg-neutral-50 dark:bg-neutral-800/50'
                           : 'bg-white dark:bg-neutral-900'
