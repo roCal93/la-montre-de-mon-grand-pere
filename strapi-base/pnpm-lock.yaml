@@ -23,6 +23,7 @@ overrides:
   brace-expansion@2: 2.0.3
   brace-expansion@>=4: 5.0.5
   yaml@1: 1.10.3
+  vite: 6.4.2
 
 importers:
 
@@ -2477,7 +2478,7 @@ packages:
   '@vitejs/plugin-react-swc@3.6.0':
     resolution: {integrity: sha512-XFRbsGgpGxGzEV5i5+vRiro1bwcIaZDIdBRP16qwm+jP68ue/S8FJTBEgOeojtVDYrbSua3XFp71kC8VJE6v+g==}
     peerDependencies:
-      vite: ^4 || ^5
+      vite: 6.4.2
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -6332,21 +6333,26 @@ packages:
   vfile@6.0.3:
     resolution: {integrity: sha512-KzIbH/9tXat2u30jf+smMwFCsno4wHVdNmzFyL+T/L3UGqqk6JKfVqOFOZEpZSHADH1k40ab6NUIXZq422ov3Q==}
 
-  vite@5.4.21:
-    resolution: {integrity: sha512-o5a9xKjbtuhY6Bi5S3+HvbRERmouabWbyUcpXXUA1u+GNUKoROi9byOJ8M0nHbHYHkYICiMlqxkg1KkYmm25Sw==}
-    engines: {node: ^18.0.0 || >=20.0.0}
+  vite@6.4.2:
+    resolution: {integrity: sha512-2N/55r4JDJ4gdrCvGgINMy+HH3iRpNIz8K6SFwVsA+JbQScLiC+clmAxBgwiSPgcG9U15QmvqCGWzMbqda5zGQ==}
+    engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
     peerDependencies:
-      '@types/node': ^18.0.0 || >=20.0.0
+      '@types/node': ^18.0.0 || ^20.0.0 || >=22.0.0
+      jiti: '>=1.21.0'
       less: '*'
       lightningcss: ^1.21.0
       sass: '*'
       sass-embedded: '*'
       stylus: '*'
       sugarss: '*'
-      terser: ^5.4.0
+      terser: ^5.16.0
+      tsx: ^4.8.1
+      yaml: ^2.4.2
     peerDependenciesMeta:
       '@types/node':
+        optional: true
+      jiti:
         optional: true
       less:
         optional: true
@@ -6361,6 +6367,10 @@ packages:
       sugarss:
         optional: true
       terser:
+        optional: true
+      tsx:
+        optional: true
+      yaml:
         optional: true
 
   vscode-oniguruma@1.7.0:
@@ -7154,6 +7164,18 @@ snapshots:
   '@formatjs/intl-localematcher@0.5.4':
     dependencies:
       tslib: 2.8.1
+
+  '@formatjs/intl@2.10.0(typescript@5.4.4)':
+    dependencies:
+      '@formatjs/ecma402-abstract': 1.18.2
+      '@formatjs/fast-memoize': 2.2.0
+      '@formatjs/icu-messageformat-parser': 2.7.6
+      '@formatjs/intl-displaynames': 6.6.6
+      '@formatjs/intl-listformat': 7.5.5
+      intl-messageformat: 10.5.11
+      tslib: 2.8.1
+    optionalDependencies:
+      typescript: 5.4.4
 
   '@formatjs/intl@2.10.0(typescript@5.9.3)':
     dependencies:
@@ -9087,7 +9109,7 @@ snapshots:
       '@strapi/upload': 5.42.0(5ac5095944f97da4b2c07ddcb9a56a69)
       '@strapi/utils': 5.42.0
       '@types/nodemon': 1.19.6
-      '@vitejs/plugin-react-swc': 3.6.0(@swc/helpers@0.5.19)(vite@5.4.21(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0))
+      '@vitejs/plugin-react-swc': 3.6.0(@swc/helpers@0.5.19)(vite@6.4.2(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0))
       boxen: 5.1.2
       browserslist: 4.28.1
       browserslist-to-esbuild: 1.2.0
@@ -9126,7 +9148,7 @@ snapshots:
       style-loader: 3.3.4(webpack@5.105.4(esbuild@0.25.12))
       styled-components: 6.3.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       typescript: 5.4.4
-      vite: 5.4.21(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0)
+      vite: 6.4.2(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0)
       webpack: 5.105.4(esbuild@0.25.12)
       webpack-bundle-analyzer: 4.10.2
       webpack-dev-middleware: 6.1.2(webpack@5.105.4(esbuild@0.25.12))
@@ -9156,6 +9178,7 @@ snapshots:
       - codemirror
       - debug
       - esbuild
+      - jiti
       - koa
       - less
       - lightningcss
@@ -9177,12 +9200,14 @@ snapshots:
       - supports-color
       - tedious
       - terser
+      - tsx
       - type-fest
       - uglify-js
       - utf-8-validate
       - webpack-cli
       - webpack-dev-server
       - webpack-plugin-serve
+      - yaml
 
   '@strapi/types@5.42.0(@types/node@20.19.29)(better-sqlite3@12.6.0)(pg@8.17.1)(typescript@5.9.3)':
     dependencies:
@@ -9713,10 +9738,10 @@ snapshots:
 
   '@vercel/stega@0.1.2': {}
 
-  '@vitejs/plugin-react-swc@3.6.0(@swc/helpers@0.5.19)(vite@5.4.21(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0))':
+  '@vitejs/plugin-react-swc@3.6.0(@swc/helpers@0.5.19)(vite@6.4.2(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0))':
     dependencies:
       '@swc/core': 1.15.18(@swc/helpers@0.5.19)
-      vite: 5.4.21(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0)
+      vite: 6.4.2(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0)
     transitivePeerDependencies:
       - '@swc/helpers'
 
@@ -12826,7 +12851,7 @@ snapshots:
     dependencies:
       '@formatjs/ecma402-abstract': 1.18.2
       '@formatjs/icu-messageformat-parser': 2.7.6
-      '@formatjs/intl': 2.10.0(typescript@5.9.3)
+      '@formatjs/intl': 2.10.0(typescript@5.4.4)
       '@formatjs/intl-displaynames': 6.6.6
       '@formatjs/intl-listformat': 7.5.5
       '@types/hoist-non-react-statics': 3.3.7(@types/react@18.3.27)
@@ -13882,11 +13907,14 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@5.4.21(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0):
+  vite@6.4.2(@types/node@20.19.29)(lightningcss@1.32.0)(terser@5.46.0):
     dependencies:
       esbuild: 0.25.12
+      fdir: 6.5.0(picomatch@4.0.4)
+      picomatch: 4.0.4
       postcss: 8.5.8
       rollup: 4.60.1
+      tinyglobby: 0.2.15
     optionalDependencies:
       '@types/node': 20.19.29
       fsevents: 2.3.3
