@@ -1,7 +1,7 @@
 'use client'
 
-import { use, useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { use, useEffect, useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -22,7 +22,24 @@ export default function ConnexionPage({
 }) {
   const { locale } = use(params)
   const searchParams = useSearchParams()
+  const { status } = useSession()
   const [error, setError] = useState<string | null>(null)
+
+  const dashboardPath = `/${locale}/espace-client/tableau-de-bord`
+  const fromParam = searchParams.get('from')
+  const isSafeFromPath =
+    !!fromParam &&
+    fromParam.startsWith(`/${locale}/espace-client/`) &&
+    !fromParam.endsWith('/connexion') &&
+    !fromParam.endsWith('/inscription') &&
+    !fromParam.endsWith('/mot-de-passe-oublie')
+  const redirectPath = isSafeFromPath ? fromParam : dashboardPath
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      window.location.replace(redirectPath)
+    }
+  }, [status, redirectPath])
 
   const {
     register,
@@ -32,8 +49,6 @@ export default function ConnexionPage({
 
   const onSubmit = async (data: FormData) => {
     setError(null)
-    const from =
-      searchParams.get('from') ?? `/${locale}/espace-client/tableau-de-bord`
 
     const result = await signIn('credentials', {
       email: data.email,
@@ -44,7 +59,7 @@ export default function ConnexionPage({
     if (result?.error) {
       setError('Email ou mot de passe incorrect.')
     } else {
-      window.location.replace(from)
+      window.location.replace(redirectPath)
     }
   }
 
