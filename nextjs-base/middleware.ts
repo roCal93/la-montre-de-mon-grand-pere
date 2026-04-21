@@ -34,6 +34,39 @@ function isSafeClientAreaPath(pathname: string, locale: string): boolean {
   return !authSuffixes.some((s) => pathname.endsWith(s))
 }
 
+async function readAuthToken(req: NextRequest) {
+  const secret = process.env.AUTH_SECRET
+  if (!secret) return null
+
+  const secureCookie = req.nextUrl.protocol === 'https:'
+  const cookieNames = [
+    '__Secure-authjs.session-token',
+    'authjs.session-token',
+    '__Secure-next-auth.session-token',
+    'next-auth.session-token',
+  ]
+
+  // 1) Try default detection first.
+  try {
+    const token = await getToken({ req, secret, secureCookie })
+    if (token) return token
+  } catch {
+    // continue with explicit cookie names
+  }
+
+  // 2) Fallback: explicit known cookie names across Auth.js/NextAuth versions.
+  for (const cookieName of cookieNames) {
+    try {
+      const token = await getToken({ req, secret, cookieName, secureCookie })
+      if (token) return token
+    } catch {
+      // try next cookie name
+    }
+  }
+
+  return null
+}
+
 function generateNonce(): string {
   const bytes = new Uint8Array(16)
   crypto.getRandomValues(bytes)
@@ -96,16 +129,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   if (protectedClientArea || authClientAreaPage) {
-    // Use getToken instead of auth() wrapper — auth() strips custom response headers
-    let token = null
-    try {
-      token = await getToken({
-        req,
-        secret: process.env.AUTH_SECRET,
-      })
-    } catch {
-      // getToken failure should not block the request — treat as unauthenticated
-    }
+    const token = await readAuthToken(req)
 
     if (protectedClientArea && !token) {
       const loginUrl = req.nextUrl.clone()
