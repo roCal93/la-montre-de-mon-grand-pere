@@ -4,6 +4,11 @@ import type { Session, User } from 'next-auth'
 import type { JWT } from 'next-auth/jwt'
 import { checkRateLimit } from '@/lib/rate-limit'
 
+const isProd = process.env.NODE_ENV === 'production'
+const sessionCookieName = isProd
+  ? '__Secure-lmgp.session-token'
+  : 'lmgp.session-token'
+
 type StrapiJWT = JWT & {
   strapiJwt?: string
   strapiDocumentId?: string
@@ -112,5 +117,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   session: { strategy: 'jwt' },
+  trustHost: true,
+  cookies: {
+    sessionToken: {
+      name: sessionCookieName,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: isProd,
+      },
+    },
+  },
   secret: process.env.AUTH_SECRET,
 })
