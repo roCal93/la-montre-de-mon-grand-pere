@@ -22,6 +22,18 @@ function isProtectedEspaceClient(pathname: string): boolean {
   return !publicSuffixes.some((s) => pathname.endsWith(s))
 }
 
+function isEspaceClientAuthPage(pathname: string): boolean {
+  if (!pathname.includes('/espace-client')) return false
+  const publicSuffixes = ['/connexion', '/inscription', '/mot-de-passe-oublie']
+  return publicSuffixes.some((s) => pathname.endsWith(s))
+}
+
+function isSafeClientAreaPath(pathname: string, locale: string): boolean {
+  if (!pathname.startsWith(`/${locale}/espace-client/`)) return false
+  const authSuffixes = ['/connexion', '/inscription', '/mot-de-passe-oublie']
+  return !authSuffixes.some((s) => pathname.endsWith(s))
+}
+
 function generateNonce(): string {
   const bytes = new Uint8Array(16)
   crypto.getRandomValues(bytes)
@@ -30,14 +42,20 @@ function generateNonce(): string {
 }
 
 function buildCsp(nonce: string): string {
-  const strapiOrigin = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
-  const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || process.env.NEXT_PUBLIC_ALLOWED_ORIGINS
+  const strapiOrigin =
+    process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
+  const allowedOriginsEnv =
+    process.env.ALLOWED_ORIGINS || process.env.NEXT_PUBLIC_ALLOWED_ORIGINS
   const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   const isProd = process.env.NODE_ENV === 'production'
 
   const frameAncestorParts = [`'self'`, strapiOrigin]
   if (allowedOriginsEnv) {
-    allowedOriginsEnv.split(',').map((s) => s.trim()).filter(Boolean).forEach((u) => frameAncestorParts.push(u))
+    allowedOriginsEnv
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .forEach((u) => frameAncestorParts.push(u))
   } else {
     frameAncestorParts.push(siteOrigin)
   }
@@ -68,13 +86,16 @@ function buildCsp(nonce: string): string {
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+  const locale = getLocaleFromPath(pathname)
+  const protectedClientArea = isProtectedEspaceClient(pathname)
+  const authClientAreaPage = isEspaceClientAuthPage(pathname)
 
   // Stripe CLI often forwards to /webhook in local dev: keep it out of locale/auth middleware.
   if (pathname === '/webhook' || pathname === '/webhook/') {
     return NextResponse.next()
   }
 
-  if (isProtectedEspaceClient(pathname)) {
+  if (protectedClientArea || authClientAreaPage) {
     // Use getToken instead of auth() wrapper — auth() strips custom response headers
     let token = null
     try {
@@ -85,12 +106,23 @@ export default async function middleware(req: NextRequest) {
     } catch {
       // getToken failure should not block the request — treat as unauthenticated
     }
-    if (!token) {
-      const locale = getLocaleFromPath(pathname)
+
+    if (protectedClientArea && !token) {
       const loginUrl = req.nextUrl.clone()
       loginUrl.pathname = `/${locale}/espace-client/connexion`
       loginUrl.searchParams.set('from', pathname)
       return NextResponse.redirect(loginUrl)
+    }
+
+    if (authClientAreaPage && token) {
+      const from = req.nextUrl.searchParams.get('from')
+      const fallbackPath = `/${locale}/espace-client/tableau-de-bord`
+      const redirectPath =
+        from && isSafeClientAreaPath(from, locale) ? from : fallbackPath
+      const dashboardUrl = req.nextUrl.clone()
+      dashboardUrl.pathname = redirectPath
+      dashboardUrl.search = ''
+      return NextResponse.redirect(dashboardUrl)
     }
   }
 
@@ -103,7 +135,12 @@ export default async function middleware(req: NextRequest) {
   const intlStatus = intlResponse.status
 
   // If intl wants to redirect (missing locale prefix, etc.), preserve it and add CSP.
-  if (intlStatus === 301 || intlStatus === 302 || intlStatus === 307 || intlStatus === 308) {
+  if (
+    intlStatus === 301 ||
+    intlStatus === 302 ||
+    intlStatus === 307 ||
+    intlStatus === 308
+  ) {
     intlResponse.headers.set('Content-Security-Policy', csp)
     return intlResponse
   }
