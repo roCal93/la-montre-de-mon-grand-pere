@@ -2,7 +2,7 @@
 
 import { use, useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -21,7 +21,6 @@ export default function ConnexionPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = use(params)
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
@@ -45,8 +44,7 @@ export default function ConnexionPage({
     if (result?.error) {
       setError('Email ou mot de passe incorrect.')
     } else {
-      router.push(from)
-      router.refresh()
+      window.location.replace(from)
     }
   }
 
