@@ -2,6 +2,7 @@ import NextAuth, { CredentialsSignin } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import type { Session, User } from 'next-auth'
 import type { JWT } from 'next-auth/jwt'
+import { decode as decodeJwt } from 'next-auth/jwt'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 const isProd = process.env.NODE_ENV === 'production'
@@ -117,6 +118,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   session: { strategy: 'jwt' },
+  jwt: {
+    async decode(params) {
+      try {
+        return await decodeJwt(params)
+      } catch {
+        return null
+      }
+    },
+  },
   trustHost: true,
   cookies: {
     sessionToken: {
