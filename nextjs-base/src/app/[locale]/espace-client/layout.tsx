@@ -2,6 +2,8 @@ import { auth } from '@/auth'
 import { EspaceClientSidebar } from '@/components/espace-client/EspaceClientSidebar'
 import { Layout } from '@/components/layout'
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 interface Props {
   children: React.ReactNode
@@ -22,9 +24,23 @@ export async function generateMetadata({
 export default async function EspaceClientLayout({ children, params }: Props) {
   const { locale } = await params
   const session = await auth()
+  const headersList = await headers()
+  const pathname = headersList.get('x-pathname') ?? ''
 
-  //Auth pages (connexion, inscription, mot-de-passe-oublie) are accessible without session.
-  // The middleware ensures only those pages pass through unauthenticated.
+  const authPaths = ['/connexion', '/inscription', '/mot-de-passe-oublie']
+  const isAuthPage = authPaths.some((p) => pathname.endsWith(p))
+
+  // Logged-in user on an auth page → send to dashboard
+  if (session && isAuthPage) {
+    redirect(`/${locale}/espace-client/tableau-de-bord`)
+  }
+
+  // Unauthenticated user on a protected page → send to login
+  if (!session && !isAuthPage) {
+    redirect(`/${locale}/espace-client/connexion`)
+  }
+
+  // Auth pages (connexion, inscription, mot-de-passe-oublie) shown without sidebar
   if (!session) {
     return <Layout locale={locale}>{children}</Layout>
   }

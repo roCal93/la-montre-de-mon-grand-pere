@@ -89,6 +89,7 @@ export default async function middleware(req: NextRequest) {
   // to pass middleware-set data to the RSC render (read via `headers()` in layout).
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('x-pathname', pathname)
 
   const response = NextResponse.next({ request: { headers: requestHeaders } })
 
