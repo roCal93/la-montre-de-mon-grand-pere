@@ -1,7 +1,7 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
-import { signIn, useSession } from 'next-auth/react'
+import { use, useState } from 'react'
+import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -22,7 +22,6 @@ export default function ConnexionPage({
 }) {
   const { locale } = use(params)
   const searchParams = useSearchParams()
-  const { status } = useSession()
   const [error, setError] = useState<string | null>(null)
 
   const dashboardPath = `/${locale}/espace-client/tableau-de-bord`
@@ -34,12 +33,6 @@ export default function ConnexionPage({
     !fromParam.endsWith('/inscription') &&
     !fromParam.endsWith('/mot-de-passe-oublie')
   const redirectPath = isSafeFromPath ? fromParam : dashboardPath
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      window.location.replace(redirectPath)
-    }
-  }, [status, redirectPath])
 
   const {
     register,
