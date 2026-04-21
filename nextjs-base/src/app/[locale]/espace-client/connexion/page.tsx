@@ -1,8 +1,9 @@
 'use client'
 
 import { use, useState } from 'react'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
-import { loginAction } from './actions'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -21,6 +22,7 @@ export default function ConnexionPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = use(params)
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
@@ -43,13 +45,19 @@ export default function ConnexionPage({
   const onSubmit = async (data: FormData) => {
     setError(null)
 
-    try {
-      const result = await loginAction(data.email, data.password, redirectPath)
-      if (result?.error) {
-        setError(result.error)
-      }
-    } catch {
-      // NEXT_REDIRECT thrown by the server action on success — Next.js handles navigation
+    const result = await signIn('credentials', {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      setError('Email ou mot de passe incorrect.')
+    } else {
+      // router.refresh() forces Next.js to re-fetch all server components (including the
+      // layout's auth() call) so it sees the newly set session cookie before navigating.
+      router.refresh()
+      router.push(redirectPath)
     }
   }
 
