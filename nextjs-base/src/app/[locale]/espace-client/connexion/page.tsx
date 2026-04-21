@@ -1,8 +1,8 @@
 'use client'
 
 import { use, useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
+import { loginAction } from './actions'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -43,16 +43,13 @@ export default function ConnexionPage({
   const onSubmit = async (data: FormData) => {
     setError(null)
 
-    const result = await signIn('credentials', {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-    })
-
-    if (result?.error) {
-      setError('Email ou mot de passe incorrect.')
-    } else {
-      window.location.replace(redirectPath)
+    try {
+      const result = await loginAction(data.email, data.password, redirectPath)
+      if (result?.error) {
+        setError(result.error)
+      }
+    } catch {
+      // NEXT_REDIRECT thrown by the server action on success — Next.js handles navigation
     }
   }
 
