@@ -1,71 +1,9 @@
 import createIntlMiddleware from 'next-intl/middleware'
-import { getToken } from 'next-auth/jwt'
 import { routing } from './src/i18n/routing'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const intlMiddleware = createIntlMiddleware(routing)
-
-const VALID_LOCALES = ['fr', 'en'] as const
-
-function getLocaleFromPath(pathname: string): string {
-  const segment = pathname.split('/')[1]
-  return VALID_LOCALES.includes(segment as (typeof VALID_LOCALES)[number])
-    ? segment
-    : 'fr'
-}
-
-function isProtectedEspaceClient(pathname: string): boolean {
-  if (!pathname.includes('/espace-client')) return false
-  // Auth pages are public within espace-client
-  const publicSuffixes = ['/connexion', '/inscription', '/mot-de-passe-oublie']
-  return !publicSuffixes.some((s) => pathname.endsWith(s))
-}
-
-function isEspaceClientAuthPage(pathname: string): boolean {
-  if (!pathname.includes('/espace-client')) return false
-  const publicSuffixes = ['/connexion', '/inscription', '/mot-de-passe-oublie']
-  return publicSuffixes.some((s) => pathname.endsWith(s))
-}
-
-function isSafeClientAreaPath(pathname: string, locale: string): boolean {
-  if (!pathname.startsWith(`/${locale}/espace-client/`)) return false
-  const authSuffixes = ['/connexion', '/inscription', '/mot-de-passe-oublie']
-  return !authSuffixes.some((s) => pathname.endsWith(s))
-}
-
-async function readAuthToken(req: NextRequest) {
-  const secret = process.env.AUTH_SECRET
-  if (!secret) return null
-
-  const secureCookie = req.nextUrl.protocol === 'https:'
-  const cookieNames = [
-    '__Secure-authjs.session-token',
-    'authjs.session-token',
-    '__Secure-next-auth.session-token',
-    'next-auth.session-token',
-  ]
-
-  // 1) Try default detection first.
-  try {
-    const token = await getToken({ req, secret, secureCookie })
-    if (token) return token
-  } catch {
-    // continue with explicit cookie names
-  }
-
-  // 2) Fallback: explicit known cookie names across Auth.js/NextAuth versions.
-  for (const cookieName of cookieNames) {
-    try {
-      const token = await getToken({ req, secret, cookieName, secureCookie })
-      if (token) return token
-    } catch {
-      // try next cookie name
-    }
-  }
-
-  return null
-}
 
 function generateNonce(): string {
   const bytes = new Uint8Array(16)
@@ -119,35 +57,10 @@ function buildCsp(nonce: string): string {
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const locale = getLocaleFromPath(pathname)
-  const protectedClientArea = isProtectedEspaceClient(pathname)
-  const authClientAreaPage = isEspaceClientAuthPage(pathname)
 
   // Stripe CLI often forwards to /webhook in local dev: keep it out of locale/auth middleware.
   if (pathname === '/webhook' || pathname === '/webhook/') {
     return NextResponse.next()
-  }
-
-  if (protectedClientArea || authClientAreaPage) {
-    const token = await readAuthToken(req)
-
-    if (protectedClientArea && !token) {
-      const loginUrl = req.nextUrl.clone()
-      loginUrl.pathname = `/${locale}/espace-client/connexion`
-      loginUrl.searchParams.set('from', pathname)
-      return NextResponse.redirect(loginUrl)
-    }
-
-    if (authClientAreaPage && token) {
-      const from = req.nextUrl.searchParams.get('from')
-      const fallbackPath = `/${locale}/espace-client/tableau-de-bord`
-      const redirectPath =
-        from && isSafeClientAreaPath(from, locale) ? from : fallbackPath
-      const dashboardUrl = req.nextUrl.clone()
-      dashboardUrl.pathname = redirectPath
-      dashboardUrl.search = ''
-      return NextResponse.redirect(dashboardUrl)
-    }
   }
 
   // Generate a per-request nonce for CSP.
