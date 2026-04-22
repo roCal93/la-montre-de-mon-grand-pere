@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -80,12 +80,6 @@ export default function ConnexionPage({
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) })
-
-  useEffect(() => {
-    void resetSessionCookies().catch(() => {
-      // Ignore cleanup failures; login can still proceed.
-    })
-  }, [])
 
   const onSubmit = async (data: FormData) => {
     setError(null)
