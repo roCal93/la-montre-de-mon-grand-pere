@@ -1,7 +1,25 @@
 import NextAuth, { CredentialsSignin, type DefaultSession } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { authenticateStrapiUser } from '@/lib/strapi-login'
+import {
+  authenticateStrapiUser,
+  getStrapiUserFromJwt,
+} from '@/lib/strapi-login'
+import { STRAPI_SESSION_COOKIE } from '@/lib/strapi-session-cookie'
+
+function getCookieValue(cookieHeader: string | null, name: string) {
+  if (!cookieHeader) return null
+
+  const prefix = `${name}=`
+  for (const part of cookieHeader.split(';')) {
+    const trimmed = part.trim()
+    if (trimmed.startsWith(prefix)) {
+      return decodeURIComponent(trimmed.slice(prefix.length))
+    }
+  }
+
+  return null
+}
 
 declare module 'next-auth' {
   interface Session {
@@ -42,6 +60,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         })
         if (!rateLimit.allowed) {
           throw new CredentialsSignin('Trop de tentatives, reessayez plus tard')
+        }
+
+        const existingStrapiJwt = getCookieValue(
+          request?.headers?.get('cookie') ?? null,
+          STRAPI_SESSION_COOKIE
+        )
+        if (existingStrapiJwt) {
+          const strapiUser = await getStrapiUserFromJwt(existingStrapiJwt)
+
+          if (strapiUser) {
+            return {
+              id: String(strapiUser.id),
+              email: strapiUser.email,
+              name: strapiUser.username,
+            }
+          }
         }
 
         const result = await authenticateStrapiUser(normalizedEmail, password)
