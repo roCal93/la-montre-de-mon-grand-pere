@@ -33,6 +33,29 @@ async function createStrapiSession(email: string, password: string) {
   return response.ok
 }
 
+async function waitForAuthSession() {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const response = await fetch('/api/auth/session', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+    }).catch(() => null)
+
+    if (response?.ok) {
+      const session = (await response.json().catch(() => null)) as {
+        user?: { email?: string }
+      } | null
+
+      if (session?.user?.email) {
+        return true
+      }
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 150))
+  }
+
+  return false
+}
+
 export default function ConnexionPage({
   params,
 }: {
@@ -91,6 +114,7 @@ export default function ConnexionPage({
     if (result?.error) {
       setError('Email ou mot de passe incorrect.')
     } else {
+      await waitForAuthSession()
       window.location.assign(redirectPath)
     }
   }
