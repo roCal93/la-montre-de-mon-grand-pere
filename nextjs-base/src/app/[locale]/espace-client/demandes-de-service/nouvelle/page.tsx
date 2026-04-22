@@ -1,7 +1,5 @@
 'use server'
 
-import { auth } from '@/auth'
-import { redirect } from 'next/navigation'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import { NouvelleDemandeForm } from './NouvelleDemandeForm'
 
@@ -17,8 +15,6 @@ export default async function NouvelleDemandeServicePage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const session = await auth()
-  if (!session) redirect(`/${locale}/espace-client/connexion`)
 
   const { data } = await strapiAuthGet<{ data: WatchFile[] }>(
     '/watch-files?fields[0]=title&sort=createdAt:desc&populate[product][fields][0]=name',

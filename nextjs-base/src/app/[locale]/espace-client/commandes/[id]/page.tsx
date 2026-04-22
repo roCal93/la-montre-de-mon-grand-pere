@@ -1,5 +1,5 @@
-import { auth } from '@/auth'
 import { redirect, notFound } from 'next/navigation'
+import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/currency'
@@ -76,9 +76,9 @@ export default async function CommandeDetailPage({
   params: Promise<{ locale: string; id: string }>
 }) {
   const { locale, id } = await params
-  const session = await auth()
-  if (!session) redirect(`/${locale}/espace-client/connexion`)
-  const sessionEmail = session.user.email.trim().toLowerCase()
+  const strapiUser = await getCurrentStrapiUser()
+  if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
+  const sessionEmail = strapiUser.email.trim().toLowerCase()
 
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN

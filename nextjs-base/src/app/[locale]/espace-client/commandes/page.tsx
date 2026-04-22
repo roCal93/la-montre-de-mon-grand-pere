@@ -1,5 +1,5 @@
-import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
+import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/currency'
@@ -59,15 +59,15 @@ export default async function CommandesPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const session = await auth()
-  if (!session) redirect(`/${locale}/espace-client/connexion`)
+  const strapiUser = await getCurrentStrapiUser()
+  if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
 
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
   const headers = { Authorization: `Bearer ${token}` }
 
   const res = await fetch(
-    `${strapiUrl}/api/orders?filters[customerEmail][$eq]=${encodeURIComponent(session.user.email)}&sort=createdAt:desc&populate=*`,
+    `${strapiUrl}/api/orders?filters[customerEmail][$eq]=${encodeURIComponent(strapiUser.email)}&sort=createdAt:desc&populate=*`,
     { headers, cache: 'no-store' }
   )
   const json = res.ok ? ((await res.json()) as StrapiList<Order>) : { data: [] }

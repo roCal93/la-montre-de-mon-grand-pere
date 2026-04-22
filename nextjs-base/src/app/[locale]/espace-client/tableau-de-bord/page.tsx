@@ -1,6 +1,6 @@
-import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
+import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/currency'
@@ -95,8 +95,8 @@ export default async function TableauDeBordPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const session = await auth()
-  if (!session) redirect(`/${locale}/espace-client/connexion`)
+  const strapiUser = await getCurrentStrapiUser()
+  if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
 
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
@@ -104,7 +104,7 @@ export default async function TableauDeBordPage({
 
   const [ordersRes, watchFilesRes, serviceRequestsRes] = await Promise.all([
     fetch(
-      `${strapiUrl}/api/orders?filters[customerEmail][$eq]=${encodeURIComponent(session.user.email)}&sort=createdAt:desc&pagination[limit]=3&populate=*`,
+      `${strapiUrl}/api/orders?filters[customerEmail][$eq]=${encodeURIComponent(strapiUser.email)}&sort=createdAt:desc&pagination[limit]=3&populate=*`,
       { headers, cache: 'no-store' }
     ).then((r) =>
       r.ok ? (r.json() as Promise<StrapiList<Order>>) : { data: [] }
@@ -154,7 +154,7 @@ export default async function TableauDeBordPage({
         Tableau de bord
       </h1>
       <p className="mt-4 text-neutral-500 dark:text-neutral-400">
-        Bonjour {session.user.name}
+        Bonjour {strapiUser.username}
       </p>
 
       {/* Stats */}

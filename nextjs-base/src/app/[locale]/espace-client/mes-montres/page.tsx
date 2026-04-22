@@ -1,5 +1,3 @@
-import { auth } from '@/auth'
-import { redirect } from 'next/navigation'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import Link from 'next/link'
 
@@ -20,8 +18,6 @@ export default async function MesMontrePage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const session = await auth()
-  if (!session) redirect(`/${locale}/espace-client/connexion`)
 
   const { data } = await strapiAuthGet<StrapiList<WatchFile>>(
     '/watch-files?sort=createdAt:desc&populate[product]=true',
