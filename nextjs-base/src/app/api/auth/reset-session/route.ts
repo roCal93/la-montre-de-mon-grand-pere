@@ -17,6 +17,8 @@ const AUTH_COOKIE_NAMES = [
   STRAPI_SESSION_COOKIE,
 ]
 
+const AUTH_COOKIE_CHUNK_COUNT = 8
+
 function isAuthCookieName(name: string) {
   if (AUTH_COOKIE_NAMES.includes(name)) return true
 
@@ -53,8 +55,18 @@ export async function POST(request: NextRequest) {
     .map((cookie) => cookie.name)
     .filter(isAuthCookieName)
   const cookieDomains = getCookieDomains(request.nextUrl.hostname)
+  const cookieNamesToExpire = new Set<string>([
+    ...AUTH_COOKIE_NAMES,
+    ...authCookies,
+  ])
 
-  for (const name of authCookies) {
+  for (const baseName of AUTH_COOKIE_NAMES) {
+    for (let index = 0; index < AUTH_COOKIE_CHUNK_COUNT; index++) {
+      cookieNamesToExpire.add(`${baseName}.${index}`)
+    }
+  }
+
+  for (const name of cookieNamesToExpire) {
     response.cookies.set(buildExpireOptions(name))
 
     for (const domain of cookieDomains) {
