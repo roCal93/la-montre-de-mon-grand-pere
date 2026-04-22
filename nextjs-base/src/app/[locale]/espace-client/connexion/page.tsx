@@ -2,7 +2,6 @@
 
 import { use, useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -40,7 +39,6 @@ export default function ConnexionPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = use(params)
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
@@ -93,10 +91,7 @@ export default function ConnexionPage({
     if (result?.error) {
       setError('Email ou mot de passe incorrect.')
     } else {
-      // router.refresh() forces Next.js to re-fetch all server components (including the
-      // layout's auth() call) so it sees the newly set session cookie before navigating.
-      router.refresh()
-      router.push(redirectPath)
+      window.location.assign(redirectPath)
     }
   }
 
