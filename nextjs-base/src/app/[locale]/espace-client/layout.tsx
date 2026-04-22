@@ -43,12 +43,15 @@ export default async function EspaceClientLayout({ children, params }: Props) {
 
   // Logged-in user on an auth page → send to dashboard
   if (session && isAuthPage) {
-    console.info('[espace-client] redirect authenticated user away from auth page', {
-      pathname,
-      email: session.user.email,
-      hasAuthCookie,
-      hasStrapiCookie,
-    })
+    console.info(
+      '[espace-client] redirect authenticated user away from auth page',
+      {
+        pathname,
+        email: session.user.email,
+        hasAuthCookie,
+        hasStrapiCookie,
+      }
+    )
     redirect(`/${locale}/espace-client/tableau-de-bord`)
   }
 

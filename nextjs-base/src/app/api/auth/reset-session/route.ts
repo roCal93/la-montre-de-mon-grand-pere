@@ -35,6 +35,10 @@ function buildExpireOptions(name: string) {
   }
 }
 
+function supportsDomainAttribute(name: string) {
+  return !name.startsWith('__Host-')
+}
+
 function getCookieDomains(hostname: string) {
   if (!hostname || hostname === 'localhost' || !hostname.includes('.')) {
     return [] as string[]
@@ -68,6 +72,10 @@ export async function POST(request: NextRequest) {
 
   for (const name of cookieNamesToExpire) {
     response.cookies.set(buildExpireOptions(name))
+
+    if (!supportsDomainAttribute(name)) {
+      continue
+    }
 
     for (const domain of cookieDomains) {
       response.cookies.set({
