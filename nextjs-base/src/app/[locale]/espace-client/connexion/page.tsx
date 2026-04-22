@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
@@ -41,6 +41,15 @@ export default function ConnexionPage({
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) })
+
+  useEffect(() => {
+    void fetch('/api/auth/reset-session', {
+      method: 'POST',
+      credentials: 'same-origin',
+    }).catch(() => {
+      // Ignore cleanup failures; login can still proceed.
+    })
+  }, [])
 
   const onSubmit = async (data: FormData) => {
     setError(null)
