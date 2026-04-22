@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 const AUTH_COOKIE_NAMES = [
   'authjs.session-token',
@@ -15,7 +15,11 @@ const AUTH_COOKIE_NAMES = [
   '__Host-next-auth.csrf-token',
 ]
 
-const CHUNK_SUFFIXES = Array.from({ length: 10 }, (_, index) => `.${index}`)
+function isAuthCookieName(name: string) {
+  if (AUTH_COOKIE_NAMES.includes(name)) return true
+
+  return AUTH_COOKIE_NAMES.some((baseName) => name.startsWith(`${baseName}.`))
+}
 
 function buildExpireOptions(name: string) {
   return {
@@ -27,16 +31,15 @@ function buildExpireOptions(name: string) {
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true })
+  const authCookies = request.cookies
+    .getAll()
+    .map((cookie) => cookie.name)
+    .filter(isAuthCookieName)
 
-  for (const name of AUTH_COOKIE_NAMES) {
-    for (const cookieName of [
-      name,
-      ...CHUNK_SUFFIXES.map((suffix) => `${name}${suffix}`),
-    ]) {
-      response.cookies.set(buildExpireOptions(cookieName))
-    }
+  for (const name of authCookies) {
+    response.cookies.set(buildExpireOptions(name))
   }
 
   return response
