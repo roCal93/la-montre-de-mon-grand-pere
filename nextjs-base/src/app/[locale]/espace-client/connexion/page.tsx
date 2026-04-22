@@ -2,7 +2,6 @@
 
 import { use, useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -16,13 +15,53 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
+async function resetSessionCookies() {
+  await fetch('/api/auth/reset-session', {
+    method: 'POST',
+    credentials: 'same-origin',
+  })
+}
+
+async function createStrapiSession(email: string, password: string) {
+  const response = await fetch('/api/auth/strapi-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ email, password }),
+  })
+
+  return response.ok
+}
+
+async function waitForAuthSession() {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const response = await fetch('/api/auth/session', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+    }).catch(() => null)
+
+    if (response?.ok) {
+      const session = (await response.json().catch(() => null)) as {
+        user?: { email?: string }
+      } | null
+
+      if (session?.user?.email) {
+        return true
+      }
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 150))
+  }
+
+  return false
+}
+
 export default function ConnexionPage({
   params,
 }: {
   params: Promise<{ locale: string }>
 }) {
   const { locale } = use(params)
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
@@ -45,6 +84,21 @@ export default function ConnexionPage({
   const onSubmit = async (data: FormData) => {
     setError(null)
 
+    try {
+      await resetSessionCookies()
+    } catch {
+      // Keep going; sign-in will still provide the underlying auth error.
+    }
+
+    const hasStrapiSession = await createStrapiSession(
+      data.email,
+      data.password
+    )
+    if (!hasStrapiSession) {
+      setError('Email ou mot de passe incorrect.')
+      return
+    }
+
     const result = await signIn('credentials', {
       email: data.email,
       password: data.password,
@@ -54,10 +108,8 @@ export default function ConnexionPage({
     if (result?.error) {
       setError('Email ou mot de passe incorrect.')
     } else {
-      // router.refresh() forces Next.js to re-fetch all server components so the
-      // layout's auth() call sees the freshly written session before navigation.
-      router.refresh()
-      router.push(redirectPath)
+      await waitForAuthSession()
+      window.location.assign(redirectPath)
     }
   }
 
