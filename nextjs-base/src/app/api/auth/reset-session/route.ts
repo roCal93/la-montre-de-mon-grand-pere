@@ -17,6 +17,16 @@ const AUTH_COOKIE_NAMES = [
 
 const CHUNK_SUFFIXES = Array.from({ length: 10 }, (_, index) => `.${index}`)
 
+function buildExpireOptions(name: string) {
+  return {
+    name,
+    value: '',
+    path: '/',
+    maxAge: 0,
+    secure: name.startsWith('__Secure-') || name.startsWith('__Host-'),
+  }
+}
+
 export async function POST() {
   const response = NextResponse.json({ ok: true })
 
@@ -25,12 +35,7 @@ export async function POST() {
       name,
       ...CHUNK_SUFFIXES.map((suffix) => `${name}${suffix}`),
     ]) {
-      response.cookies.set({
-        name: cookieName,
-        value: '',
-        path: '/',
-        maxAge: 0,
-      })
+      response.cookies.set(buildExpireOptions(cookieName))
     }
   }
 
