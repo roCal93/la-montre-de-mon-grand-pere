@@ -12,12 +12,5 @@ export function getStrapiSessionCookieOptions() {
 }
 
 export async function getStrapiSessionJwt(): Promise<string | null> {
-  const cookieJwt = (await cookies()).get(STRAPI_SESSION_COOKIE)?.value ?? null
-  if (cookieJwt) {
-    return cookieJwt
-  }
-
-  const { auth } = await import('@/auth')
-  const session = await auth()
-  return session?.user?.strapiJwt ?? null
+  return (await cookies()).get(STRAPI_SESSION_COOKIE)?.value ?? null
 }
