@@ -1,10 +1,10 @@
 /**
  * Strapi client authenticated with the current user's JWT (server-side only).
- * The Strapi JWT is stored inside the Auth.js session cookie (httpOnly).
+ * The Strapi JWT is stored in a dedicated httpOnly cookie.
  * It is NEVER exposed to the browser.
  */
 
-import { auth } from '@/auth'
+import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 
@@ -15,8 +15,7 @@ type FetchOptions = {
 }
 
 async function getStrapiJwt(): Promise<string | null> {
-  const session = await auth()
-  return session?.user?.strapiJwt ?? null
+  return getStrapiSessionJwt()
 }
 
 export async function strapiAuthFetch<T = unknown>(
@@ -59,8 +58,13 @@ export async function strapiAuthFetch<T = unknown>(
 }
 
 /** Convenience: GET */
-export async function strapiAuthGet<T = unknown>(path: string, revalidate?: number) {
-  return strapiAuthFetch<T>(path, { next: revalidate !== undefined ? { revalidate } : undefined })
+export async function strapiAuthGet<T = unknown>(
+  path: string,
+  revalidate?: number
+) {
+  return strapiAuthFetch<T>(path, {
+    next: revalidate !== undefined ? { revalidate } : undefined,
+  })
 }
 
 /** Convenience: POST */
@@ -69,7 +73,10 @@ export async function strapiAuthPost<T = unknown>(path: string, data: unknown) {
 }
 
 /** Convenience: PATCH */
-export async function strapiAuthPatch<T = unknown>(path: string, data: unknown) {
+export async function strapiAuthPatch<T = unknown>(
+  path: string,
+  data: unknown
+) {
   return strapiAuthFetch<T>(path, { method: 'PUT', body: { data } })
 }
 

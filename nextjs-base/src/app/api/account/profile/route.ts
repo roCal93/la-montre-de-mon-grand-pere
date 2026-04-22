@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { z } from 'zod'
+import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 const schema = z.object({
   username: z.string().min(2),
@@ -9,7 +10,8 @@ const schema = z.object({
 
 export async function PUT(req: NextRequest) {
   const session = await auth()
-  if (!session?.user?.strapiJwt) {
+  const strapiJwt = await getStrapiSessionJwt()
+  if (!session || !strapiJwt) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
@@ -24,7 +26,7 @@ export async function PUT(req: NextRequest) {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.user.strapiJwt}`,
+      Authorization: `Bearer ${strapiJwt}`,
     },
     body: JSON.stringify(parsed.data),
   })
@@ -32,7 +34,9 @@ export async function PUT(req: NextRequest) {
   const json = await res.json()
 
   if (!res.ok) {
-    const msg = (json as { error?: { message?: string } })?.error?.message ?? 'Erreur Strapi'
+    const msg =
+      (json as { error?: { message?: string } })?.error?.message ??
+      'Erreur Strapi'
     return NextResponse.json({ error: msg }, { status: res.status })
   }
 

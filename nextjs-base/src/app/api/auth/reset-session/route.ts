@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { STRAPI_SESSION_COOKIE } from '@/lib/strapi-session-cookie'
 
 const AUTH_COOKIE_NAMES = [
   'authjs.session-token',
@@ -13,6 +14,7 @@ const AUTH_COOKIE_NAMES = [
   '__Secure-next-auth.callback-url',
   'next-auth.csrf-token',
   '__Host-next-auth.csrf-token',
+  STRAPI_SESSION_COOKIE,
 ]
 
 function isAuthCookieName(name: string) {

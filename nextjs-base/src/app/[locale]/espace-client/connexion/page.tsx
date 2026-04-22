@@ -23,6 +23,17 @@ async function resetSessionCookies() {
   })
 }
 
+async function createStrapiSession(email: string, password: string) {
+  const response = await fetch('/api/auth/strapi-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ email, password }),
+  })
+
+  return response.ok
+}
+
 export default function ConnexionPage({
   params,
 }: {
@@ -62,6 +73,15 @@ export default function ConnexionPage({
       await resetSessionCookies()
     } catch {
       // Keep going; sign-in will still provide the underlying auth error.
+    }
+
+    const hasStrapiSession = await createStrapiSession(
+      data.email,
+      data.password
+    )
+    if (!hasStrapiSession) {
+      setError('Email ou mot de passe incorrect.')
+      return
     }
 
     const result = await signIn('credentials', {

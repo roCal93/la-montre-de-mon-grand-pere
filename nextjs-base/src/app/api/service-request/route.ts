@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { z } from 'zod'
+import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 const serviceRequestSchema = z.object({
   type: z.enum(['retour_garantie', 'reparation', 'nettoyage', 'autre']),
@@ -10,7 +11,8 @@ const serviceRequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   const session = await auth()
-  if (!session) {
+  const strapiJwt = await getStrapiSessionJwt()
+  if (!session || !strapiJwt) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
   // Verify the watch-file belongs to the authenticated user (IDOR prevention)
   const wfRes = await fetch(
     `${strapiUrl}/api/watch-files/${parsed.data.watch_file_document_id}?populate[customer]=true`,
-    { headers: { Authorization: `Bearer ${session.user.strapiJwt}` } }
+    { headers: { Authorization: `Bearer ${strapiJwt}` } }
   )
   if (!wfRes.ok) {
     return NextResponse.json(
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.user.strapiJwt}`,
+      Authorization: `Bearer ${strapiJwt}`,
     },
     body: JSON.stringify({
       data: {

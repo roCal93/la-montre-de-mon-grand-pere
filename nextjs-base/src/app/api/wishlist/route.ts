@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 
 async function getStrapiJwt(): Promise<string | null> {
   const session = await auth()
-  return session?.user?.strapiJwt ?? null
+  if (!session) return null
+  return getStrapiSessionJwt()
 }
 
 /** GET /api/wishlist — list all wishlist items for the current user */
 export async function GET() {
   const jwt = await getStrapiJwt()
-  if (!jwt) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  if (!jwt)
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
   const res = await fetch(
     `${STRAPI_URL}/api/wishlist-items?populate[product][populate]=images`,
@@ -25,9 +28,12 @@ export async function GET() {
 /** POST /api/wishlist — add a product to wishlist */
 export async function POST(req: NextRequest) {
   const jwt = await getStrapiJwt()
-  if (!jwt) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  if (!jwt)
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
-  const body = await req.json().catch(() => null) as { product?: string } | null
+  const body = (await req.json().catch(() => null)) as {
+    product?: string
+  } | null
   if (!body?.product) {
     return NextResponse.json({ error: 'product requis' }, { status: 400 })
   }
