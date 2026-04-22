@@ -67,22 +67,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           STRAPI_SESSION_COOKIE
         )
         if (existingStrapiJwt) {
+          console.info('[auth] authorize using existing Strapi cookie', {
+            email: normalizedEmail,
+          })
           const strapiUser = await getStrapiUserFromJwt(existingStrapiJwt)
 
           if (strapiUser) {
+            console.info('[auth] authorize resolved user from Strapi cookie', {
+              email: strapiUser.email,
+              userId: strapiUser.id,
+            })
             return {
               id: String(strapiUser.id),
               email: strapiUser.email,
               name: strapiUser.username,
             }
           }
+
+          console.warn('[auth] existing Strapi cookie rejected by /users/me', {
+            email: normalizedEmail,
+          })
         }
 
         const result = await authenticateStrapiUser(normalizedEmail, password)
 
         if (!result) {
+          console.warn('[auth] authorize credentials rejected by Strapi', {
+            email: normalizedEmail,
+          })
           throw new CredentialsSignin('Email ou mot de passe incorrect')
         }
+
+        console.info('[auth] authorize credentials accepted by Strapi', {
+          email: result.user.email,
+          userId: result.user.id,
+        })
 
         return {
           id: String(result.user.id),
