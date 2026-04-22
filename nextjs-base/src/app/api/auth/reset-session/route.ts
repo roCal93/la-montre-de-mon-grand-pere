@@ -21,7 +21,10 @@ export async function POST() {
   const response = NextResponse.json({ ok: true })
 
   for (const name of AUTH_COOKIE_NAMES) {
-    for (const cookieName of [name, ...CHUNK_SUFFIXES.map((suffix) => `${name}${suffix}`)]) {
+    for (const cookieName of [
+      name,
+      ...CHUNK_SUFFIXES.map((suffix) => `${name}${suffix}`),
+    ]) {
       response.cookies.set({
         name: cookieName,
         value: '',
