@@ -16,6 +16,13 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
+async function resetSessionCookies() {
+  await fetch('/api/auth/reset-session', {
+    method: 'POST',
+    credentials: 'same-origin',
+  })
+}
+
 export default function ConnexionPage({
   params,
 }: {
@@ -43,16 +50,19 @@ export default function ConnexionPage({
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   useEffect(() => {
-    void fetch('/api/auth/reset-session', {
-      method: 'POST',
-      credentials: 'same-origin',
-    }).catch(() => {
+    void resetSessionCookies().catch(() => {
       // Ignore cleanup failures; login can still proceed.
     })
   }, [])
 
   const onSubmit = async (data: FormData) => {
     setError(null)
+
+    try {
+      await resetSessionCookies()
+    } catch {
+      // Keep going; sign-in will still provide the underlying auth error.
+    }
 
     const result = await signIn('credentials', {
       email: data.email,

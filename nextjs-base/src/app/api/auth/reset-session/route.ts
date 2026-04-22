@@ -15,16 +15,20 @@ const AUTH_COOKIE_NAMES = [
   '__Host-next-auth.csrf-token',
 ]
 
+const CHUNK_SUFFIXES = Array.from({ length: 10 }, (_, index) => `.${index}`)
+
 export async function POST() {
   const response = NextResponse.json({ ok: true })
 
   for (const name of AUTH_COOKIE_NAMES) {
-    response.cookies.set({
-      name,
-      value: '',
-      path: '/',
-      maxAge: 0,
-    })
+    for (const cookieName of [name, ...CHUNK_SUFFIXES.map((suffix) => `${name}${suffix}`)]) {
+      response.cookies.set({
+        name: cookieName,
+        value: '',
+        path: '/',
+        maxAge: 0,
+      })
+    }
   }
 
   return response
