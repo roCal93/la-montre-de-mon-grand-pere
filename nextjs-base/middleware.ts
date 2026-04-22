@@ -94,8 +94,15 @@ export default async function middleware(req: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } })
 
   // Preserve cookies and other headers set by intl middleware (e.g. NEXT_LOCALE).
+  // Copy cookies through the cookies API so multiple Set-Cookie headers do not get
+  // folded into a single invalid header value.
+  for (const cookie of intlResponse.cookies.getAll()) {
+    response.cookies.set(cookie)
+  }
+
   intlResponse.headers.forEach((value, key) => {
-    if (key.toLowerCase() !== 'content-security-policy') {
+    const lowerKey = key.toLowerCase()
+    if (lowerKey !== 'content-security-policy' && lowerKey !== 'set-cookie') {
       response.headers.append(key, value)
     }
   })
