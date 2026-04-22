@@ -1,50 +1,27 @@
-import NextAuth, { CredentialsSignin, type DefaultSession } from 'next-auth'
+import NextAuth, { CredentialsSignin } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import type { Session, User } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
 import { checkRateLimit } from '@/lib/rate-limit'
-import {
-  authenticateStrapiUser,
-  getStrapiUserFromJwt,
-} from '@/lib/strapi-login'
-import { STRAPI_SESSION_COOKIE } from '@/lib/strapi-session-cookie'
 
-function getAuthCookieDomain() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-  if (!siteUrl) return undefined
-
-  const hostname = new URL(siteUrl).hostname
-  if (hostname === 'localhost' || !hostname.includes('.')) {
-    return undefined
-  }
-
-  return hostname.startsWith('www.') ? `.${hostname.slice(4)}` : `.${hostname}`
+type StrapiJWT = JWT & {
+  strapiJwt?: string
+  strapiDocumentId?: string
 }
-
-function getCookieValue(cookieHeader: string | null, name: string) {
-  if (!cookieHeader) return null
-
-  const prefix = `${name}=`
-  for (const part of cookieHeader.split(';')) {
-    const trimmed = part.trim()
-    if (trimmed.startsWith(prefix)) {
-      return decodeURIComponent(trimmed.slice(prefix.length))
-    }
-  }
-
-  return null
-}
-
-const authCookieDomain = getAuthCookieDomain()
-const useSecureCookies = process.env.NODE_ENV === 'production'
-const sessionCookieName = useSecureCookies
-  ? '__Secure-authjs.session-token'
-  : 'authjs.session-token'
 
 declare module 'next-auth' {
   interface Session {
-    user: NonNullable<DefaultSession['user']> & {
+    user: {
+      id: string
       email: string
       name: string
+      strapiJwt: string
+      strapiDocumentId: string
     }
+  }
+  interface User {
+    strapiJwt: string
+    strapiDocumentId: string
   }
 }
 
@@ -80,36 +57,54 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new CredentialsSignin('Trop de tentatives, reessayez plus tard')
         }
 
-        const existingStrapiJwt = getCookieValue(
-          request?.headers?.get('cookie') ?? null,
-          STRAPI_SESSION_COOKIE
-        )
-        if (existingStrapiJwt) {
-          const strapiUser = await getStrapiUserFromJwt(existingStrapiJwt)
+        const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+        if (!strapiUrl) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
 
-          if (strapiUser) {
-            return {
-              id: String(strapiUser.id),
-              email: strapiUser.email,
-              name: strapiUser.username,
-            }
-          }
-        }
+        const res = await fetch(`${strapiUrl}/api/auth/local`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: normalizedEmail, password }),
+        })
 
-        const result = await authenticateStrapiUser(normalizedEmail, password)
-
-        if (!result) {
+        if (!res.ok) {
           throw new CredentialsSignin('Email ou mot de passe incorrect')
         }
 
+        const data = (await res.json()) as {
+          jwt: string
+          user: {
+            id: number
+            documentId?: string
+            email: string
+            username: string
+          }
+        }
+
         return {
-          id: String(result.user.id),
-          email: result.user.email,
-          name: result.user.username,
+          id: String(data.user.id),
+          email: data.user.email,
+          name: data.user.username,
+          strapiJwt: data.jwt,
+          strapiDocumentId: data.user.documentId ?? '',
         }
       },
     }),
   ],
+
+  callbacks: {
+    async jwt({ token, user }: { token: StrapiJWT; user?: User }) {
+      if (user) {
+        token.strapiJwt = user.strapiJwt
+        token.strapiDocumentId = user.strapiDocumentId
+      }
+      return token
+    },
+    async session({ session, token }: { session: Session; token: StrapiJWT }) {
+      session.user.strapiJwt = token.strapiJwt ?? ''
+      session.user.strapiDocumentId = token.strapiDocumentId ?? ''
+      return session
+    },
+  },
 
   pages: {
     signIn: '/fr/espace-client/connexion',
@@ -118,17 +113,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   session: { strategy: 'jwt' },
   trustHost: true,
-  cookies: {
-    sessionToken: {
-      name: sessionCookieName,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: useSecureCookies,
-        ...(authCookieDomain ? { domain: authCookieDomain } : {}),
-      },
-    },
-  },
   secret: process.env.AUTH_SECRET,
 })
