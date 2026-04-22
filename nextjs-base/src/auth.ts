@@ -7,6 +7,18 @@ import {
 } from '@/lib/strapi-login'
 import { STRAPI_SESSION_COOKIE } from '@/lib/strapi-session-cookie'
 
+function getAuthCookieDomain() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  if (!siteUrl) return undefined
+
+  const hostname = new URL(siteUrl).hostname
+  if (hostname === 'localhost' || !hostname.includes('.')) {
+    return undefined
+  }
+
+  return hostname.startsWith('www.') ? `.${hostname.slice(4)}` : `.${hostname}`
+}
+
 function getCookieValue(cookieHeader: string | null, name: string) {
   if (!cookieHeader) return null
 
@@ -20,6 +32,12 @@ function getCookieValue(cookieHeader: string | null, name: string) {
 
   return null
 }
+
+const authCookieDomain = getAuthCookieDomain()
+const useSecureCookies = process.env.NODE_ENV === 'production'
+const sessionCookieName = useSecureCookies
+  ? '__Secure-authjs.session-token'
+  : 'authjs.session-token'
 
 declare module 'next-auth' {
   interface Session {
@@ -100,5 +118,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   session: { strategy: 'jwt' },
   trustHost: true,
+  cookies: {
+    sessionToken: {
+      name: sessionCookieName,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: useSecureCookies,
+        ...(authCookieDomain ? { domain: authCookieDomain } : {}),
+      },
+    },
+  },
   secret: process.env.AUTH_SECRET,
 })

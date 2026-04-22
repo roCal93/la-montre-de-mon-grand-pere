@@ -33,15 +33,36 @@ function buildExpireOptions(name: string) {
   }
 }
 
+function getCookieDomains(hostname: string) {
+  if (!hostname || hostname === 'localhost' || !hostname.includes('.')) {
+    return [] as string[]
+  }
+
+  const domains = new Set<string>([hostname])
+  if (hostname.startsWith('www.')) {
+    domains.add(hostname.slice(4))
+  }
+
+  return [...domains]
+}
+
 export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true })
   const authCookies = request.cookies
     .getAll()
     .map((cookie) => cookie.name)
     .filter(isAuthCookieName)
+  const cookieDomains = getCookieDomains(request.nextUrl.hostname)
 
   for (const name of authCookies) {
     response.cookies.set(buildExpireOptions(name))
+
+    for (const domain of cookieDomains) {
+      response.cookies.set({
+        ...buildExpireOptions(name),
+        domain,
+      })
+    }
   }
 
   return response
