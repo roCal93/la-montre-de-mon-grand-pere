@@ -1,4 +1,9 @@
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
+function getStrapiUrl() {
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  if (!strapiUrl) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
+
+  return strapiUrl
+}
 
 export type StrapiUser = {
   id: number
@@ -12,9 +17,9 @@ type StrapiAuthResult = {
 }
 
 export async function getStrapiUserFromJwt(jwt: string) {
-  if (!STRAPI_URL) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
+  const strapiUrl = getStrapiUrl()
 
-  const res = await fetch(`${STRAPI_URL}/api/users/me`, {
+  const res = await fetch(`${strapiUrl}/api/users/me`, {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
@@ -27,9 +32,9 @@ export async function getStrapiUserFromJwt(jwt: string) {
 }
 
 export async function authenticateStrapiUser(email: string, password: string) {
-  if (!STRAPI_URL) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
+  const strapiUrl = getStrapiUrl()
 
-  const res = await fetch(`${STRAPI_URL}/api/auth/local`, {
+  const res = await fetch(`${strapiUrl}/api/auth/local`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ identifier: email, password }),

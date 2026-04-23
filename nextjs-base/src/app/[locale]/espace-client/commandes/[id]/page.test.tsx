@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { authMock, notFoundMock, redirectMock } = vi.hoisted(() => ({
-  authMock: vi.fn(),
+const { getCurrentStrapiUserMock, notFoundMock, redirectMock } = vi.hoisted(() => ({
+  getCurrentStrapiUserMock: vi.fn(),
   notFoundMock: vi.fn(() => {
     throw new Error('NOT_FOUND')
   }),
@@ -10,8 +10,8 @@ const { authMock, notFoundMock, redirectMock } = vi.hoisted(() => ({
   }),
 }))
 
-vi.mock('@/auth', () => ({
-  auth: authMock,
+vi.mock('@/lib/strapi-session-cookie', () => ({
+  getCurrentStrapiUser: getCurrentStrapiUserMock,
 }))
 
 vi.mock('@/lib/currency', () => ({
@@ -33,14 +33,14 @@ describe('CommandeDetailPage security', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_STRAPI_URL = 'http://strapi.test'
     process.env.STRAPI_API_TOKEN = 'token'
-    authMock.mockReset()
+    getCurrentStrapiUserMock.mockReset()
     notFoundMock.mockClear()
     redirectMock.mockClear()
     vi.restoreAllMocks()
   })
 
   it('redirects to login when user is not authenticated', async () => {
-    authMock.mockResolvedValue(null)
+    getCurrentStrapiUserMock.mockResolvedValue(null)
 
     await expect(
       CommandeDetailPage({
@@ -50,7 +50,11 @@ describe('CommandeDetailPage security', () => {
   })
 
   it('calls notFound when order is not owned by authenticated user', async () => {
-    authMock.mockResolvedValue({ user: { email: 'owner@example.com' } })
+    getCurrentStrapiUserMock.mockResolvedValue({
+      id: 1,
+      email: 'owner@example.com',
+      username: 'owner',
+    })
     vi.spyOn(global, 'fetch').mockResolvedValue(
       new Response(JSON.stringify({ data: [] }), { status: 200 })
     )
