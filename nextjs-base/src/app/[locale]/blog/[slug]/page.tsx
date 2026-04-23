@@ -10,7 +10,7 @@ import type { Metadata } from 'next'
 
 export const dynamicParams = true
 
-const normalizeContainerWidth = (
+export const normalizeContainerWidth = (
   width: unknown
 ): 'small' | 'medium' | 'large' | 'full' => {
   if (
@@ -25,7 +25,7 @@ const normalizeContainerWidth = (
   return 'medium'
 }
 
-const extractDescription = (
+export const extractDescription = (
   seoDescription: unknown,
   fallback?: string
 ): string | undefined => {
@@ -49,18 +49,23 @@ const extractDescription = (
   return fallback
 }
 
-const formatPublicationDate = (date: string | undefined, locale: string) => {
+export const formatPublicationDate = (
+  date: string | undefined,
+  locale: string
+) => {
   if (!date) return null
 
   try {
-    return new Date(date).toLocaleDateString(
-      locale === 'fr' ? 'fr-FR' : 'en-US',
-      {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }
-    )
+    const parsedDate = new Date(date)
+    if (Number.isNaN(parsedDate.getTime())) {
+      return null
+    }
+
+    return parsedDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
   } catch {
     return null
   }

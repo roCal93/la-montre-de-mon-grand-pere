@@ -44,6 +44,16 @@ interface StrapiProduct {
   conditionRatings: ConditionRating[] | null
 }
 
+type BoutiqueFilters = {
+  categorie?: string
+  q?: string
+  prixMin?: string
+  prixMax?: string
+  tri?: string
+  etat?: string
+  page?: string
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -128,7 +138,7 @@ function getConditionBucket(
   return 'a-restaurer'
 }
 
-const normalizeContainerWidth = (
+export const normalizeContainerWidth = (
   width: unknown
 ): 'small' | 'medium' | 'large' | 'full' => {
   if (
@@ -141,6 +151,88 @@ const normalizeContainerWidth = (
   }
 
   return 'medium'
+}
+
+export function buildBoutiqueListing(
+  products: StrapiProduct[],
+  filters: BoutiqueFilters,
+  pageSize: number = PAGE_SIZE
+) {
+  const query = filters.q?.trim().toLowerCase() ?? ''
+  const currentPage = Math.max(1, parseInt(filters.page ?? '1', 10) || 1)
+
+  const categories = Array.from(
+    new Map(
+      products
+        .map((product) => product.category)
+        .filter((category): category is StrapiCategory => category !== null)
+        .map((category) => [category.id, category])
+    ).values()
+  )
+
+  const categoryFiltered = filters.categorie
+    ? products.filter((product) => product.category?.slug === filters.categorie)
+    : products
+
+  const queryFiltered = query
+    ? categoryFiltered.filter((product) => {
+        const name = product.name?.toLowerCase() ?? ''
+        const shortDescription = product.shortDescription?.toLowerCase() ?? ''
+        const categoryName = product.category?.name?.toLowerCase() ?? ''
+        const badgesText = (product.badges ?? []).join(' ').toLowerCase()
+        return (
+          name.includes(query) ||
+          shortDescription.includes(query) ||
+          categoryName.includes(query) ||
+          badgesText.includes(query)
+        )
+      })
+    : categoryFiltered
+
+  const prixMinNum = filters.prixMin ? parseFloat(filters.prixMin) : undefined
+  const prixMaxNum = filters.prixMax ? parseFloat(filters.prixMax) : undefined
+
+  const priceFiltered = queryFiltered.filter((product) => {
+    if (prixMinNum !== undefined && product.price < prixMinNum) return false
+    if (prixMaxNum !== undefined && product.price > prixMaxNum) return false
+    return true
+  })
+
+  const conditionFiltered =
+    filters.etat && filters.etat !== 'tous'
+      ? priceFiltered.filter(
+          (product) =>
+            getConditionBucket(product.conditionRatings) === filters.etat
+        )
+      : priceFiltered
+
+  const sorted = [...conditionFiltered].sort((a, b) => {
+    if (filters.tri === 'prix-asc') return a.price - b.price
+    if (filters.tri === 'prix-desc') return b.price - a.price
+    return 0
+  })
+
+  const prices = products
+    .map((p) => p.price)
+    .filter((p): p is number => typeof p === 'number' && !isNaN(p))
+  const catalogueMin = prices.length > 0 ? Math.floor(Math.min(...prices)) : 0
+  const catalogueMax =
+    prices.length > 0 ? Math.ceil(Math.max(...prices)) : 10000
+
+  const totalProducts = sorted.length
+  const pageCount = Math.max(1, Math.ceil(totalProducts / pageSize))
+  const safePage = Math.min(currentPage, pageCount)
+  const paginated = sorted.slice((safePage - 1) * pageSize, safePage * pageSize)
+
+  return {
+    categories,
+    catalogueMin,
+    catalogueMax,
+    totalProducts,
+    pageCount,
+    safePage,
+    paginated,
+  }
 }
 
 const fetchShopLandingPage = async ({
@@ -175,8 +267,6 @@ const fetchShopLandingPage = async ({
 export default async function BoutiquePage({ params, searchParams }: Props) {
   const { locale } = await params
   const { categorie, q, prixMin, prixMax, tri, etat, page } = await searchParams
-  const query = q?.trim().toLowerCase() ?? ''
-  const currentPage = Math.max(1, parseInt(page ?? '1', 10) || 1)
 
   const shopPage = await fetchShopLandingPage({
     locale,
@@ -187,71 +277,23 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
   )
 
   const products = await getProducts(locale)
-
-  const categories = Array.from(
-    new Map(
-      products
-        .map((product) => product.category)
-        .filter((category): category is StrapiCategory => category !== null)
-        .map((category) => [category.id, category])
-    ).values()
-  )
-
-  const categoryFiltered = categorie
-    ? products.filter((product) => product.category?.slug === categorie)
-    : products
-
-  const filtered = query
-    ? categoryFiltered.filter((product) => {
-        const name = product.name?.toLowerCase() ?? ''
-        const shortDescription = product.shortDescription?.toLowerCase() ?? ''
-        const categoryName = product.category?.name?.toLowerCase() ?? ''
-        const badgesText = (product.badges ?? []).join(' ').toLowerCase()
-        return (
-          name.includes(query) ||
-          shortDescription.includes(query) ||
-          categoryName.includes(query) ||
-          badgesText.includes(query)
-        )
-      })
-    : categoryFiltered
-
-  const prixMinNum = prixMin ? parseFloat(prixMin) : undefined
-  const prixMaxNum = prixMax ? parseFloat(prixMax) : undefined
-
-  const priceFiltered = filtered.filter((product) => {
-    if (prixMinNum !== undefined && product.price < prixMinNum) return false
-    if (prixMaxNum !== undefined && product.price > prixMaxNum) return false
-    return true
+  const {
+    categories,
+    catalogueMin,
+    catalogueMax,
+    totalProducts,
+    pageCount,
+    safePage,
+    paginated,
+  } = buildBoutiqueListing(products, {
+    categorie,
+    q,
+    prixMin,
+    prixMax,
+    tri,
+    etat,
+    page,
   })
-
-  const conditionFiltered =
-    etat && etat !== 'tous'
-      ? priceFiltered.filter(
-          (product) => getConditionBucket(product.conditionRatings) === etat
-        )
-      : priceFiltered
-
-  const sorted = [...conditionFiltered].sort((a, b) => {
-    if (tri === 'prix-asc') return a.price - b.price
-    if (tri === 'prix-desc') return b.price - a.price
-    return 0
-  })
-
-  const prices = products
-    .map((p) => p.price)
-    .filter((p): p is number => typeof p === 'number' && !isNaN(p))
-  const catalogueMin = prices.length > 0 ? Math.floor(Math.min(...prices)) : 0
-  const catalogueMax =
-    prices.length > 0 ? Math.ceil(Math.max(...prices)) : 10000
-
-  const totalProducts = sorted.length
-  const pageCount = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE))
-  const safePage = Math.min(currentPage, pageCount)
-  const paginated = sorted.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE
-  )
 
   const baseFilterQs = [
     q ? `q=${encodeURIComponent(q)}` : '',
@@ -349,7 +391,7 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
           categories={categories}
         />
 
-        {sorted.length === 0 ? (
+        {totalProducts === 0 ? (
           <p className="text-neutral-500">
             {locale === 'fr'
               ? 'Aucune montre ne correspond à vos critères.'

@@ -1,11 +1,26 @@
 import Link from 'next/link'
 
+export function getCheckoutCancelContent(locale: string) {
+  return {
+    title: locale === 'fr' ? 'Paiement annulé' : 'Payment cancelled',
+    description:
+      locale === 'fr'
+        ? 'Votre panier a été conservé. Vous pouvez reprendre votre commande à tout moment.'
+        : 'Your cart has been saved. You can resume your order at any time.',
+    cartLabel: locale === 'fr' ? 'Retour au panier' : 'Back to cart',
+    cartHref: `/${locale}/panier`,
+    shopLabel: locale === 'fr' ? 'Continuer mes achats' : 'Continue shopping',
+    shopHref: `/${locale}/boutique`,
+  }
+}
+
 interface Props {
   params: Promise<{ locale: string }>
 }
 
 export default async function CheckoutCancelPage({ params }: Props) {
   const { locale } = await params
+  const content = getCheckoutCancelContent(locale)
 
   return (
     <main className="mx-auto max-w-xl px-4 py-20 text-center sm:px-6">
@@ -28,27 +43,21 @@ export default async function CheckoutCancelPage({ params }: Props) {
         </div>
       </div>
 
-      <h1 className="text-2xl font-bold">
-        {locale === 'fr' ? 'Paiement annulé' : 'Payment cancelled'}
-      </h1>
-      <p className="mt-3 text-neutral-600">
-        {locale === 'fr'
-          ? 'Votre panier a été conservé. Vous pouvez reprendre votre commande à tout moment.'
-          : 'Your cart has been saved. You can resume your order at any time.'}
-      </p>
+      <h1 className="text-2xl font-bold">{content.title}</h1>
+      <p className="mt-3 text-neutral-600">{content.description}</p>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
         <Link
-          href={`/${locale}/panier`}
+          href={content.cartHref}
           className="rounded-md bg-black px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors"
         >
-          {locale === 'fr' ? 'Retour au panier' : 'Back to cart'}
+          {content.cartLabel}
         </Link>
         <Link
-          href={`/${locale}/boutique`}
+          href={content.shopHref}
           className="rounded-md border px-6 py-3 text-sm font-medium hover:bg-neutral-50 transition-colors dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
         >
-          {locale === 'fr' ? 'Continuer mes achats' : 'Continue shopping'}
+          {content.shopLabel}
         </Link>
       </div>
     </main>

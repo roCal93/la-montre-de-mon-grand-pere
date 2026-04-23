@@ -35,6 +35,11 @@ async function fetchProducts(
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const token = process.env.STRAPI_API_TOKEN
 
+  if (!strapiUrl) {
+    console.error('[fetchProducts] NEXT_PUBLIC_STRAPI_URL is not configured')
+    return []
+  }
+
   const url = new URL(`${strapiUrl}/api/products`)
   url.searchParams.set('locale', locale)
   if (categorySlug) {
@@ -52,14 +57,24 @@ async function fetchProducts(
   url.searchParams.set('sort', 'createdAt:desc')
   url.searchParams.set('pagination[pageSize]', String(maxItems))
 
-  const res = await fetch(url.toString(), {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    next: { tags: ['products'] },
-  })
+  try {
+    const res = await fetch(url.toString(), {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      next: { tags: ['products'] },
+      signal: AbortSignal.timeout(8000),
+    })
 
-  if (!res.ok) return []
-  const json = (await res.json()) as { data: StrapiProduct[] }
-  return json.data ?? []
+    if (!res.ok) {
+      console.error(`[fetchProducts] Strapi ${res.status} on ${url.pathname}`)
+      return []
+    }
+
+    const json = (await res.json()) as { data: StrapiProduct[] }
+    return json.data ?? []
+  } catch (error) {
+    console.error('[fetchProducts] fetch failed:', error)
+    return []
+  }
 }
 
 interface Props {
@@ -120,7 +135,7 @@ export default async function ProductListBlock({
         </p>
       ) : (
         <ul
-          className={`grid gap-10 ${products.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' : products.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-xl mx-auto' : products.length === 3 ? 'grid-cols-1 sm:grid-cols-3 max-w-4xl mx-auto' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'}`}
+          className={`grid gap-10 ${products.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' : products.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-xl mx-auto' : products.length === 3 ? 'grid-cols-1 sm:grid-cols-3 max-w-4xl mx-auto' : 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-3'}`}
         >
           {products.map((product) => {
             const img = product.images?.[0]

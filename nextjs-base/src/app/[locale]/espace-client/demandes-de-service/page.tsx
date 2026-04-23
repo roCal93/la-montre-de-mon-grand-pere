@@ -1,3 +1,5 @@
+import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
+import { redirect } from 'next/navigation'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import Link from 'next/link'
 
@@ -49,6 +51,9 @@ export default async function DemandesDeServicePage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  const strapiUser = await getCurrentStrapiUser()
+
+  if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
 
   const { data } = await strapiAuthGet<StrapiList<ServiceRequest>>(
     '/service-requests?sort=createdAt:desc',

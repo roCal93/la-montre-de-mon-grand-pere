@@ -158,7 +158,7 @@ export default async function TableauDeBordPage({
       </p>
 
       {/* Stats */}
-      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           label="Commandes"
           value={orders.length}

@@ -5,11 +5,24 @@ import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/components/cart/CartContext'
 
+export function getCheckoutSuccessContent(locale: string) {
+  return {
+    title: locale === 'fr' ? 'Commande confirmée !' : 'Order confirmed!',
+    description:
+      locale === 'fr'
+        ? 'Merci pour votre achat. Vous recevrez un email de confirmation prochainement.'
+        : 'Thank you for your purchase. You will receive a confirmation email shortly.',
+    ctaLabel: locale === 'fr' ? 'Retour à la boutique' : 'Back to shop',
+    ctaHref: `/${locale}/boutique`,
+  }
+}
+
 export default function CheckoutSuccessPage() {
   const params = useParams()
   const locale = (params?.locale as string) ?? 'fr'
   const { clearCartItems } = useCart()
   const router = useRouter()
+  const content = getCheckoutSuccessContent(locale)
 
   useEffect(() => {
     clearCartItems()
@@ -37,20 +50,14 @@ export default function CheckoutSuccessPage() {
         </div>
       </div>
 
-      <h1 className="text-2xl font-bold">
-        {locale === 'fr' ? 'Commande confirmée !' : 'Order confirmed!'}
-      </h1>
-      <p className="mt-3 text-neutral-600">
-        {locale === 'fr'
-          ? 'Merci pour votre achat. Vous recevrez un email de confirmation prochainement.'
-          : 'Thank you for your purchase. You will receive a confirmation email shortly.'}
-      </p>
+      <h1 className="text-2xl font-bold">{content.title}</h1>
+      <p className="mt-3 text-neutral-600">{content.description}</p>
 
       <a
-        href={`/${locale}/boutique`}
+        href={content.ctaHref}
         className="mt-8 inline-block rounded-md bg-black px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors"
       >
-        {locale === 'fr' ? 'Retour à la boutique' : 'Back to shop'}
+        {content.ctaLabel}
       </a>
     </main>
   )

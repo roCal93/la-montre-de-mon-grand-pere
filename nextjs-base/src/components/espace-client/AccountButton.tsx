@@ -12,24 +12,68 @@ const menuItems = [
   { href: '/espace-client/profil', label: 'Mon profil' },
 ]
 
+type AccountButtonState = {
+  locale: 'fr' | 'en'
+  href: string
+  isCurrentHref: boolean
+}
+
+export function resolveAccountButtonState(
+  pathname: string,
+  isAuthenticated: boolean
+): AccountButtonState {
+  const locale = pathname.split('/')[1] === 'en' ? 'en' : 'fr'
+  const href = isAuthenticated
+    ? `/${locale}/espace-client/tableau-de-bord`
+    : `/${locale}/espace-client/connexion`
+
+  return {
+    locale,
+    href,
+    isCurrentHref: pathname === href,
+  }
+}
+
 export function AccountButton() {
   const { data: session } = useSession()
   const pathname = usePathname()
-  const locale = pathname.split('/')[1] === 'en' ? 'en' : 'fr'
-
-  const href = session
-    ? `/${locale}/espace-client/tableau-de-bord`
-    : `/${locale}/espace-client/connexion`
+  const { locale, href, isCurrentHref } = resolveAccountButtonState(
+    pathname,
+    !!session
+  )
+  const iconButtonClass =
+    'flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 dark:border-gray-500 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors'
 
   const firstName = session?.user?.name?.split(' ')[0] ?? null
 
   if (!session) {
+    if (isCurrentHref) {
+      return (
+        <span
+          aria-label="Se connecter"
+          aria-current="page"
+          className={iconButtonClass}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.75}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-6 w-6 shrink-0"
+            aria-hidden
+          >
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
+        </span>
+      )
+    }
+
     return (
-      <Link
-        href={href}
-        aria-label="Se connecter"
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-400 dark:border-gray-500 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-      >
+      <Link href={href} aria-label="Se connecter" className={iconButtonClass}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -71,14 +115,12 @@ export function AccountButton() {
           <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
         </svg>
         {firstName && (
-          <span className="text-sm font-medium hidden sm:inline">
-            Bonjour, {firstName}
-          </span>
+          <span className="text-sm font-medium">Bonjour, {firstName}</span>
         )}
       </Link>
 
       {/* Dropdown — visible on hover */}
-      <div className="absolute right-0 top-full pt-3 hidden group-hover:block z-50">
+      <div className="absolute left-1/2 -translate-x-1/2 top-full pt-3 hidden group-hover:block z-50">
         <div className="w-52 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-lg overflow-hidden">
           <ul className="py-1">
             {menuItems.map((item) => (

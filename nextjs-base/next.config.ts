@@ -48,8 +48,9 @@ function getSiteOrigin(): string {
 }
 
 const nextConfig: NextConfig = {
-  // Force @react-pdf/renderer to be bundled (it's ESM-only and can't be externalized)
-  transpilePackages: ['@react-pdf/renderer'],
+  // Let Node.js load @react-pdf/renderer natively — bundling it (transpilePackages) breaks
+  // its internal state with Turbopack and causes "Cannot read properties of undefined (reading 'S')"
+  serverExternalPackages: ['@react-pdf/renderer'],
 
   images: {
     remotePatterns: [

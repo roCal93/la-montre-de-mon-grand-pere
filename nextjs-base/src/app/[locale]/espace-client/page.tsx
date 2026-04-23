@@ -1,3 +1,4 @@
+import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { redirect } from 'next/navigation'
 
 export default async function EspaceClientRootPage({
@@ -6,5 +7,11 @@ export default async function EspaceClientRootPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  redirect(`/${locale}/espace-client/tableau-de-bord`)
+  const strapiUser = await getCurrentStrapiUser()
+
+  redirect(
+    strapiUser
+      ? `/${locale}/espace-client/tableau-de-bord`
+      : `/${locale}/espace-client/connexion`
+  )
 }

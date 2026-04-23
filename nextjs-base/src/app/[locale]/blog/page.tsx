@@ -26,7 +26,7 @@ interface Props {
 
 const PAGE_SIZE = 12
 
-const normalizeContainerWidth = (
+export const normalizeContainerWidth = (
   width: unknown
 ): 'small' | 'medium' | 'large' | 'full' => {
   if (
@@ -70,30 +70,35 @@ const fetchBlogLandingPage = async ({
   return pageRes.data[0] || null
 }
 
-const formatPublicationDate = (date: string | undefined, locale: string) => {
+export const formatPublicationDate = (
+  date: string | undefined,
+  locale: string
+) => {
   if (!date) return null
 
   try {
-    return new Date(date).toLocaleDateString(
-      locale === 'fr' ? 'fr-FR' : 'en-US',
-      {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }
-    )
+    const parsedDate = new Date(date)
+    if (Number.isNaN(parsedDate.getTime())) {
+      return null
+    }
+
+    return parsedDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
   } catch {
     return null
   }
 }
 
-const normalizeSearchText = (value: string) =>
+export const normalizeSearchText = (value: string) =>
   value
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
 
-const extractAllStrings = (
+export const extractAllStrings = (
   value: unknown,
   seen = new Set<object>()
 ): string[] => {
@@ -113,7 +118,7 @@ const extractAllStrings = (
   )
 }
 
-const articleMatchesQuery = (article: BlogArticle, query: string) => {
+export const articleMatchesQuery = (article: BlogArticle, query: string) => {
   if (!query) return true
 
   const searchableText = [

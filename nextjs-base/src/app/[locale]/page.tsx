@@ -18,7 +18,14 @@ type OpeningDay = {
   secondPeriodCloseTime?: string | null
 }
 
-const getSharedOpeningDays = (sections: unknown[]): OpeningDay[] => {
+type HomePreloadLink = {
+  rel: string
+  href: string
+  as?: string
+  fetchpriority?: string
+}
+
+export const getSharedOpeningDays = (sections: unknown[]): OpeningDay[] => {
   for (const section of sections) {
     const blocks = (section as { blocks?: unknown[] }).blocks
     if (!Array.isArray(blocks)) continue
@@ -116,7 +123,7 @@ const fetchHomePageData = async (locale: string, isDraft: boolean) => {
 }
 
 // Normalize container width coming from Strapi to the allowed values
-const normalizeContainerWidth = (
+export const normalizeContainerWidth = (
   width: unknown
 ): 'small' | 'medium' | 'large' | 'full' => {
   if (
@@ -127,6 +134,22 @@ const normalizeContainerWidth = (
   )
     return width
   return 'medium'
+}
+
+export function buildHomeImagePreloadLinks(
+  strapiUrl: string | undefined,
+  imageUrls: Array<string | undefined>
+): HomePreloadLink[] {
+  return imageUrls
+    .filter((imageUrl): imageUrl is string => typeof imageUrl === 'string')
+    .map(cleanImageUrl)
+    .filter((imageUrl): imageUrl is string => typeof imageUrl === 'string')
+    .map((imageUrl) => ({
+      rel: 'preload',
+      href: imageUrl.startsWith('/') ? `${strapiUrl}${imageUrl}` : imageUrl,
+      as: 'image',
+      fetchpriority: 'high',
+    }))
 }
 
 const getHomePageData = unstable_cache(
@@ -156,44 +179,10 @@ export async function generateMetadata({
   // Check for carousel workItems images
   const firstWorkItemImage = firstBlock?.workItems?.[0]?.image
 
-  const links: {
-    rel: string
-    href: string
-    as?: string
-    fetchpriority?: string
-  }[] = []
-
-  // Preload main image
-  if (firstImage) {
-    const imageUrl = cleanImageUrl(firstImage.url)
-    if (imageUrl) {
-      const fullUrl = imageUrl.startsWith('/')
-        ? `${process.env.NEXT_PUBLIC_STRAPI_URL}${imageUrl}`
-        : imageUrl
-      links.push({
-        rel: 'preload',
-        href: fullUrl,
-        as: 'image',
-        fetchpriority: 'high',
-      })
-    }
-  }
-
-  // Preload first carousel image if exists
-  if (firstWorkItemImage) {
-    const imageUrl = cleanImageUrl(firstWorkItemImage.url)
-    if (imageUrl) {
-      const fullUrl = imageUrl.startsWith('/')
-        ? `${process.env.NEXT_PUBLIC_STRAPI_URL}${imageUrl}`
-        : imageUrl
-      links.push({
-        rel: 'preload',
-        href: fullUrl,
-        as: 'image',
-        fetchpriority: 'high',
-      })
-    }
-  }
+  const links = buildHomeImagePreloadLinks(process.env.NEXT_PUBLIC_STRAPI_URL, [
+    firstImage?.url,
+    firstWorkItemImage?.url,
+  ])
 
   // SEO per-locale: fetch home metadata for the active locale
   const seo = await getPageSEO('home', false, locale)

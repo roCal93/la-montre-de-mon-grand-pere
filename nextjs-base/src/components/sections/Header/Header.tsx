@@ -9,6 +9,7 @@ import React, {
   memo,
 } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -41,6 +42,7 @@ export const Header = memo(
     hideLanguageSwitcher = false,
     variant = 'default',
   }: HeaderProps) => {
+    const { data: session } = useSession()
     const rawPathname = usePathname() ?? '/'
     const pathname = useDeferredValue(rawPathname)
     const segments = pathname.split('/')
@@ -314,14 +316,14 @@ export const Header = memo(
         id="site-header"
         role="banner"
         aria-label="Site header"
-        className="sticky top-0 z-50 backdrop-blur-sm bg-white/10 dark:bg-black/10 border-b border-gray-200 dark:border-gray-700 flex justify-center min-[850px]:justify-between items-center p-1 relative"
+        className="sticky top-0 z-50 backdrop-blur-sm bg-white/10 dark:bg-black/10 border-b border-gray-200 dark:border-gray-700 flex justify-center min-[930px]:justify-between items-center p-1 relative"
       >
         <Link
           href={`/${currentLocale}`}
           prefetch
           onClick={handleLogoClick}
           aria-label={`${title} - Return to homepage`}
-          className="flex-none min-[850px]:flex-1 min-[850px]:ml-6"
+          className="flex-none min-[930px]:flex-1 min-[930px]:ml-6"
         >
           {logo ? (
             <Image
@@ -329,13 +331,13 @@ export const Header = memo(
               alt={logo.alternativeText || title}
               width={logo.width || 180}
               height={logo.height || 60}
-              className="cursor-pointer mx-auto min-[850px]:mx-0 h-32 w-auto dark:brightness-0 dark:invert"
+              className="cursor-pointer mx-auto min-[930px]:mx-0 h-32 w-auto dark:brightness-0 dark:invert"
               priority
             />
           ) : (
-            <h1 className="text-5xl font-caveat cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 text-center mx-auto min-[850px]:text-left min-[850px]:mx-0">
+            <h1 className="text-5xl font-caveat cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 text-center mx-auto min-[930px]:text-left min-[930px]:mx-0">
               {title.split(' ').map((word, i) => (
-                <span key={i} className="block min-[850px]:inline">
+                <span key={i} className="block min-[930px]:inline">
                   {word}
                   {i < title.split(' ').length - 1 && ' '}
                 </span>
@@ -343,11 +345,11 @@ export const Header = memo(
             </h1>
           )}
         </Link>
-        <div className="hidden min-[850px]:flex min-[850px]:absolute min-[850px]:top-1/2 min-[850px]:left-1/2 min-[850px]:-translate-x-1/2 min-[850px]:-translate-y-1/2 items-center">
+        <div className="hidden min-[930px]:flex min-[930px]:absolute min-[930px]:top-1/2 min-[930px]:left-1/2 min-[930px]:-translate-x-1/2 min-[930px]:-translate-y-1/2 items-center">
           <nav
             role="navigation"
             aria-label="Main navigation"
-            className="hidden min-[850px]:flex min-[850px]:w-[min(46vw,640px)] min-[850px]:items-center"
+            className="hidden min-[930px]:flex min-[930px]:w-[min(46vw,640px)] min-[930px]:items-center"
           >
             {links.map((link, index) => {
               const active = isActive(link.slug, link.isHome, link.anchor)
@@ -405,15 +407,29 @@ export const Header = memo(
           </nav>
         </div>
         {!hideLanguageSwitcher && (
-          <div className="hidden min-[850px]:flex min-[850px]:items-center min-[850px]:gap-4 min-[850px]:ml-auto min-[850px]:mr-6">
-            <AccountButton />
-            <CartButton />
-            <GifToggle />
-            <ThemeToggle />
-            <LanguageSwitcher />
+          <div className="hidden min-[930px]:ml-auto min-[930px]:mr-6 min-[930px]:flex">
+            {session ? (
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex items-center gap-8">
+                  <CartButton />
+                  <GifToggle />
+                  <ThemeToggle />
+                  <LanguageSwitcher />
+                </div>
+                <AccountButton />
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <AccountButton />
+                <CartButton />
+                <GifToggle />
+                <ThemeToggle />
+                <LanguageSwitcher />
+              </div>
+            )}
           </div>
         )}
-        <div className="min-[850px]:hidden absolute right-6">
+        <div className="min-[930px]:hidden absolute right-6">
           <BurgerMenu
             links={links}
             currentLocale={currentLocale}

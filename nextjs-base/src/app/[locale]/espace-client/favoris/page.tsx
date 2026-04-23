@@ -1,3 +1,5 @@
+import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
+import { redirect } from 'next/navigation'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -29,6 +31,9 @@ export default async function FavorisPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  const strapiUser = await getCurrentStrapiUser()
+
+  if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
 
   const { data } = await strapiAuthGet<StrapiList<WishlistItem>>(
     '/wishlist-items?populate[product][populate]=images',

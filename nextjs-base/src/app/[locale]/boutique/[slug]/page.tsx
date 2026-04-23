@@ -52,6 +52,96 @@ interface StrapiProduct {
   } | null
 }
 
+type ProductBadge = { label: string; highlight?: boolean }
+
+export function buildProductImageUrl(
+  rawUrl: string,
+  strapiUrl: string | undefined
+) {
+  return rawUrl.startsWith('http') ? rawUrl : `${strapiUrl}${rawUrl}`
+}
+
+export function buildProductBadges(
+  badges: string[] | null,
+  isSoldOut: boolean,
+  locale: string
+): ProductBadge[] {
+  return [
+    ...(badges ?? []).map((badge) => ({ label: badge })),
+    ...(isSoldOut
+      ? [{ label: locale === 'fr' ? 'Vendu' : 'Sold' }]
+      : [
+          {
+            label: locale === 'fr' ? 'Stock unique' : 'Unique piece',
+            highlight: true,
+          },
+        ]),
+  ]
+}
+
+export function buildBeforeAfterPairs(
+  beforeImage: StrapiImage[] | StrapiImage | null,
+  afterImage: StrapiImage[] | StrapiImage | null,
+  strapiUrl: string | undefined
+) {
+  const beforeImages = Array.isArray(beforeImage)
+    ? beforeImage
+    : beforeImage
+      ? [beforeImage]
+      : []
+  const afterImages = Array.isArray(afterImage)
+    ? afterImage
+    : afterImage
+      ? [afterImage]
+      : []
+
+  return beforeImages.slice(0, afterImages.length).map((before, idx) => ({
+    beforeUrl: buildProductImageUrl(before.url, strapiUrl),
+    afterUrl: buildProductImageUrl(afterImages[idx].url, strapiUrl),
+    beforeAlt: before.alternativeText ?? undefined,
+    afterAlt: afterImages[idx].alternativeText ?? undefined,
+  }))
+}
+
+function getTechSpecValue(
+  technicalSpecs: TechSpec[] | null,
+  keys: string[]
+): string | null {
+  if (!technicalSpecs) return null
+
+  const normalizedKeys = keys.map((key) => key.toLowerCase())
+  const spec = technicalSpecs.find((item) =>
+    normalizedKeys.includes(item.key.toLowerCase())
+  )
+
+  return spec?.val ?? null
+}
+
+function buildProductSubtitle(
+  technicalSpecs: TechSpec[] | null,
+  categoryName: string | null | undefined,
+  brand: string | null,
+  locale: string
+): string | null {
+  const movement = getTechSpecValue(technicalSpecs, ['Mouvement', 'Movement'])
+  const diameter = getTechSpecValue(technicalSpecs, [
+    'Diamètre',
+    'Diametre',
+    'Diameter',
+  ])
+
+  const parts = [movement, diameter, categoryName ?? null].filter(
+    (value): value is string => Boolean(value && value.trim())
+  )
+
+  if (parts.length > 0) {
+    return parts.join(' • ')
+  }
+
+  if (brand?.trim()) return brand
+  return locale === 'fr' ? 'Pièce vintage révisée' : 'Restored vintage piece'
+}
+
 async function getProduct(
   slug: string,
   locale: string
@@ -203,55 +293,32 @@ export default async function ProductPage({ params }: Props) {
     afterImage,
   } = product
 
-  const buildImgUrl = (rawUrl: string) =>
-    rawUrl.startsWith('http')
-      ? rawUrl
-      : `${process.env.NEXT_PUBLIC_STRAPI_URL}${rawUrl}`
-
   const galleryImages = (images ?? []).map((img) => ({
     id: img.id,
-    url: buildImgUrl(img.url),
+    url: buildProductImageUrl(img.url, process.env.NEXT_PUBLIC_STRAPI_URL),
     alternativeText: img.alternativeText,
   }))
   const firstImgUrl = galleryImages[0]?.url ?? null
 
   // Build all badges: custom ones from Strapi + auto badges
-  const allBadges: { label: string; highlight?: boolean }[] = [
-    ...(badges ?? []).map((b) => ({ label: b })),
-    ...(isSoldOut
-      ? [{ label: locale === 'fr' ? 'Vendu' : 'Sold' }]
-      : [
-          {
-            label: locale === 'fr' ? 'Stock unique' : 'Unique piece',
-            highlight: true,
-          },
-        ]),
-  ]
+  const allBadges = buildProductBadges(badges, isSoldOut, locale)
+  const productSubtitle = buildProductSubtitle(
+    technicalSpecs,
+    product.category?.name,
+    brand,
+    locale
+  )
 
   const shopPath = locale === 'fr' ? 'boutique' : 'shop'
 
   const hasSpecs = technicalSpecs && technicalSpecs.length > 0
   const hasRatings = conditionRatings && conditionRatings.length > 0
   const hasRestoration = restorationWork && restorationWork.length > 0
-  const beforeImages = Array.isArray(beforeImage)
-    ? beforeImage
-    : beforeImage
-      ? [beforeImage]
-      : []
-  const afterImages = Array.isArray(afterImage)
-    ? afterImage
-    : afterImage
-      ? [afterImage]
-      : []
-
-  const beforeAfterPairs = beforeImages
-    .slice(0, afterImages.length)
-    .map((before, idx) => ({
-      beforeUrl: buildImgUrl(before.url),
-      afterUrl: buildImgUrl(afterImages[idx].url),
-      beforeAlt: before.alternativeText ?? undefined,
-      afterAlt: afterImages[idx].alternativeText ?? undefined,
-    }))
+  const beforeAfterPairs = buildBeforeAfterPairs(
+    beforeImage,
+    afterImage,
+    process.env.NEXT_PUBLIC_STRAPI_URL
+  )
   const hasSlider = beforeAfterPairs.length > 0
 
   return (
@@ -277,9 +344,9 @@ export default async function ProductPage({ params }: Props) {
                 </p>
               )}
               <h1 className="text-[23px] font-medium leading-snug">{name}</h1>
-              {(brand ?? product.category?.name) && (
-                <p className="font-[family-name:var(--font-geist-mono)] text-[13px] uppercase tracking-[0.12em] text-neutral-500">
-                  {brand ?? product.category?.name}
+              {productSubtitle && (
+                <p className="font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.12em] text-neutral-500">
+                  {productSubtitle}
                 </p>
               )}
             </div>
@@ -287,7 +354,7 @@ export default async function ProductPage({ params }: Props) {
             {shortDescription && (
               <div className="my-6 lg:my-auto">
                 <p className="mb-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.15em] text-neutral-400">
-                  {locale === 'fr' ? 'A propos' : 'About'}
+                  {locale === 'fr' ? 'À propos' : 'About'}
                 </p>
                 <p className="border-l-2 border-black pl-4 text-[14px] leading-[1.8] text-neutral-500">
                   {shortDescription}
@@ -330,7 +397,7 @@ export default async function ProductPage({ params }: Props) {
               {isSoldOut ? (
                 <div className="w-full border border-neutral-200 bg-neutral-200 px-6 py-3 text-center font-[family-name:var(--font-geist-mono)] text-[13px] uppercase tracking-[0.1em] text-neutral-600">
                   {locale === 'fr'
-                    ? 'Ce produit est vendu'
+                    ? 'Cette pièce a trouvé son propriétaire'
                     : 'This product is sold'}
                 </div>
               ) : (

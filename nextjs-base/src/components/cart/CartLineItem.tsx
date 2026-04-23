@@ -17,14 +17,14 @@ export function CartLineItem({ id, name, price, imageUrl, quantity }: Props) {
 
   return (
     <li className="flex gap-4 py-4">
-      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-neutral-100">
+      <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-neutral-100">
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={name}
             fill
             className="object-cover"
-            sizes="64px"
+            sizes="96px"
           />
         ) : (
           <div className="h-full w-full bg-neutral-200" aria-hidden />

@@ -14,6 +14,68 @@ type LocalesResponse = {
   defaultLocale: string
 }
 
+type NormalizedLocalesConfig = {
+  supportedLocales: string[]
+  defaultLocale: string
+}
+
+export function normalizeLocalesConfig(
+  json: Partial<LocalesResponse> | null,
+  fallbackLocales: readonly string[] = STATIC_LOCALES,
+  fallbackDefaultLocale: string = STATIC_DEFAULT_LOCALE
+): NormalizedLocalesConfig {
+  const supportedLocales = Array.isArray(json?.locales)
+    ? json.locales.filter(
+        (locale): locale is string =>
+          typeof locale === 'string' &&
+          locale.length > 0 &&
+          fallbackLocales.includes(locale)
+      )
+    : []
+
+  const defaultLocale =
+    typeof json?.defaultLocale === 'string' &&
+    json.defaultLocale.length > 0 &&
+    fallbackLocales.includes(json.defaultLocale)
+      ? json.defaultLocale
+      : fallbackDefaultLocale
+
+  return {
+    supportedLocales:
+      supportedLocales.length > 0 ? supportedLocales : [...fallbackLocales],
+    defaultLocale,
+  }
+}
+
+export function resolveCurrentLocale(
+  pathname: string,
+  supportedLocales: readonly string[],
+  defaultLocale: string
+) {
+  const currentSegment = pathname.split('/')[1]
+
+  return currentSegment && supportedLocales.includes(currentSegment)
+    ? currentSegment
+    : defaultLocale
+}
+
+let localesConfigPromise: Promise<Partial<LocalesResponse> | null> | null = null
+
+async function loadLocalesConfig() {
+  if (!localesConfigPromise) {
+    localesConfigPromise = fetch('/api/locales', {
+      cache: 'force-cache',
+    })
+      .then(async (res) => {
+        if (!res.ok) return null
+        return (await res.json()) as Partial<LocalesResponse>
+      })
+      .catch(() => null)
+  }
+
+  return localesConfigPromise
+}
+
 interface LanguageSwitcherProps {
   side?: 'left' | 'right'
   dropdownDirection?: 'down' | 'left' | 'right' | 'center'
@@ -36,50 +98,37 @@ export function LanguageSwitcher({
   const [defaultLocale, setDefaultLocale] = React.useState<string>(
     STATIC_DEFAULT_LOCALE
   )
+  const [didLoadDynamicLocales, setDidLoadDynamicLocales] =
+    React.useState(false)
+  const [open, setOpen] = React.useState(false)
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
 
   React.useEffect(() => {
+    if (!open || didLoadDynamicLocales) return
+
     let isMounted = true
 
     ;(async () => {
-      try {
-        const res = await fetch('/api/locales')
-        if (!res.ok) return
-        const json = (await res.json()) as Partial<LocalesResponse>
+      const json = await loadLocalesConfig()
+      if (!isMounted || !json) return
 
-        const locales = Array.isArray(json.locales)
-          ? json.locales.filter(
-              (l): l is string =>
-                typeof l === 'string' &&
-                l.length > 0 &&
-                (STATIC_LOCALES as readonly string[]).includes(l)
-            )
-          : []
+      const normalizedConfig = normalizeLocalesConfig(json)
 
-        if (!isMounted) return
-        if (locales.length > 0) setSupportedLocales(locales)
-        if (
-          typeof json.defaultLocale === 'string' &&
-          json.defaultLocale.length > 0
-        )
-          setDefaultLocale(json.defaultLocale)
-      } catch {
-        // ignore: fallback to static locales
-      }
+      setSupportedLocales(normalizedConfig.supportedLocales)
+      setDefaultLocale(normalizedConfig.defaultLocale)
+      setDidLoadDynamicLocales(true)
     })()
 
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [didLoadDynamicLocales, open])
 
-  const currentSegment = segments[1]
-  const currentLocale =
-    currentSegment && supportedLocales.includes(currentSegment)
-      ? currentSegment
-      : defaultLocale
-
-  const [open, setOpen] = React.useState(false)
-  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const currentLocale = resolveCurrentLocale(
+    pathname,
+    supportedLocales,
+    defaultLocale
+  )
 
   const handleOpenChange = React.useCallback(
     (newOpen: boolean) => {

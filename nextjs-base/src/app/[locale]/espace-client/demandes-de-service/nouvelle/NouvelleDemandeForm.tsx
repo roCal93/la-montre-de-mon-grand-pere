@@ -51,6 +51,43 @@ interface Props {
   watchFiles: WatchFile[]
 }
 
+type ServiceRequestResult = {
+  ok: boolean
+  error: string | null
+}
+
+async function readServiceRequestError(response: Response) {
+  const json = (await response.json().catch(() => null)) as {
+    error?: string
+  } | null
+
+  return json?.error ?? 'Erreur lors de la soumission.'
+}
+
+export async function submitServiceRequest(
+  data: FormData,
+  fetchImpl: typeof fetch = fetch
+): Promise<ServiceRequestResult> {
+  try {
+    const response = await fetchImpl('/api/service-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: await readServiceRequestError(response),
+      }
+    }
+
+    return { ok: true, error: null }
+  } catch {
+    return { ok: false, error: 'Erreur lors de la soumission.' }
+  }
+}
+
 export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
@@ -72,16 +109,13 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
 
   const onSubmit = async (data: FormData) => {
     setError(null)
-    const res = await fetch('/api/service-request', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-    if (!res.ok) {
-      const json = (await res.json()) as { error?: string }
-      setError(json?.error ?? 'Erreur lors de la soumission.')
+    const result = await submitServiceRequest(data)
+
+    if (!result.ok) {
+      setError(result.error)
       return
     }
+
     router.push(`/${locale}/espace-client/demandes-de-service`)
     router.refresh()
   }

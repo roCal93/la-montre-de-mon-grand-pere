@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { LanguageSwitcher } from '@/components/locale/LanguageSwitcher'
@@ -24,17 +25,54 @@ interface BurgerMenuProps {
   hideLanguageSwitcher?: boolean
 }
 
+export function getBurgerMenuHref(
+  currentLocale: string,
+  slug: string,
+  isHome: boolean,
+  anchor?: string
+) {
+  const base = isHome ? `/${currentLocale}` : `/${currentLocale}/${slug}`
+  return anchor ? `${base}#${anchor}` : base
+}
+
+export function isBurgerMenuLinkActive(
+  pathname: string,
+  currentHash: string,
+  currentLocale: string,
+  link: ProcessedLink
+) {
+  const fullHref = getBurgerMenuHref(
+    currentLocale,
+    link.slug,
+    link.isHome,
+    link.anchor
+  )
+  const base = fullHref.split('#')[0]
+
+  if (link.anchor) {
+    return pathname === base && currentHash === `#${link.anchor}`
+  }
+
+  return pathname === base
+}
+
+export function getBurgerAccountOffsetClass(langOpen: boolean) {
+  return `transition-transform duration-200 ${langOpen ? '-translate-x-4' : ''}`
+}
+
 export const BurgerMenu = ({
   links = [],
   currentLocale,
   hideLanguageSwitcher = false,
 }: BurgerMenuProps) => {
+  const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
-  const [, setLangOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [headerBottom, setHeaderBottom] = useState(0)
   const pathname = usePathname() ?? '/'
   const wrapperRef = useRef<HTMLDivElement | null>(null)
+  const isAuthenticated = !!session
 
   useEffect(() => {
     const updateHeaderBottom = () => {
@@ -142,25 +180,15 @@ export const BurgerMenu = ({
     return () => observer.disconnect()
   }, [links, pathname])
 
-  const getLocalizedHref = (slug: string, isHome: boolean, anchor?: string) => {
-    const base = isHome ? `/${currentLocale}` : `/${currentLocale}/${slug}`
-    return anchor ? `${base}#${anchor}` : base
-  }
-
-  const isActive = (slug: string, isHome: boolean, anchor?: string) => {
-    const fullHref = getLocalizedHref(slug, isHome, anchor)
-    const base = fullHref.split('#')[0]
-    if (anchor) {
-      // Only consider an anchor link active when the URL hash matches
-      return pathname === base && currentHash === `#${anchor}`
-    }
-    return pathname === base
-  }
-
   const toggleMenu = () => setIsOpen(!isOpen)
 
   const handleMenuNavClick = (e: React.MouseEvent, link: ProcessedLink) => {
-    const href = getLocalizedHref(link.slug, link.isHome, link.anchor)
+    const href = getBurgerMenuHref(
+      currentLocale,
+      link.slug,
+      link.isHome,
+      link.anchor
+    )
     const base = href.split('#')[0]
     const currentBase = pathname.split('#')[0]
     if (base === currentBase && link.anchor) {
@@ -178,7 +206,7 @@ export const BurgerMenu = ({
   }
 
   return (
-    <div ref={wrapperRef} className="relative min-[850px]:hidden">
+    <div ref={wrapperRef} className="relative min-[930px]:hidden">
       <button
         onClick={toggleMenu}
         className="relative flex justify-center items-center w-8 h-8 cursor-pointer group hover:bg-gray-100/60 dark:hover:bg-gray-700/60 hover:scale-105 transition transform duration-150"
@@ -219,12 +247,18 @@ export const BurgerMenu = ({
               aria-label="Mobile navigation"
             >
               {links.map((link, index) => {
-                const active = isActive(link.slug, link.isHome, link.anchor)
+                const active = isBurgerMenuLinkActive(
+                  pathname,
+                  currentHash,
+                  currentLocale,
+                  link
+                )
                 const hovered = hoveredIndex === index
                 return (
                   <React.Fragment key={link.slug || index}>
                     <Link
-                      href={getLocalizedHref(
+                      href={getBurgerMenuHref(
+                        currentLocale,
                         link.slug,
                         link.isHome,
                         link.anchor
@@ -270,17 +304,35 @@ export const BurgerMenu = ({
                 <div className="py-4 border-t border-gray-200 dark:border-gray-700 flex justify-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="flex items-center gap-5">
-                      <AccountButton />
                       <GifToggle />
                       <ThemeToggle />
                       <CartButton />
                     </div>
-                    <LanguageSwitcher
-                      side="right"
-                      dropdownDirection="right"
-                      centerOpenGroup
-                      onOpenChange={(v) => setLangOpen(v)}
-                    />
+                    {isAuthenticated ? (
+                      <div>
+                        <AccountButton />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <div className={getBurgerAccountOffsetClass(langOpen)}>
+                          <AccountButton />
+                        </div>
+                        <LanguageSwitcher
+                          side="right"
+                          dropdownDirection="right"
+                          centerOpenGroup
+                          onOpenChange={(v) => setLangOpen(v)}
+                        />
+                      </div>
+                    )}
+                    {isAuthenticated && (
+                      <LanguageSwitcher
+                        side="right"
+                        dropdownDirection="right"
+                        centerOpenGroup
+                        onOpenChange={(v) => setLangOpen(v)}
+                      />
+                    )}
                   </div>
                 </div>
               )}

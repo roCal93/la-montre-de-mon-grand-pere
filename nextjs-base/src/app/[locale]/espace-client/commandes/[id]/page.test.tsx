@@ -74,4 +74,84 @@ describe('CommandeDetailPage security', () => {
       expect.any(Object)
     )
   })
+
+  it('loads the order details for the authenticated owner', async () => {
+    getCurrentStrapiUserMock.mockResolvedValue({
+      id: 1,
+      email: 'owner@example.com',
+      username: 'owner',
+    })
+
+    const fetchMock = vi.spyOn(global, 'fetch')
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: [
+              {
+                documentId: 'doc_1',
+                status: 'paid',
+                createdAt: '2026-04-23T10:00:00.000Z',
+                customerEmail: 'owner@example.com',
+                customerName: 'Owner',
+                lineItems: [
+                  {
+                    id: 1,
+                    productName: 'Omega',
+                    productSlug: 'omega',
+                    quantity: 1,
+                    unitPrice: 1200,
+                    total: 1200,
+                  },
+                ],
+                shippingAddress: {
+                  firstName: 'Jean',
+                  lastName: 'Dupont',
+                  address1: '1 rue de Paris',
+                  city: 'Paris',
+                  postalCode: '75001',
+                  country: 'France',
+                },
+                subtotal: 1200,
+                shippingCost: 0,
+                total: 1200,
+                currency: 'EUR',
+              },
+            ],
+          }),
+          { status: 200 }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: [
+              {
+                slug: 'omega',
+                images: [{ url: '/uploads/omega.jpg' }],
+              },
+            ],
+          }),
+          { status: 200 }
+        )
+      )
+
+    const result = await CommandeDetailPage({
+      params: Promise.resolve({ locale: 'fr', id: 'doc_1' }),
+    })
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('filters[documentId][$eq]=doc_1'),
+      expect.objectContaining({ cache: 'no-store' })
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('/api/products?filters[slug][$in][0]=omega'),
+      expect.objectContaining({ cache: 'no-store' })
+    )
+    expect(notFoundMock).not.toHaveBeenCalled()
+    expect(redirectMock).not.toHaveBeenCalled()
+    expect(result).toBeTruthy()
+  })
 })
