@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { getCurrentStrapiUserMock, notFoundMock, redirectMock } = vi.hoisted(() => ({
-  getCurrentStrapiUserMock: vi.fn(),
-  notFoundMock: vi.fn(() => {
-    throw new Error('NOT_FOUND')
-  }),
-  redirectMock: vi.fn((url: string) => {
-    throw new Error(`REDIRECT:${url}`)
-  }),
-}))
+const { getCurrentStrapiUserMock, notFoundMock, redirectMock } = vi.hoisted(
+  () => ({
+    getCurrentStrapiUserMock: vi.fn(),
+    notFoundMock: vi.fn(() => {
+      throw new Error('NOT_FOUND')
+    }),
+    redirectMock: vi.fn((url: string) => {
+      throw new Error(`REDIRECT:${url}`)
+    }),
+  })
+)
 
 vi.mock('@/lib/strapi-session-cookie', () => ({
   getCurrentStrapiUser: getCurrentStrapiUserMock,
