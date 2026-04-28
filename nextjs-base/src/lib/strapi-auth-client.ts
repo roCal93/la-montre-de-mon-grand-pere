@@ -29,15 +29,30 @@ export async function strapiAuthFetch<T = unknown>(
 
   const { method = 'GET', body, next } = options
 
-  const res = await fetch(`${STRAPI_URL}/api${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${jwt}`,
-    },
-    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-    ...(next ? { next } : {}),
-  })
+  let res: Response
+
+  try {
+    res = await fetch(`${STRAPI_URL}/api${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwt}`,
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      ...(next ? { next } : {}),
+    })
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : 'Échec de connexion à Strapi'
+
+    return {
+      data: null,
+      error: `Erreur réseau Strapi: ${message}`,
+      status: 503,
+    }
+  }
 
   const text = await res.text()
   let parsed: T | null = null

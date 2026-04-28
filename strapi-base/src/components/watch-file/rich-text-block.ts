@@ -1,0 +1,20 @@
+export default {
+  "collectionName": "components_watch_file_rich_text_blocks",
+  "info": {
+    "displayName": "Dossier Rich Text",
+    "description": "Section texte riche pour le dossier de restauration"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "displayName": "Titre"
+    },
+    "content": {
+      "type": "blocks",
+      "required": true,
+      "displayName": "Contenu"
+    }
+  },
+  "config": {}
+};

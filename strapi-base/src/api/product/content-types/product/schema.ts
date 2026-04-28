@@ -30,23 +30,6 @@ export default {
       "targetField": "name",
       "required": true
     },
-    "description": {
-      "type": "richtext",
-      "displayName": "Histoire",
-      "pluginOptions": {
-        "i18n": {
-          "localized": true
-        }
-      }
-    },
-    "shortDescription": {
-      "type": "text",
-      "pluginOptions": {
-        "i18n": {
-          "localized": true
-        }
-      }
-    },
     "price": {
       "type": "decimal",
       "required": true,
@@ -75,47 +58,15 @@ export default {
       "target": "api::product-category.product-category",
       "inversedBy": "products"
     },
+    "watchFile": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::watch-file.watch-file",
+      "mappedBy": "product"
+    },
     "stripePriceId": {
       "type": "string",
       "private": true
-    },
-    "reference": {
-      "type": "string"
-    },
-    "brand": {
-      "type": "string"
-    },
-    "badges": {
-      "type": "json",
-      "default": []
-    },
-    "technicalSpecs": {
-      "type": "json",
-      "default": []
-    },
-    "conditionRatings": {
-      "type": "json",
-      "default": []
-    },
-    "restorationWork": {
-      "type": "json",
-      "default": []
-    },
-    "beforeImage": {
-      "type": "media",
-      "multiple": true,
-      "required": false,
-      "allowedTypes": [
-        "images"
-      ]
-    },
-    "afterImage": {
-      "type": "media",
-      "multiple": true,
-      "required": false,
-      "allowedTypes": [
-        "images"
-      ]
     }
   }
 };

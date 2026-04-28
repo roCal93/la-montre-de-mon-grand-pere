@@ -42,7 +42,7 @@ const TYPE_OPTIONS = [
 
 interface WatchFile {
   documentId: string
-  title: string
+  reference: string
   product?: { name: string }
 }
 
@@ -192,7 +192,8 @@ export function NouvelleDemandeForm({ locale, watchFiles }: Props) {
             >
               {watchFiles.map((wf) => (
                 <option key={wf.documentId} value={wf.documentId}>
-                  {wf.product?.name ?? wf.title}
+                  {wf.product?.name ?? `Dossier ${wf.reference}`} -{' '}
+                  {wf.reference}
                 </option>
               ))}
             </select>

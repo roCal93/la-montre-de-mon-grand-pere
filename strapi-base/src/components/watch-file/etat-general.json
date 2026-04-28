@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_watch_file_etat_generals",
+  "info": {
+    "displayName": "2. Etat a la reception",
+    "description": "Point 2 du dossier avec resume global et observations detaillees"
+  },
+  "options": {},
+  "attributes": {
+    "etatGeneralGlobal": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.etat-general-global",
+      "displayName": "2.0 Resume global pour la fiche produit"
+    },
+    "fonctionnementAvantIntervention": {
+      "type": "component",
+      "repeatable": true,
+      "component": "watch-file.ligne-observation-constat",
+      "displayName": "2.1 Fonctionnement avant intervention"
+    },
+    "etatVisuelComposants": {
+      "type": "component",
+      "repeatable": true,
+      "component": "watch-file.ligne-composant-observation",
+      "displayName": "2.2 Etat visuel des composants"
+    }
+  },
+  "config": {}
+}

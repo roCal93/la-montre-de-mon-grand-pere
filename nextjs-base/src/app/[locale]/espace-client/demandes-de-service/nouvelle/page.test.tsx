@@ -27,7 +27,7 @@ vi.mock('./NouvelleDemandeForm', () => ({
     watchFiles,
   }: {
     locale: string
-    watchFiles: Array<{ documentId: string; title: string }>
+    watchFiles: Array<{ documentId: string; reference: string }>
   }) => ({
     type: 'NouvelleDemandeForm',
     props: { locale, watchFiles },
@@ -62,7 +62,7 @@ describe('NouvelleDemandeServicePage', () => {
         data: [
           {
             documentId: 'watch_1',
-            title: 'Omega de test',
+            reference: 'MGP0001',
             product: { name: 'Omega' },
           },
         ],
@@ -74,13 +74,18 @@ describe('NouvelleDemandeServicePage', () => {
     })
 
     expect(strapiAuthGetMock).toHaveBeenCalledWith(
-      '/watch-files?fields[0]=title&sort=createdAt:desc&populate[product][fields][0]=name',
+      '/watch-files?fields[0]=reference&sort=createdAt:desc&populate[product][fields][0]=name',
       0
     )
     expect(result).toMatchObject({
       props: {
         locale: 'fr',
-        watchFiles: [{ documentId: 'watch_1', title: 'Omega de test' }],
+        watchFiles: [
+          {
+            documentId: 'watch_1',
+            reference: 'MGP0001',
+          },
+        ],
       },
     })
     expect(redirectMock).not.toHaveBeenCalled()

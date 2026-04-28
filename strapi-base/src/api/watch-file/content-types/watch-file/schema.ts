@@ -12,29 +12,139 @@ export default {
   },
   "pluginOptions": {},
   "attributes": {
-    "title": {
+    "reference": {
       "type": "string",
-      "default": "Dossier montre",
+      "displayName": "Référence dossier",
       "required": true
     },
-    "repair_notes": {
-      "type": "richtext"
+    "dateReception": {
+      "type": "date",
+      "displayName": "Date de réception"
     },
-    "technician_notes": {
+    "dateMiseEnVente": {
+      "type": "date",
+      "displayName": "Date de mise en vente"
+    },
+    "marque": {
+      "type": "string",
+      "displayName": "Marque"
+    },
+    "referencePiece": {
+      "type": "string",
+      "displayName": "Référence pièce"
+    },
+    "modele": {
+      "type": "string",
+      "displayName": "Modèle"
+    },
+    "complications": {
+      "type": "string",
+      "displayName": "Complications"
+    },
+    "mouvement": {
+      "type": "string",
+      "displayName": "Mouvement"
+    },
+    "calibre": {
+      "type": "string",
+      "displayName": "Calibre"
+    },
+    "anneeEstimee": {
+      "type": "string",
+      "displayName": "Année estimée"
+    },
+    "matiereBoitier": {
+      "type": "string",
+      "displayName": "Matière du boîtier"
+    },
+    "diametreBoitier": {
+      "type": "string",
+      "displayName": "Diamètre boîtier"
+    },
+    "epaisseur": {
+      "type": "string",
+      "displayName": "Épaisseur"
+    },
+    "matiereBracelet": {
+      "type": "string",
+      "displayName": "Bracelet / matière"
+    },
+    "boucle": {
+      "type": "string",
+      "displayName": "Boucle"
+    },
+    "verre": {
+      "type": "string",
+      "displayName": "Verre"
+    },
+    "etancheiteAnnoncee": {
+      "type": "string",
+      "displayName": "Étanchéité annoncée"
+    },
+    "marketingShortDescription": {
+      "type": "text",
+      "displayName": "Résumé public"
+    },
+    "marketingDescription": {
       "type": "richtext",
-      "private": true
+      "displayName": "Histoire publique"
     },
-    "photos_before": {
+    "publicBadges": {
+      "type": "component",
+      "repeatable": true,
+      "component": "watch-file.public-badge",
+      "displayName": "Badges publics"
+    },
+    "etatGeneral": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.etat-general",
+      "displayName": "2. État à la réception"
+    },
+    "operationsReparation": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.operations-reparation",
+      "displayName": "3. Opérations de réparation"
+    },
+    "controleQualiteMesures": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.controle-qualite-mesures",
+      "displayName": "4. Contrôle qualité & mesures"
+    },
+    "validationAtelier": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.validation-atelier",
+      "displayName": "5. Validation atelier"
+    },
+    "notesIdentification": {
+      "type": "text",
+      "displayName": "Notes d'identification"
+    },
+    "dossierBlocks": {
+      "type": "dynamiczone",
+      "displayName": "Blocs du dossier",
+      "components": [
+        "watch-file.rich-text-block",
+        "watch-file.text-image-block",
+        "watch-file.before-after-block"
+      ]
+    },
+    "publicBeforeImage": {
       "type": "media",
       "multiple": true,
       "required": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": ["images"],
+      "displayName": "Avant réparation public"
     },
-    "photos_after": {
+    "publicAfterImage": {
       "type": "media",
       "multiple": true,
       "required": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": ["images"],
+      "displayName": "Après réparation public"
     },
     "customer": {
       "type": "relation",
@@ -53,8 +163,11 @@ export default {
     },
     "product": {
       "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::product.product"
+      "relation": "oneToOne",
+      "target": "api::product.product",
+      "displayName": "Montre associée",
+      "inversedBy": "watchFile",
+      "required": true
     }
   }
 };

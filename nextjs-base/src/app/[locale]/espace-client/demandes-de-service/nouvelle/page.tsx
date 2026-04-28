@@ -7,7 +7,7 @@ import { NouvelleDemandeForm } from './NouvelleDemandeForm'
 
 interface WatchFile {
   documentId: string
-  title: string
+  reference: string
   product?: { name: string }
 }
 
@@ -22,7 +22,7 @@ export default async function NouvelleDemandeServicePage({
   if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
 
   const { data } = await strapiAuthGet<{ data: WatchFile[] }>(
-    '/watch-files?fields[0]=title&sort=createdAt:desc&populate[product][fields][0]=name',
+    '/watch-files?fields[0]=reference&sort=createdAt:desc&populate[product][fields][0]=name',
     0
   )
   const watchFiles = data?.data ?? []

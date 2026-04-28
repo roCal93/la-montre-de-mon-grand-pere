@@ -1,0 +1,21 @@
+export default {
+  "collectionName": "components_watch_file_indicateur_etat_generals",
+  "info": {
+    "displayName": "Indicateur resume global",
+    "description": "Pourcentage et commentaire court pour une rubrique du resume global"
+  },
+  "options": {},
+  "attributes": {
+    "pourcentage": {
+      "type": "integer",
+      "min": 0,
+      "max": 100,
+      "displayName": "Pourcentage"
+    },
+    "commentaire": {
+      "type": "string",
+      "displayName": "Commentaire"
+    }
+  },
+  "config": {}
+};

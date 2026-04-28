@@ -7,7 +7,12 @@
  * sync runs per publish action.
  */
 
-import { syncProductToStripe, deleteStripeProduct, archiveStripeProduct } from '../api/product/services/stripe';
+import {
+  syncProductToStripe,
+  deleteStripeProduct,
+  archiveStripeProduct,
+  getStripeDescriptionFromProduct,
+} from '../api/product/services/stripe';
 
 // Deduplication: track recently synced documentIds
 const recentlySynced = new Set<string>();
@@ -31,13 +36,14 @@ async function syncProduct(documentId: string, entity: any, strapi: any) {
 
   console.log('[Webhook] Syncing product to Stripe:', documentId);
 
+  const description = await getStripeDescriptionFromProduct(strapi, documentId);
+
   const result = await syncProductToStripe({
     documentId,
     name: entity.name,
     slug: entity.slug,
     price: Math.round(entity.price * 100),
-    description: entity.description,
-    shortDescription: entity.shortDescription,
+    description,
   });
 
   if (result.success && result.pricePriceId) {
@@ -87,6 +93,36 @@ export default (strapi: any) => {
 
       console.log('[Webhook] Product deleted:', data.documentId);
       await deleteStripeProduct(data.documentId);
+    },
+  });
+
+  strapi.db?.lifecycles.subscribe({
+    models: ['api::watch-file.watch-file'],
+
+    async afterCreate(event: any) {
+      const linkedDocumentId = event.result?.product?.documentId;
+      if (!linkedDocumentId) return;
+
+      const linkedProduct = await strapi.documents('api::product.product').findOne({
+        documentId: linkedDocumentId,
+        fields: ['documentId', 'name', 'slug', 'price', 'active', 'stripePriceId'],
+      });
+
+      if (!linkedProduct) return;
+      await syncProduct(linkedDocumentId, linkedProduct, strapi);
+    },
+
+    async afterUpdate(event: any) {
+      const linkedDocumentId = event.result?.product?.documentId;
+      if (!linkedDocumentId) return;
+
+      const linkedProduct = await strapi.documents('api::product.product').findOne({
+        documentId: linkedDocumentId,
+        fields: ['documentId', 'name', 'slug', 'price', 'active', 'stripePriceId'],
+      });
+
+      if (!linkedProduct) return;
+      await syncProduct(linkedDocumentId, linkedProduct, strapi);
     },
   });
 };

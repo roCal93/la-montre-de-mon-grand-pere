@@ -8,36 +8,52 @@ const products = [
     documentId: 'prod_1',
     name: 'Omega Vintage',
     slug: 'omega-vintage',
-    shortDescription: 'Montre revisee',
-    badges: ['Rare'],
     price: 1200,
     compareAtPrice: null,
     active: true,
     images: null,
     category: { id: 10, documentId: 'cat_1', name: 'Vintage', slug: 'vintage' },
-    conditionRatings: [{ label: 'cadran', value: 85, note: 'Tres bon' }],
+    watchFile: {
+      marketingShortDescription: 'Montre revisee',
+      publicBadges: [{ label: 'Rare' }],
+      etatGeneral: {
+        etatGeneralGlobal: {
+          boitier: { pourcentage: 82 },
+          cadran: { pourcentage: 88 },
+          mouvement: { pourcentage: 91 },
+          bracelet: { pourcentage: 78 },
+        },
+      },
+    },
   },
   {
     id: 2,
     documentId: 'prod_2',
     name: 'Rolex Atelier',
     slug: 'rolex-atelier',
-    shortDescription: 'Piece a restaurer',
-    badges: ['Atelier'],
     price: 800,
     compareAtPrice: null,
     active: true,
     images: null,
     category: { id: 11, documentId: 'cat_2', name: 'Atelier', slug: 'atelier' },
-    conditionRatings: [{ label: 'boitier', value: 35, note: 'Use' }],
+    watchFile: {
+      marketingShortDescription: 'Piece a restaurer',
+      publicBadges: [{ label: 'Atelier' }],
+      etatGeneral: {
+        etatGeneralGlobal: {
+          boitier: { pourcentage: 35 },
+          cadran: { pourcentage: 30 },
+          mouvement: { pourcentage: 40 },
+          bracelet: { pourcentage: 32 },
+        },
+      },
+    },
   },
   {
     id: 3,
     documentId: 'prod_3',
     name: 'Cartier Classique',
     slug: 'cartier-classique',
-    shortDescription: 'Excellent etat',
-    badges: ['Selection'],
     price: 2200,
     compareAtPrice: null,
     active: true,
@@ -48,7 +64,18 @@ const products = [
       name: 'Vintage',
       slug: 'vintage',
     },
-    conditionRatings: [{ label: 'mouvement', value: 92, note: 'Excellent' }],
+    watchFile: {
+      marketingShortDescription: 'Excellent etat',
+      publicBadges: [{ label: 'Selection' }],
+      etatGeneral: {
+        etatGeneralGlobal: {
+          boitier: { pourcentage: 94 },
+          cadran: { pourcentage: 93 },
+          mouvement: { pourcentage: 92 },
+          bracelet: { pourcentage: 90 },
+        },
+      },
+    },
   },
 ] as const
 
@@ -99,6 +126,16 @@ describe('buildBoutiqueListing', () => {
 
     expect(listing.paginated.map((product) => product.slug)).toEqual([
       'omega-vintage',
+      'cartier-classique',
+    ])
+  })
+
+  it('searches through watch-file public marketing fields', () => {
+    const listing = buildBoutiqueListing(products as never, {
+      q: 'selection',
+    })
+
+    expect(listing.paginated.map((product) => product.slug)).toEqual([
       'cartier-classique',
     ])
   })

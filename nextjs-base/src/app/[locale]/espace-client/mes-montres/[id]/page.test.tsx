@@ -78,12 +78,12 @@ describe('WatchFileDetailPage', () => {
       data: {
         data: {
           documentId: 'watch_1',
-          title: 'Omega de test',
+          reference: 'MGP0001',
           createdAt: '2026-04-23T10:00:00.000Z',
           updatedAt: '2026-04-23T10:00:00.000Z',
           product: { name: 'Omega', slug: 'omega' },
-          photos_before: [],
-          photos_after: [],
+          publicBeforeImage: [],
+          publicAfterImage: [],
         },
       },
       error: null,
@@ -94,7 +94,7 @@ describe('WatchFileDetailPage', () => {
     })
 
     expect(strapiAuthGetMock).toHaveBeenCalledWith(
-      '/watch-files/watch_1?populate[photos_before]=true&populate[photos_after]=true&populate[order]=true&populate[product]=true&populate[customer]=true',
+      '/watch-files/watch_1?populate%5BpublicBadges%5D=true&populate%5Border%5D=true&populate%5Bproduct%5D=true&populate%5Bcustomer%5D=true&populate%5BetatGeneral%5D%5Bpopulate%5D%5B0%5D=etatGeneralGlobal&populate%5BetatGeneral%5D%5Bpopulate%5D%5B1%5D=fonctionnementAvantIntervention&populate%5BetatGeneral%5D%5Bpopulate%5D%5B2%5D=etatVisuelComposants&populate%5BoperationsReparation%5D%5Bpopulate%5D%5B0%5D=operationsEffectuees&populate%5BoperationsReparation%5D%5Bpopulate%5D%5B1%5D=piecesRemplacees&populate%5BcontroleQualiteMesures%5D%5Bpopulate%5D%5B0%5D=reglageEtPrecision&populate%5BcontroleQualiteMesures%5D%5Bpopulate%5D%5B1%5D=testEtancheite&populate%5BvalidationAtelier%5D%5Bpopulate%5D%5B0%5D=signature&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.rich-text-block%5D%5Bpopulate%5D=*&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.text-image-block%5D%5Bpopulate%5D%5Bimage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.before-after-block%5D%5Bpopulate%5D%5BbeforeImage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.before-after-block%5D%5Bpopulate%5D%5BafterImage%5D=true',
       0
     )
     expect(notFoundMock).not.toHaveBeenCalled()

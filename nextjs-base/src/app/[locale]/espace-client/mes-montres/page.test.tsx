@@ -49,7 +49,7 @@ describe('MesMontrePage', () => {
         data: [
           {
             documentId: 'watch_1',
-            title: 'Omega de test',
+            reference: 'MGP0001',
             createdAt: '2026-04-23T10:00:00.000Z',
             product: { name: 'Omega' },
           },

@@ -1,0 +1,36 @@
+export default {
+  "collectionName": "components_watch_file_ligne_reglage_positions",
+  "info": {
+    "displayName": "Ligne reglage / position",
+    "description": "Ligne du tableau 4.1 reglage et precision"
+  },
+  "options": {},
+  "attributes": {
+    "position": {
+      "type": "string",
+      "required": true,
+      "displayName": "Position"
+    },
+    "rate": {
+      "type": "string",
+      "displayName": "Rate (s/j)"
+    },
+    "amplitude": {
+      "type": "string",
+      "displayName": "Amplitude"
+    },
+    "beatError": {
+      "type": "string",
+      "displayName": "Beat error"
+    },
+    "frequence": {
+      "type": "string",
+      "displayName": "Frequence"
+    },
+    "resultat": {
+      "type": "string",
+      "displayName": "Resultat"
+    }
+  },
+  "config": {}
+};

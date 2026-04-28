@@ -1,0 +1,29 @@
+export default {
+  "collectionName": "components_watch_file_before_after_blocks",
+  "info": {
+    "displayName": "Dossier Before / After",
+    "description": "Comparaison avant après dans le dossier de restauration"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "displayName": "Titre"
+    },
+    "beforeImage": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"],
+      "displayName": "Image avant"
+    },
+    "afterImage": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"],
+      "displayName": "Image après"
+    }
+  },
+  "config": {}
+};

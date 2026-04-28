@@ -1,0 +1,35 @@
+{
+  "collectionName": "components_watch_file_etat_general_globals",
+  "info": {
+    "displayName": "Resume global fiche produit",
+    "description": "Resume global de l'etat general visible sur la fiche produit"
+  },
+  "options": {},
+  "attributes": {
+    "boitier": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.indicateur-etat-general",
+      "displayName": "Boitier"
+    },
+    "cadran": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.indicateur-etat-general",
+      "displayName": "Cadran"
+    },
+    "mouvement": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.indicateur-etat-general",
+      "displayName": "Mouvement"
+    },
+    "bracelet": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.indicateur-etat-general",
+      "displayName": "Bracelet"
+    }
+  },
+  "config": {}
+}

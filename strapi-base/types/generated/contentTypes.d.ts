@@ -1117,10 +1117,6 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     active: Schema.Attribute.Boolean &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<true>;
-    afterImage: Schema.Attribute.Media<'images', true>;
-    badges: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
-    beforeImage: Schema.Attribute.Media<'images', true>;
-    brand: Schema.Attribute.String;
     category: Schema.Attribute.Relation<
       'manyToOne',
       'api::product-category.product-category'
@@ -1132,16 +1128,9 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
         },
         number
       >;
-    conditionRatings: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    description: Schema.Attribute.RichText &
-      Schema.Attribute.SetPluginOptions<{
-        i18n: {
-          localized: true;
-        };
-      }>;
     images: Schema.Attribute.Media<'images', true>;
     locale: Schema.Attribute.String;
     localizations: Schema.Attribute.Relation<
@@ -1164,20 +1153,15 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
         number
       >;
     publishedAt: Schema.Attribute.DateTime;
-    reference: Schema.Attribute.String;
-    restorationWork: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
-    shortDescription: Schema.Attribute.Text &
-      Schema.Attribute.SetPluginOptions<{
-        i18n: {
-          localized: true;
-        };
-      }>;
     slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
     stripePriceId: Schema.Attribute.String & Schema.Attribute.Private;
-    technicalSpecs: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    watchFile: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::watch-file.watch-file'
+    >;
   };
 }
 
@@ -1356,6 +1340,14 @@ export interface ApiWatchFileWatchFile extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    anneeEstimee: Schema.Attribute.String;
+    boucle: Schema.Attribute.String;
+    calibre: Schema.Attribute.String;
+    complications: Schema.Attribute.String;
+    controleQualiteMesures: Schema.Attribute.Component<
+      'watch-file.controle-qualite-mesures',
+      false
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1363,30 +1355,59 @@ export interface ApiWatchFileWatchFile extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    dateMiseEnVente: Schema.Attribute.Date;
+    dateReception: Schema.Attribute.Date;
+    diametreBoitier: Schema.Attribute.String;
+    dossierBlocks: Schema.Attribute.DynamicZone<
+      [
+        'watch-file.rich-text-block',
+        'watch-file.text-image-block',
+        'watch-file.before-after-block',
+      ]
+    >;
+    epaisseur: Schema.Attribute.String;
+    etancheiteAnnoncee: Schema.Attribute.String;
+    etatGeneral: Schema.Attribute.Component<'watch-file.etat-general', false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::watch-file.watch-file'
     > &
       Schema.Attribute.Private;
+    marketingDescription: Schema.Attribute.RichText;
+    marketingShortDescription: Schema.Attribute.Text;
+    marque: Schema.Attribute.String;
+    matiereBoitier: Schema.Attribute.String;
+    matiereBracelet: Schema.Attribute.String;
+    modele: Schema.Attribute.String;
+    mouvement: Schema.Attribute.String;
+    notesIdentification: Schema.Attribute.Text;
+    operationsReparation: Schema.Attribute.Component<
+      'watch-file.operations-reparation',
+      false
+    >;
     order: Schema.Attribute.Relation<'manyToOne', 'api::order.order'> &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
           localized: false;
         };
       }>;
-    photos_after: Schema.Attribute.Media<'images', true>;
-    photos_before: Schema.Attribute.Media<'images', true>;
-    product: Schema.Attribute.Relation<'manyToOne', 'api::product.product'>;
+    product: Schema.Attribute.Relation<'oneToOne', 'api::product.product'> &
+      Schema.Attribute.Required;
+    publicAfterImage: Schema.Attribute.Media<'images', true>;
+    publicBadges: Schema.Attribute.Component<'watch-file.public-badge', true>;
+    publicBeforeImage: Schema.Attribute.Media<'images', true>;
     publishedAt: Schema.Attribute.DateTime;
-    repair_notes: Schema.Attribute.RichText;
-    technician_notes: Schema.Attribute.RichText & Schema.Attribute.Private;
-    title: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'Dossier montre'>;
+    reference: Schema.Attribute.String & Schema.Attribute.Required;
+    referencePiece: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    validationAtelier: Schema.Attribute.Component<
+      'watch-file.validation-atelier',
+      false
+    >;
+    verre: Schema.Attribute.String;
   };
 }
 

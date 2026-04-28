@@ -8,15 +8,53 @@ import { factories } from '@strapi/strapi'
 type UID = 'api::watch-file.watch-file'
 const MODEL_UID: UID = 'api::watch-file.watch-file'
 
+function mergePopulate(
+  queryPopulate: unknown,
+  requiredPopulate: Record<string, true>
+) {
+  if (!queryPopulate) return requiredPopulate
+  if (queryPopulate === '*') return queryPopulate
+
+  if (Array.isArray(queryPopulate)) {
+    return Array.from(
+      new Set([...queryPopulate, ...Object.keys(requiredPopulate)])
+    )
+  }
+
+  if (typeof queryPopulate === 'string') {
+    return Array.from(
+      new Set([queryPopulate, ...Object.keys(requiredPopulate)])
+    )
+  }
+
+  if (typeof queryPopulate === 'object') {
+    return {
+      ...(queryPopulate as Record<string, unknown>),
+      ...requiredPopulate,
+    }
+  }
+
+  return requiredPopulate
+}
+
 export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
   async find(ctx) {
     const user = ctx.state.user as { id: number } | null
     if (!user) return ctx.unauthorized('Authentification requise')
 
+    await this.validateQuery(ctx)
+    const sanitizedQuery = await this.sanitizeQuery(ctx)
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entries = await (strapi.documents(MODEL_UID) as any).findMany({
+      ...sanitizedQuery,
       filters: { customer: { id: { $eq: user.id } } },
-      populate: ['photos_before', 'photos_after', 'order', 'product'],
+      populate: mergePopulate(sanitizedQuery.populate, {
+        publicBeforeImage: true,
+        publicAfterImage: true,
+        order: true,
+        product: true,
+      }),
     })
 
     return { data: entries, meta: {} }
@@ -27,11 +65,13 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     if (!user) return ctx.unauthorized('Authentification requise')
 
     const { id } = ctx.params as { id: string }
+    await this.validateQuery(ctx)
+    const sanitizedQuery = await this.sanitizeQuery(ctx)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entry = await (strapi.documents(MODEL_UID) as any).findOne({
       documentId: id,
-      populate: ['photos_before', 'photos_after', 'order', 'product', 'customer'],
+      populate: mergePopulate(sanitizedQuery.populate, { customer: true }),
     })
 
     if (!entry) return ctx.notFound('Dossier introuvable')

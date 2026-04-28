@@ -23,10 +23,15 @@ interface StrapiCategory {
   slug: string
 }
 
-interface ConditionRating {
-  label: string
-  value: number
-  note: string
+interface GlobalConditionIndicator {
+  pourcentage: number | null
+}
+
+interface GlobalConditionSummary {
+  boitier: GlobalConditionIndicator | null
+  cadran: GlobalConditionIndicator | null
+  mouvement: GlobalConditionIndicator | null
+  bracelet: GlobalConditionIndicator | null
 }
 
 interface StrapiProduct {
@@ -34,14 +39,18 @@ interface StrapiProduct {
   documentId: string
   name: string
   slug: string
-  shortDescription: string | null
-  badges: string[] | null
   price: number
   compareAtPrice: number | null
   active: boolean
   images: StrapiImage[] | null
   category: StrapiCategory | null
-  conditionRatings: ConditionRating[] | null
+  watchFile: {
+    marketingShortDescription: string | null
+    publicBadges: { label: string | null }[] | null
+    etatGeneral: {
+      etatGeneralGlobal: GlobalConditionSummary | null
+    } | null
+  } | null
 }
 
 type BoutiqueFilters = {
@@ -80,13 +89,16 @@ async function getProducts(locale: string): Promise<StrapiProduct[]> {
   url.searchParams.set('fields[2]', 'price')
   url.searchParams.set('fields[3]', 'compareAtPrice')
   url.searchParams.set('fields[4]', 'active')
-  url.searchParams.set('fields[5]', 'shortDescription')
-  url.searchParams.set('fields[6]', 'badges')
-  url.searchParams.set('fields[7]', 'conditionRatings')
   url.searchParams.set('populate[images][fields][0]', 'url')
   url.searchParams.set('populate[images][fields][1]', 'alternativeText')
   url.searchParams.set('populate[category][fields][0]', 'name')
   url.searchParams.set('populate[category][fields][1]', 'slug')
+  url.searchParams.set(
+    'populate[watchFile][fields][0]',
+    'marketingShortDescription'
+  )
+  url.searchParams.set('populate[watchFile][populate][0]', 'publicBadges')
+  url.searchParams.set('populate[watchFile][populate][1]', 'etatGeneral')
   url.searchParams.set('sort', 'createdAt:desc')
   url.searchParams.set('pagination[pageSize]', '100')
 
@@ -126,12 +138,22 @@ interface Props {
 const PAGE_SIZE = 12
 
 function getConditionBucket(
-  conditionRatings: ConditionRating[] | null
+  etatGeneral: StrapiProduct['watchFile']['etatGeneral'] | null | undefined
 ): string {
-  if (!conditionRatings || conditionRatings.length === 0) return 'a-restaurer'
-  const avg =
-    conditionRatings.reduce((sum, r) => sum + r.value, 0) /
-    conditionRatings.length
+  const summary = etatGeneral?.etatGeneralGlobal
+  if (!summary) return 'a-restaurer'
+
+  const values = [
+    summary.boitier?.pourcentage,
+    summary.cadran?.pourcentage,
+    summary.mouvement?.pourcentage,
+    summary.bracelet?.pourcentage,
+  ].filter((value): value is number => typeof value === 'number')
+
+  if (values.length === 0) return 'a-restaurer'
+
+  const avg = values.reduce((sum, value) => sum + value, 0) / values.length
+
   if (avg >= 80) return 'excellent'
   if (avg >= 60) return 'tres-bon'
   if (avg >= 40) return 'bon'
@@ -177,9 +199,14 @@ export function buildBoutiqueListing(
   const queryFiltered = query
     ? categoryFiltered.filter((product) => {
         const name = product.name?.toLowerCase() ?? ''
-        const shortDescription = product.shortDescription?.toLowerCase() ?? ''
+        const shortDescription =
+          product.watchFile?.marketingShortDescription?.toLowerCase() ?? ''
         const categoryName = product.category?.name?.toLowerCase() ?? ''
-        const badgesText = (product.badges ?? []).join(' ').toLowerCase()
+        const badgesText = (product.watchFile?.publicBadges ?? [])
+          .map((badge) => badge.label?.trim() ?? '')
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
         return (
           name.includes(query) ||
           shortDescription.includes(query) ||
@@ -202,7 +229,7 @@ export function buildBoutiqueListing(
     filters.etat && filters.etat !== 'tous'
       ? priceFiltered.filter(
           (product) =>
-            getConditionBucket(product.conditionRatings) === filters.etat
+            getConditionBucket(product.watchFile?.etatGeneral) === filters.etat
         )
       : priceFiltered
 

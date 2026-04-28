@@ -30,7 +30,8 @@ interface Product {
 
 interface WatchFile {
   documentId: string
-  title: string
+  reference: string
+  product?: { name: string }
   watch_status: 'waiting' | 'in_progress' | 'completed'
 }
 
@@ -110,7 +111,7 @@ export default async function TableauDeBordPage({
       r.ok ? (r.json() as Promise<StrapiList<Order>>) : { data: [] }
     ),
     strapiAuthGet<StrapiList<WatchFile>>(
-      '/watch-files?sort=createdAt:desc&pagination[limit]=5',
+      '/watch-files?sort=createdAt:desc&pagination[limit]=5&populate[product][fields][0]=name',
       0
     ),
     strapiAuthGet<StrapiList<ServiceRequest>>(
@@ -251,7 +252,7 @@ export default async function TableauDeBordPage({
                   className="flex items-center justify-between border border-neutral-200 bg-white px-5 py-4 shadow-sm hover:border-neutral-400 transition-colors dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
                 >
                   <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
-                    {wf.title}
+                    {wf.product?.name ?? `Dossier ${wf.reference}`}
                   </span>
                   <span
                     className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[wf.watch_status] ?? 'bg-stone-100 text-stone-600'}`}

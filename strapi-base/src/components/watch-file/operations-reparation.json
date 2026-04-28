@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_watch_file_operations_reparations",
+  "info": {
+    "displayName": "3. Operations de reparation",
+    "description": "Point 3 du dossier avec resume public et details atelier"
+  },
+  "options": {},
+  "attributes": {
+    "operationsPubliques": {
+      "type": "text",
+      "displayName": "3.0 Resume public fiche produit"
+    },
+    "operationsEffectuees": {
+      "type": "component",
+      "repeatable": true,
+      "component": "watch-file.ligne-operation-reparation",
+      "displayName": "3.1 Operations effectuees"
+    },
+    "piecesRemplacees": {
+      "type": "component",
+      "repeatable": true,
+      "component": "watch-file.piece-remplacee",
+      "displayName": "3.2 Pieces remplacees"
+    }
+  },
+  "config": {}
+}

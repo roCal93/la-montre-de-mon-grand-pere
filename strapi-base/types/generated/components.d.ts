@@ -525,6 +525,270 @@ export interface ShopShippingAddress extends Struct.ComponentSchema {
   };
 }
 
+export interface WatchFileBeforeAfterBlock extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_before_after_blocks';
+  info: {
+    description: 'Comparaison avant apr\u00E8s dans le dossier de restauration';
+    displayName: 'Dossier Before / After';
+  };
+  attributes: {
+    afterImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    beforeImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface WatchFileControleQualiteMesures
+  extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_controle_qualite_mesures';
+  info: {
+    description: 'Point 4 du dossier avec mesures detaillees et resume public';
+    displayName: '4. Controle qualite & mesures';
+  };
+  attributes: {
+    etancheitePublique: Schema.Attribute.String;
+    marcheMoyennePublique: Schema.Attribute.String;
+    observationsConclusions: Schema.Attribute.Text;
+    reglageEtPrecision: Schema.Attribute.Component<
+      'watch-file.ligne-reglage-position',
+      true
+    >;
+    testEtancheite: Schema.Attribute.Component<
+      'watch-file.ligne-test-etancheite',
+      true
+    >;
+  };
+}
+
+export interface WatchFileEtatGeneral extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_etat_generals';
+  info: {
+    description: 'Point 2 du dossier avec resume global et observations detaillees';
+    displayName: '2. Etat a la reception';
+  };
+  attributes: {
+    etatGeneralGlobal: Schema.Attribute.Component<
+      'watch-file.etat-general-global',
+      false
+    >;
+    etatVisuelComposants: Schema.Attribute.Component<
+      'watch-file.ligne-composant-observation',
+      true
+    >;
+    fonctionnementAvantIntervention: Schema.Attribute.Component<
+      'watch-file.ligne-observation-constat',
+      true
+    >;
+  };
+}
+
+export interface WatchFileEtatGeneralGlobal extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_etat_general_globals';
+  info: {
+    description: "Resume global de l'etat general visible sur la fiche produit";
+    displayName: 'Resume global fiche produit';
+  };
+  attributes: {
+    boitier: Schema.Attribute.Component<
+      'watch-file.indicateur-etat-general',
+      false
+    >;
+    bracelet: Schema.Attribute.Component<
+      'watch-file.indicateur-etat-general',
+      false
+    >;
+    cadran: Schema.Attribute.Component<
+      'watch-file.indicateur-etat-general',
+      false
+    >;
+    mouvement: Schema.Attribute.Component<
+      'watch-file.indicateur-etat-general',
+      false
+    >;
+  };
+}
+
+export interface WatchFileIndicateurEtatGeneral extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_indicateur_etat_generals';
+  info: {
+    description: 'Pourcentage et commentaire court pour une rubrique du resume global';
+    displayName: 'Indicateur resume global';
+  };
+  attributes: {
+    commentaire: Schema.Attribute.String;
+    pourcentage: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+  };
+}
+
+export interface WatchFileLigneComposantObservation
+  extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_ligne_composant_observations';
+  info: {
+    description: 'Ligne du tableau etat visuel des composants';
+    displayName: 'Ligne composant / observation';
+  };
+  attributes: {
+    composant: Schema.Attribute.String & Schema.Attribute.Required;
+    observations: Schema.Attribute.Text;
+  };
+}
+
+export interface WatchFileLigneObservationConstat
+  extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_ligne_observation_constats';
+  info: {
+    description: 'Ligne du tableau fonctionnement avant intervention';
+    displayName: 'Ligne observation / constat';
+  };
+  attributes: {
+    constat: Schema.Attribute.Text;
+    observation: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface WatchFileLigneOperationReparation
+  extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_ligne_operation_reparations';
+  info: {
+    description: 'Ligne du tableau 3.1 operations effectuees';
+    displayName: 'Ligne operation de reparation';
+  };
+  attributes: {
+    observations: Schema.Attribute.Text;
+    operation: Schema.Attribute.String & Schema.Attribute.Required;
+    realisee: Schema.Attribute.Boolean;
+  };
+}
+
+export interface WatchFileLigneReglagePosition extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_ligne_reglage_positions';
+  info: {
+    description: 'Ligne du tableau 4.1 reglage et precision';
+    displayName: 'Ligne reglage / position';
+  };
+  attributes: {
+    amplitude: Schema.Attribute.String;
+    beatError: Schema.Attribute.String;
+    frequence: Schema.Attribute.String;
+    position: Schema.Attribute.String & Schema.Attribute.Required;
+    rate: Schema.Attribute.String;
+    resultat: Schema.Attribute.String;
+  };
+}
+
+export interface WatchFileLigneTestEtancheite extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_ligne_test_etancheites';
+  info: {
+    description: "Ligne du tableau 4.2 test d'etancheite";
+    displayName: 'Ligne test etancheite';
+  };
+  attributes: {
+    observations: Schema.Attribute.Text;
+    test: Schema.Attribute.String & Schema.Attribute.Required;
+    valeurResultat: Schema.Attribute.String;
+  };
+}
+
+export interface WatchFileOperationsReparation extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_operations_reparations';
+  info: {
+    description: 'Point 3 du dossier avec resume public et details atelier';
+    displayName: '3. Operations de reparation';
+  };
+  attributes: {
+    operationsEffectuees: Schema.Attribute.Component<
+      'watch-file.ligne-operation-reparation',
+      true
+    >;
+    operationsPubliques: Schema.Attribute.Text;
+    piecesRemplacees: Schema.Attribute.Component<
+      'watch-file.piece-remplacee',
+      true
+    >;
+  };
+}
+
+export interface WatchFilePieceRemplacee extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_piece_remplacees';
+  info: {
+    description: 'Ligne du tableau 3.2 pieces remplacees';
+    displayName: 'Piece remplacee';
+  };
+  attributes: {
+    designationPiece: Schema.Attribute.String;
+    etatPiece: Schema.Attribute.Enumeration<['orig', 'rep']>;
+    origine: Schema.Attribute.String;
+    quantite: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
+    referenceCalibre: Schema.Attribute.String;
+  };
+}
+
+export interface WatchFilePublicBadge extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_public_badges';
+  info: {
+    description: 'Badge public affiche sur la fiche produit';
+    displayName: 'Badge public';
+  };
+  attributes: {
+    label: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface WatchFileRichTextBlock extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_rich_text_blocks';
+  info: {
+    description: 'Section texte riche pour le dossier de restauration';
+    displayName: 'Dossier Rich Text';
+  };
+  attributes: {
+    content: Schema.Attribute.Blocks & Schema.Attribute.Required;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface WatchFileTextImageBlock extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_text_image_blocks';
+  info: {
+    description: 'Bloc texte et image pour le dossier de restauration';
+    displayName: 'Dossier Text + Image';
+  };
+  attributes: {
+    content: Schema.Attribute.Blocks & Schema.Attribute.Required;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    imagePosition: Schema.Attribute.Enumeration<['left', 'right']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'right'>;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface WatchFileValidationAtelier extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_validation_ateliers';
+  info: {
+    description: 'Validation finale atelier du dossier de restauration';
+    displayName: '5. Validation atelier';
+  };
+  attributes: {
+    dateFin: Schema.Attribute.Date;
+    dateSignature: Schema.Attribute.Date;
+    dureeIntervention: Schema.Attribute.String;
+    signature: Schema.Attribute.Media<'images'>;
+  };
+}
+
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
@@ -546,6 +810,22 @@ declare module '@strapi/strapi' {
       'shared.timeline-item': SharedTimelineItem;
       'shop.order-line-item': ShopOrderLineItem;
       'shop.shipping-address': ShopShippingAddress;
+      'watch-file.before-after-block': WatchFileBeforeAfterBlock;
+      'watch-file.controle-qualite-mesures': WatchFileControleQualiteMesures;
+      'watch-file.etat-general': WatchFileEtatGeneral;
+      'watch-file.etat-general-global': WatchFileEtatGeneralGlobal;
+      'watch-file.indicateur-etat-general': WatchFileIndicateurEtatGeneral;
+      'watch-file.ligne-composant-observation': WatchFileLigneComposantObservation;
+      'watch-file.ligne-observation-constat': WatchFileLigneObservationConstat;
+      'watch-file.ligne-operation-reparation': WatchFileLigneOperationReparation;
+      'watch-file.ligne-reglage-position': WatchFileLigneReglagePosition;
+      'watch-file.ligne-test-etancheite': WatchFileLigneTestEtancheite;
+      'watch-file.operations-reparation': WatchFileOperationsReparation;
+      'watch-file.piece-remplacee': WatchFilePieceRemplacee;
+      'watch-file.public-badge': WatchFilePublicBadge;
+      'watch-file.rich-text-block': WatchFileRichTextBlock;
+      'watch-file.text-image-block': WatchFileTextImageBlock;
+      'watch-file.validation-atelier': WatchFileValidationAtelier;
     }
   }
 }

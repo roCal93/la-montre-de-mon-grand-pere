@@ -11,7 +11,6 @@ interface SyncProductToStripeInput {
   slug: string;
   price: number; // in cents
   description?: string | null;
-  shortDescription?: string | null;
 }
 
 interface SyncResult {
@@ -30,6 +29,34 @@ function getStripeClient(): Stripe | null {
   }
 
   return new Stripe(process.env.STRIPE_SECRET_KEY);
+}
+
+interface StripeDescriptionWatchFile {
+  marketingShortDescription?: string | null;
+  marketingDescription?: string | null;
+}
+
+export async function getStripeDescriptionFromProduct(
+  strapi: any,
+  documentId: string
+): Promise<string | undefined> {
+  const product = await strapi.documents('api::product.product').findOne({
+    documentId,
+    fields: ['documentId'],
+    populate: {
+      watchFile: {
+        fields: ['marketingShortDescription', 'marketingDescription'],
+      },
+    },
+  });
+
+  const watchFile = product?.watchFile as StripeDescriptionWatchFile | null;
+
+  return (
+    watchFile?.marketingShortDescription?.trim() ||
+    watchFile?.marketingDescription?.trim() ||
+    undefined
+  );
 }
 
 /**
@@ -60,7 +87,7 @@ export async function syncProductToStripe(
       stripeProductId = existingProducts.data[0].id;
       await stripe.products.update(stripeProductId, {
         name: product.name,
-        description: product.shortDescription || product.description || undefined,
+        description: product.description || undefined,
         active: true,
         metadata: {
           strapi_id: product.documentId,
@@ -72,7 +99,7 @@ export async function syncProductToStripe(
       // Create new product
       const stripeProduct = await stripe.products.create({
         name: product.name,
-        description: product.shortDescription || product.description || undefined,
+        description: product.description || undefined,
         metadata: {
           strapi_id: product.documentId,
           strapi_slug: product.slug,

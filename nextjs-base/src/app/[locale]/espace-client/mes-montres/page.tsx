@@ -5,13 +5,25 @@ import Link from 'next/link'
 
 interface WatchFile {
   documentId: string
-  title: string
+  reference: string
   createdAt: string
+  dateReception?: string
+  dateMiseEnVente?: string
   product?: { name: string }
 }
 
 interface StrapiList<T> {
   data: T[]
+}
+
+function formatWatchFileDate(value?: string) {
+  if (!value) return null
+
+  return new Date(value).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
 export default async function MesMontrePage({
@@ -55,35 +67,39 @@ export default async function MesMontrePage({
         </div>
       ) : (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2">
-          {watchFiles.map((wf) => (
-            <li key={wf.documentId}>
-              <Link
-                href={`/${locale}/espace-client/mes-montres/${wf.documentId}`}
-                className="group flex flex-col gap-3 border border-neutral-200 bg-white p-5 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-neutral-900 truncate dark:text-white">
-                      {wf.product?.name ?? wf.title}
-                    </p>
-                    <p className="text-xs text-neutral-400 truncate mt-0.5">
-                      {wf.title}
-                    </p>
+          {watchFiles.map((wf) => {
+            const primaryDate =
+              wf.dateMiseEnVente ?? wf.dateReception ?? wf.createdAt
+            const formattedPrimaryDate = formatWatchFileDate(primaryDate)
+
+            return (
+              <li key={wf.documentId}>
+                <Link
+                  href={`/${locale}/espace-client/mes-montres/${wf.documentId}`}
+                  className="group flex flex-col gap-3 border border-neutral-200 bg-white p-5 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-neutral-900 truncate dark:text-white">
+                        {wf.product?.name ?? wf.reference}
+                      </p>
+                      <p className="mt-0.5 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-400 truncate">
+                        Dossier {wf.reference}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-end">
-                  <span className="text-xs text-neutral-400">
-                    {new Date(wf.createdAt).toLocaleDateString('fr-FR')}
+                  <div className="flex items-center justify-between gap-3 text-xs text-neutral-400">
+                    <span>{formattedPrimaryDate ?? ''}</span>
+                  </div>
+
+                  <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 group-hover:text-black transition-colors mt-1 dark:text-neutral-400 dark:group-hover:text-white">
+                    Voir le dossier
                   </span>
-                </div>
-
-                <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 group-hover:text-black transition-colors mt-1 dark:text-neutral-400 dark:group-hover:text-white">
-                  Voir le dossier
-                </span>
-              </Link>
-            </li>
-          ))}
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
