@@ -155,12 +155,12 @@ function buildGlobalRows(etatGeneral?: EtatGeneral | null) {
   if (!globalState) return []
 
   return [
-    ['Boîtier', globalState.boitier],
-    ['Cadran', globalState.cadran],
-    ['Mouvement', globalState.mouvement],
-    ['Bracelet', globalState.bracelet],
+    { label: 'Boîtier', item: globalState.boitier },
+    { label: 'Cadran', item: globalState.cadran },
+    { label: 'Mouvement', item: globalState.mouvement },
+    { label: 'Bracelet', item: globalState.bracelet },
   ]
-    .map(([label, item]) => {
+    .map(({ label, item }) => {
       const percentage = normalizePercentage(item?.pourcentage)
       const comment = normalizeText(item?.commentaire)
 

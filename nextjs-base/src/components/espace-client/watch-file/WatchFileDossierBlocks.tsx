@@ -59,46 +59,77 @@ function renderRichText(blocks: StrapiBlock[]) {
         )
       case 'heading': {
         const level = Number(block.level ?? 2)
-        const HeadingTag = `h${Math.min(Math.max(level, 2), 4)}` as const
-        const classes = {
-          h2: 'text-2xl font-serif font-semibold text-neutral-900 dark:text-white',
-          h3: 'text-xl font-serif font-semibold text-neutral-900 dark:text-white',
-          h4: 'text-lg font-serif font-semibold text-neutral-900 dark:text-white',
+        const content = block.children?.map((child, childIndex) =>
+          child.type === 'text' || typeof child.text === 'string' ? (
+            <span key={childIndex}>{child.text}</span>
+          ) : null
+        )
+
+        if (level >= 4) {
+          return (
+            <h4
+              key={index}
+              className="text-lg font-serif font-semibold text-neutral-900 dark:text-white"
+            >
+              {content}
+            </h4>
+          )
+        }
+
+        if (level === 3) {
+          return (
+            <h3
+              key={index}
+              className="text-xl font-serif font-semibold text-neutral-900 dark:text-white"
+            >
+              {content}
+            </h3>
+          )
         }
 
         return (
-          <HeadingTag key={index} className={classes[HeadingTag]}>
-            {block.children?.map((child, childIndex) =>
-              child.type === 'text' || typeof child.text === 'string' ? (
-                <span key={childIndex}>{child.text}</span>
-              ) : null
-            )}
-          </HeadingTag>
+          <h2
+            key={index}
+            className="text-2xl font-serif font-semibold text-neutral-900 dark:text-white"
+          >
+            {content}
+          </h2>
         )
       }
       case 'list': {
-        const ListTag = block.format === 'ordered' ? 'ol' : 'ul'
         const listClass =
           block.format === 'ordered' ? 'list-decimal pl-5' : 'list-disc pl-5'
+        const content = block.children?.map((child, childIndex) => (
+          <li key={childIndex}>
+            {Array.isArray(child.children)
+              ? child.children.map((grandChild, grandChildIndex) =>
+                  grandChild.type === 'text' ||
+                  typeof grandChild.text === 'string' ? (
+                    <span key={grandChildIndex}>{grandChild.text}</span>
+                  ) : null
+                )
+              : null}
+          </li>
+        ))
+
+        if (block.format === 'ordered') {
+          return (
+            <ol
+              key={index}
+              className={`space-y-2 text-[15px] leading-[1.8] text-neutral-800 dark:text-neutral-200 ${listClass}`}
+            >
+              {content}
+            </ol>
+          )
+        }
 
         return (
-          <ListTag
+          <ul
             key={index}
             className={`space-y-2 text-[15px] leading-[1.8] text-neutral-800 dark:text-neutral-200 ${listClass}`}
           >
-            {block.children?.map((child, childIndex) => (
-              <li key={childIndex}>
-                {Array.isArray(child.children)
-                  ? child.children.map((grandChild, grandChildIndex) =>
-                      grandChild.type === 'text' ||
-                      typeof grandChild.text === 'string' ? (
-                        <span key={grandChildIndex}>{grandChild.text}</span>
-                      ) : null
-                    )
-                  : null}
-              </li>
-            ))}
-          </ListTag>
+            {content}
+          </ul>
         )
       }
       default:

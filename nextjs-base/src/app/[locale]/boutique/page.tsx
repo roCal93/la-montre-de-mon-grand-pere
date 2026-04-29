@@ -138,7 +138,10 @@ interface Props {
 const PAGE_SIZE = 12
 
 function getConditionBucket(
-  etatGeneral: StrapiProduct['watchFile']['etatGeneral'] | null | undefined
+  etatGeneral:
+    | NonNullable<StrapiProduct['watchFile']>['etatGeneral']
+    | null
+    | undefined
 ): string {
   const summary = etatGeneral?.etatGeneralGlobal
   if (!summary) return 'a-restaurer'
