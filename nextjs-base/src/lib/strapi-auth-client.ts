@@ -6,8 +6,6 @@
 
 import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
-
 type FetchOptions = {
   method?: string
   body?: unknown
@@ -22,7 +20,8 @@ export async function strapiAuthFetch<T = unknown>(
   path: string,
   options: FetchOptions = {}
 ): Promise<{ data: T | null; error: string | null; status: number }> {
-  if (!STRAPI_URL) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  if (!strapiUrl) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
 
   const jwt = await getStrapiJwt()
   if (!jwt) return { data: null, error: 'Non authentifié', status: 401 }
@@ -32,7 +31,7 @@ export async function strapiAuthFetch<T = unknown>(
   let res: Response
 
   try {
-    res = await fetch(`${STRAPI_URL}/api${path}`, {
+    res = await fetch(`${strapiUrl}/api${path}`, {
       method,
       headers: {
         'Content-Type': 'application/json',

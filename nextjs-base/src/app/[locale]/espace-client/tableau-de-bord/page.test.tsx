@@ -74,7 +74,7 @@ describe('TableauDeBordPage', () => {
     )
     expect(strapiAuthGetMock).toHaveBeenNthCalledWith(
       1,
-      '/watch-files?sort=createdAt:desc&pagination[limit]=5',
+      '/watch-files?sort=createdAt:desc&pagination[limit]=5&populate[product][fields][0]=name',
       0
     )
     expect(strapiAuthGetMock).toHaveBeenNthCalledWith(
