@@ -113,12 +113,6 @@ export default {
       "component": "watch-file.controle-qualite-mesures",
       "displayName": "4. Contrôle qualité & mesures"
     },
-    "validationAtelier": {
-      "type": "component",
-      "repeatable": false,
-      "component": "watch-file.validation-atelier",
-      "displayName": "5. Validation atelier"
-    },
     "notesIdentification": {
       "type": "text",
       "displayName": "Notes d'identification"
@@ -134,6 +128,12 @@ export default {
         "watch-file.video-block",
         "watch-file.audio-block"
       ]
+    },
+    "validationAtelier": {
+      "type": "component",
+      "repeatable": false,
+      "component": "watch-file.validation-atelier",
+      "displayName": "5. Validation atelier"
     },
     "publicBeforeImage": {
       "type": "media",
