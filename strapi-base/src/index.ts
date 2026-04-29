@@ -1,6 +1,20 @@
 import type { Core } from '@strapi/strapi';
 import stripeSync from './extensions/stripeSync';
 
+const WATCH_FILE_LAYOUT_KEY =
+  'plugin_content_manager_configuration_content_types::api::watch-file.watch-file';
+
+type ContentManagerLayoutItem = {
+  name?: string;
+  size?: number;
+};
+
+type ContentManagerConfiguration = {
+  layouts?: {
+    edit?: ContentManagerLayoutItem[][];
+  };
+};
+
 async function cleanupBrokenBlogCategoryLinks(strapi: Core.Strapi) {
   try {
     const db = strapi.db.connection;
@@ -37,6 +51,59 @@ async function cleanupBrokenBlogCategoryLinks(strapi: Core.Strapi) {
   }
 }
 
+async function ensureWatchFileEditLayoutOrder(strapi: Core.Strapi) {
+  try {
+    const db = strapi.db.connection;
+    const entry = await db('strapi_core_store_settings')
+      .select('id', 'key', 'value')
+      .where({ key: WATCH_FILE_LAYOUT_KEY })
+      .first();
+
+    if (!entry?.value) {
+      return;
+    }
+
+    const configuration = JSON.parse(entry.value) as ContentManagerConfiguration;
+    const editLayout = configuration.layouts?.edit;
+
+    if (!editLayout?.length) {
+      return;
+    }
+
+    const validationIndex = editLayout.findIndex(
+      (row) => row[0]?.name === 'validationAtelier'
+    );
+    const dossierBlocksIndex = editLayout.findIndex((row) => row[0]?.name === 'dossierBlocks');
+
+    if (
+      validationIndex === -1 ||
+      dossierBlocksIndex === -1 ||
+      dossierBlocksIndex < validationIndex
+    ) {
+      return;
+    }
+
+    const nextEditLayout = [...editLayout];
+    const [dossierBlocksRow] = nextEditLayout.splice(dossierBlocksIndex, 1);
+    nextEditLayout.splice(validationIndex, 0, dossierBlocksRow);
+
+    configuration.layouts = {
+      ...configuration.layouts,
+      edit: nextEditLayout,
+    };
+
+    await db('strapi_core_store_settings')
+      .where({ key: WATCH_FILE_LAYOUT_KEY })
+      .update({ value: JSON.stringify(configuration) });
+
+    strapi.log.info(
+      '[bootstrap] Normalized watch-file edit layout: dossierBlocks before validationAtelier'
+    );
+  } catch (error) {
+    strapi.log.error('[bootstrap] Failed to normalize watch-file edit layout:', error);
+  }
+}
+
 export default {
   /**
    * An asynchronous register function that runs before
@@ -58,5 +125,6 @@ export default {
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await cleanupBrokenBlogCategoryLinks(strapi);
+    await ensureWatchFileEditLayoutOrder(strapi);
   },
 };
