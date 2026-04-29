@@ -525,6 +525,19 @@ export interface ShopShippingAddress extends Struct.ComponentSchema {
   };
 }
 
+export interface WatchFileAudioBlock extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_audio_blocks';
+  info: {
+    description: 'Bloc audio pour le dossier de restauration';
+    displayName: 'Dossier Audio';
+  };
+  attributes: {
+    audio: Schema.Attribute.Media<'audios'> & Schema.Attribute.Required;
+    content: Schema.Attribute.Blocks;
+    title: Schema.Attribute.String;
+  };
+}
+
 export interface WatchFileBeforeAfterBlock extends Struct.ComponentSchema {
   collectionName: 'components_watch_file_before_after_blocks';
   info: {
@@ -534,6 +547,7 @@ export interface WatchFileBeforeAfterBlock extends Struct.ComponentSchema {
   attributes: {
     afterImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
     beforeImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    content: Schema.Attribute.Blocks;
     title: Schema.Attribute.String;
   };
 }
@@ -605,6 +619,18 @@ export interface WatchFileEtatGeneralGlobal extends Struct.ComponentSchema {
       'watch-file.indicateur-etat-general',
       false
     >;
+  };
+}
+
+export interface WatchFileImageBlock extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_image_blocks';
+  info: {
+    description: 'Bloc image simple pour le dossier de restauration';
+    displayName: 'Dossier Image';
+  };
+  attributes: {
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    title: Schema.Attribute.String;
   };
 }
 
@@ -789,6 +815,19 @@ export interface WatchFileValidationAtelier extends Struct.ComponentSchema {
   };
 }
 
+export interface WatchFileVideoBlock extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_video_blocks';
+  info: {
+    description: 'Bloc video pour le dossier de restauration';
+    displayName: 'Dossier Video';
+  };
+  attributes: {
+    content: Schema.Attribute.Blocks;
+    title: Schema.Attribute.String;
+    video: Schema.Attribute.Media<'videos'> & Schema.Attribute.Required;
+  };
+}
+
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
@@ -810,10 +849,12 @@ declare module '@strapi/strapi' {
       'shared.timeline-item': SharedTimelineItem;
       'shop.order-line-item': ShopOrderLineItem;
       'shop.shipping-address': ShopShippingAddress;
+      'watch-file.audio-block': WatchFileAudioBlock;
       'watch-file.before-after-block': WatchFileBeforeAfterBlock;
       'watch-file.controle-qualite-mesures': WatchFileControleQualiteMesures;
       'watch-file.etat-general': WatchFileEtatGeneral;
       'watch-file.etat-general-global': WatchFileEtatGeneralGlobal;
+      'watch-file.image-block': WatchFileImageBlock;
       'watch-file.indicateur-etat-general': WatchFileIndicateurEtatGeneral;
       'watch-file.ligne-composant-observation': WatchFileLigneComposantObservation;
       'watch-file.ligne-observation-constat': WatchFileLigneObservationConstat;
@@ -826,6 +867,7 @@ declare module '@strapi/strapi' {
       'watch-file.rich-text-block': WatchFileRichTextBlock;
       'watch-file.text-image-block': WatchFileTextImageBlock;
       'watch-file.validation-atelier': WatchFileValidationAtelier;
+      'watch-file.video-block': WatchFileVideoBlock;
     }
   }
 }

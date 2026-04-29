@@ -10,6 +10,11 @@ export default {
       "type": "string",
       "displayName": "Titre"
     },
+    "content": {
+      "type": "blocks",
+      "required": false,
+      "displayName": "Contenu"
+    },
     "beforeImage": {
       "type": "media",
       "multiple": false,

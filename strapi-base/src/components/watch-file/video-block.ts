@@ -1,0 +1,27 @@
+export default {
+  "collectionName": "components_watch_file_video_blocks",
+  "info": {
+    "displayName": "Dossier Video",
+    "description": "Bloc video pour le dossier de restauration"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "displayName": "Titre"
+    },
+    "content": {
+      "type": "blocks",
+      "required": false,
+      "displayName": "Contenu"
+    },
+    "video": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["videos"],
+      "displayName": "Video"
+    }
+  },
+  "config": {}
+};

@@ -1,12 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-const { getStrapiSessionJwtMock, renderToBufferMock } = vi.hoisted(() => ({
+const {
+  getCurrentStrapiUserMock,
+  getStrapiSessionJwtMock,
+  renderToBufferMock,
+} = vi.hoisted(() => ({
+  getCurrentStrapiUserMock: vi.fn(),
   getStrapiSessionJwtMock: vi.fn(),
   renderToBufferMock: vi.fn(),
 }))
 
 vi.mock('@/lib/strapi-session-cookie', () => ({
+  getCurrentStrapiUser: getCurrentStrapiUserMock,
   getStrapiSessionJwt: getStrapiSessionJwtMock,
 }))
 
@@ -24,6 +30,7 @@ import { GET } from './route'
 describe('GET /api/watch-files/[id]/pdf', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_STRAPI_URL = 'http://strapi.test'
+    getCurrentStrapiUserMock.mockReset()
     getStrapiSessionJwtMock.mockReset()
     renderToBufferMock.mockReset()
     renderToBufferMock.mockResolvedValue(new Uint8Array([1, 2, 3]))
@@ -32,6 +39,7 @@ describe('GET /api/watch-files/[id]/pdf', () => {
 
   it('returns 401 when user is not authenticated', async () => {
     getStrapiSessionJwtMock.mockResolvedValue(null)
+    getCurrentStrapiUserMock.mockResolvedValue(null)
 
     const res = await GET({} as NextRequest, {
       params: Promise.resolve({ id: 'watch_1' }),
@@ -42,6 +50,7 @@ describe('GET /api/watch-files/[id]/pdf', () => {
 
   it('returns 403 when Strapi denies access to the dossier', async () => {
     getStrapiSessionJwtMock.mockResolvedValue('jwt')
+    getCurrentStrapiUserMock.mockResolvedValue({ id: 1 })
     vi.spyOn(global, 'fetch').mockResolvedValue(
       new Response(null, { status: 403 })
     )
@@ -53,14 +62,39 @@ describe('GET /api/watch-files/[id]/pdf', () => {
     expect(res.status).toBe(403)
   })
 
+  it('returns 403 when the dossier belongs to another customer', async () => {
+    getStrapiSessionJwtMock.mockResolvedValue('jwt')
+    getCurrentStrapiUserMock.mockResolvedValue({ id: 1 })
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: {
+            documentId: 'watch_12345678',
+            reference: 'MGP0001',
+            customer: { id: 2 },
+          },
+        }),
+        { status: 200 }
+      )
+    )
+
+    const res = await GET({} as NextRequest, {
+      params: Promise.resolve({ id: 'watch_12345678' }),
+    })
+
+    expect(res.status).toBe(403)
+  })
+
   it('returns a PDF response when the user owns the dossier', async () => {
     getStrapiSessionJwtMock.mockResolvedValue('jwt')
+    getCurrentStrapiUserMock.mockResolvedValue({ id: 1 })
     const fetchMock = vi.spyOn(global, 'fetch').mockResolvedValue(
       new Response(
         JSON.stringify({
           data: {
             documentId: 'watch_12345678',
             reference: 'MGP0001',
+            customer: { id: 1 },
             etatGeneral: {
               etatGeneralGlobal: {
                 boitier: { pourcentage: 85, commentaire: 'Tres bon' },

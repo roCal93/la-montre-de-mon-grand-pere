@@ -10,16 +10,25 @@ import {
   renderToBuffer,
 } from '@react-pdf/renderer'
 import { createElement, type ReactElement } from 'react'
-import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
+import {
+  getCurrentStrapiUser,
+  getStrapiSessionJwt,
+} from '@/lib/strapi-session-cookie'
 import { cleanImageUrl } from '@/lib/strapi'
 import {
   appendWatchFileDossierBlocksPopulate,
   extractPlainTextFromStrapiBlocks,
+  getWatchFileDossierBlockAnchor,
+  getWatchFileDossierBlockKey,
   type WatchFileBeforeAfterDossierBlock,
   type WatchFileDossierBlock,
+  type WatchFileImageDossierBlock,
   type WatchFileRichTextDossierBlock,
   type WatchFileTextImageDossierBlock,
+  type WatchFileAudioDossierBlock,
+  type WatchFileVideoDossierBlock,
 } from '@/lib/watch-file-dossier-blocks'
+import QRCode from 'qrcode'
 
 export const runtime = 'nodejs'
 
@@ -110,6 +119,7 @@ interface WatchFile {
   verre?: string | null
   etancheiteAnnoncee?: string | null
   marketingShortDescription?: string | null
+  marketingDescription?: string | null
   notesIdentification?: string | null
   publicBadges?: string[] | null
   etatGeneral?: EtatGeneral | null
@@ -121,11 +131,18 @@ interface WatchFile {
   dateMiseEnVente?: string
   publicBeforeImage?: MediaFile[]
   publicAfterImage?: MediaFile[]
+  customer?: { id: number } | null
   order?: { documentId: string; createdAt: string }
   product?: {
     name: string
     slug?: string
+    images?: MediaFile[] | null
   }
+}
+
+interface DossierMediaQrCode {
+  href: string
+  dataUrl: string
 }
 
 function asText(value: unknown, fallback = '-'): string {
@@ -150,22 +167,13 @@ function formatDate(value?: string): string {
   })
 }
 
-function stripHtml(html?: string): string {
+function stripHtml(html?: string | null): string {
   if (!html) return ''
 
   return html
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-}
-
-function formatRestorationWork(items?: string[] | null): string {
-  if (!items?.length) return ''
-
-  return items
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-    .join(' • ')
 }
 
 function formatPublicOperationsSummary(
@@ -196,12 +204,12 @@ function buildGlobalEtatRows(etatGeneral?: EtatGeneral | null) {
   if (!globalState) return []
 
   return [
-    ['Boitier', globalState.boitier],
-    ['Cadran', globalState.cadran],
-    ['Mouvement', globalState.mouvement],
-    ['Bracelet', globalState.bracelet],
+    { label: 'Boitier', item: globalState.boitier },
+    { label: 'Cadran', item: globalState.cadran },
+    { label: 'Mouvement', item: globalState.mouvement },
+    { label: 'Bracelet', item: globalState.bracelet },
   ]
-    .map(([label, item]) => {
+    .map(({ label, item }) => {
       const percentage = normalizePercentage(item?.pourcentage)
       const comment = normalizeText(item?.commentaire)
       if (percentage === null && !comment) return null
@@ -299,35 +307,162 @@ const styles = StyleSheet.create({
     color: '#5d6a77',
     textTransform: 'uppercase',
   },
+  dossierMediaQrRow: {
+    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+  },
+  dossierMediaQrImage: {
+    width: 78,
+    height: 78,
+    borderWidth: 1,
+    borderColor: '#d8d2c6',
+    backgroundColor: '#ffffff',
+    padding: 3,
+  },
+  dossierMediaQrTextWrap: {
+    flex: 1,
+  },
+  dossierMediaNoticeEyebrow: {
+    fontSize: 7,
+    color: '#8f6f1c',
+    textTransform: 'uppercase',
+    letterSpacing: 1.4,
+    marginBottom: 8,
+  },
+  dossierMediaQrTitle: {
+    fontSize: 10,
+    color: '#223f63',
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+  },
+  dossierMediaQrHint: {
+    marginTop: 6,
+    fontSize: 8,
+    lineHeight: 1.45,
+    color: '#6b6258',
+  },
   topBarRight: {
     fontSize: 7,
     color: '#7c8792',
   },
   hero: {
-    marginTop: 26,
-    marginBottom: 34,
+    marginTop: 16,
+    marginBottom: 22,
+    alignItems: 'stretch',
+  },
+  overviewIntroRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 22,
+    marginBottom: 28,
+  },
+  overviewIntroText: {
+    flex: 1,
+    minHeight: 280,
+    justifyContent: 'flex-start',
+  },
+  overviewIntroImage: {
+    width: 244,
+  },
+  overviewIntroLabel: {
+    fontSize: 8,
+    color: '#8f6f1c',
+    textTransform: 'uppercase',
+    letterSpacing: 1.8,
+    marginBottom: 12,
+  },
+  coverReference: {
+    marginTop: 2,
+    fontSize: 10,
+    color: '#5d6a77',
+    letterSpacing: 0.6,
+  },
+  coverMetaCard: {
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#d5dbe2',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  coverMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 7,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e4e7eb',
+  },
+  coverMetaRowLast: {
+    borderBottomWidth: 0,
+  },
+  coverMetaLabel: {
+    fontSize: 8,
+    color: '#5d6a77',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  coverMetaValue: {
+    fontSize: 10,
+    color: '#1c1917',
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+  },
+  overviewSummary: {
+    marginTop: 14,
+    fontSize: 10,
+    lineHeight: 1.62,
+    color: '#292524',
+  },
+  overviewHistoryBlock: {
+    marginTop: 24,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#d5dbe2',
+  },
+  heroImageWrap: {
+    width: '100%',
+    alignSelf: 'flex-start',
+    padding: 6,
+    borderWidth: 1,
+    borderColor: '#d8d2c6',
+    backgroundColor: '#f1ede4',
+  },
+  heroImageInnerFrame: {
+    width: '100%',
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#ece6da',
+    backgroundColor: '#fbfaf7',
+  },
+  heroImage: {
+    width: '100%',
+    height: 292,
+    objectFit: 'cover',
   },
   heroLineOne: {
-    fontSize: 26,
+    fontSize: 10,
     fontFamily: 'Helvetica',
     fontWeight: 700,
-    letterSpacing: 0.5,
-    color: '#223f63',
-    textAlign: 'center',
+    letterSpacing: 2.4,
+    color: '#8f6f1c',
+    textAlign: 'left',
+    textTransform: 'uppercase',
   },
   heroLineTwo: {
-    marginTop: 4,
-    fontSize: 24,
+    marginTop: 10,
+    fontSize: 30,
     fontFamily: 'Helvetica',
     fontWeight: 700,
-    letterSpacing: 0.4,
-    color: '#c39a2d',
-    textAlign: 'center',
+    letterSpacing: 0.8,
+    color: '#223f63',
+    textAlign: 'left',
   },
   heroDivider: {
-    marginTop: 16,
-    width: '100%',
+    marginTop: 14,
+    width: 88,
     borderBottomWidth: 1,
     borderBottomColor: '#c3a13b',
   },
@@ -348,28 +483,32 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   dossierLabelCell: {
-    width: 126,
-    backgroundColor: '#1f3d61',
+    width: 116,
+    backgroundColor: '#f5f5f4',
     paddingHorizontal: 10,
-    paddingVertical: 7,
+    paddingVertical: 8,
+    borderRightWidth: 1,
+    borderRightColor: '#c6ccd3',
     justifyContent: 'center',
   },
   dossierLabelText: {
-    fontSize: 9,
-    color: '#ffffff',
-    fontFamily: 'Helvetica',
-    fontWeight: 700,
+    fontSize: 8,
+    color: '#5d6a77',
+    textTransform: 'uppercase',
+    letterSpacing: 0.9,
   },
   dossierValueCell: {
     flex: 1,
     backgroundColor: '#eef2f6',
-    paddingHorizontal: 8,
-    paddingVertical: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     justifyContent: 'center',
   },
   dossierValueText: {
     fontSize: 10,
     color: '#1c1917',
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
   },
   section: {
     marginTop: 18,
@@ -419,6 +558,40 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#c3a13b',
+  },
+  technicalLead: {
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#d5dbe2',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  technicalLeadIndex: {
+    width: 40,
+    fontSize: 8,
+    color: '#8f6f1c',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    paddingTop: 2,
+  },
+  technicalLeadBody: {
+    flex: 1,
+  },
+  technicalLeadTitle: {
+    fontSize: 11,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    color: '#223f63',
+  },
+  technicalLeadText: {
+    marginTop: 4,
+    fontSize: 9,
+    lineHeight: 1.45,
+    color: '#4b5563',
   },
   subsectionTitle: {
     fontSize: 11,
@@ -481,20 +654,26 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   dossierBlockTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontFamily: 'Helvetica',
     fontWeight: 700,
     color: '#223f63',
-    marginBottom: 10,
+    marginBottom: 6,
+  },
+  dossierBlockSection: {
+    marginBottom: 14,
+  },
+  dossierBlockSectionLast: {
+    marginBottom: 0,
   },
   dossierBlockText: {
-    fontSize: 10,
-    lineHeight: 1.6,
+    fontSize: 9.2,
+    lineHeight: 1.45,
     color: '#292524',
   },
   dossierColumns: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 10,
     alignItems: 'stretch',
   },
   dossierColumn: {
@@ -503,29 +682,51 @@ const styles = StyleSheet.create({
   dossierImageFrame: {
     borderWidth: 1,
     borderColor: '#d5dbe2',
-    padding: 6,
+    padding: 4,
     backgroundColor: '#f8fafc',
   },
   dossierImage: {
     width: '100%',
-    height: 260,
+    height: 205,
     objectFit: 'cover',
   },
   dossierImageCaption: {
-    marginTop: 6,
-    fontSize: 8,
+    marginTop: 4,
+    fontSize: 7,
     color: '#5d6a77',
     textTransform: 'uppercase',
+  },
+  dossierMediaNotice: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#d5dbe2',
+    backgroundColor: '#faf8f2',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  dossierMediaNoticeText: {
+    fontSize: 9,
+    lineHeight: 1.45,
+    color: '#3f3a35',
   },
   stateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  stateCard: {
+    borderWidth: 1,
+    borderColor: '#d5dbe2',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 2,
   },
   stateLabel: {
     width: 84,
-    fontSize: 11,
-    color: '#8b9198',
+    fontSize: 10,
+    color: '#5d6a77',
+    textTransform: 'uppercase',
   },
   stateBarTrack: {
     flex: 1,
@@ -557,7 +758,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 7,
     borderRightWidth: 1,
-    borderRightColor: '#ffffff26',
+    borderRightColor: '#000000',
   },
   detailHeaderCellLast: {
     borderRightWidth: 0,
@@ -588,59 +789,159 @@ const styles = StyleSheet.create({
     color: '#1c1917',
     lineHeight: 1.45,
   },
+  validationSignoffGrid: {
+    marginTop: 26,
+    flexDirection: 'row',
+    gap: 24,
+  },
+  validationSignoffCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#d5dbe2',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  validationSignoffColumn: {
+    flex: 1,
+  },
+  validationSignoffLabel: {
+    fontSize: 8,
+    color: '#5d6a77',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  validationSignoffLine: {
+    marginTop: 8,
+    minHeight: 56,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1c1917',
+    justifyContent: 'flex-end',
+    paddingBottom: 4,
+  },
+  validationSignatureImage: {
+    maxWidth: 160,
+    maxHeight: 44,
+    objectFit: 'contain',
+  },
+  validationDateText: {
+    fontSize: 10,
+    color: '#292524',
+  },
 })
 
 function buildPdfMediaUrl(url?: string | null) {
   return cleanImageUrl(url ?? undefined) ?? undefined
 }
 
-function renderDossierBlockPage(
-  watchFile: WatchFile,
-  block: WatchFileDossierBlock,
-  pageNumber: number
-) {
-  const title = block.title?.trim() || `Dossier visuel ${pageNumber - 2}`
+function getDossierBlockWeight(block: WatchFileDossierBlock) {
+  if (
+    block.__component === 'watch-file.image-block' ||
+    block.__component === 'watch-file.text-image-block' ||
+    block.__component === 'watch-file.before-after-block'
+  ) {
+    return 2
+  }
 
+  return 1
+}
+
+function groupDossierBlocks(blocks: WatchFileDossierBlock[]) {
+  const pages: WatchFileDossierBlock[][] = []
+  let currentPage: WatchFileDossierBlock[] = []
+  let currentWeight = 0
+
+  for (const block of blocks) {
+    const weight = getDossierBlockWeight(block)
+    if (currentPage.length > 0 && currentWeight + weight > 3) {
+      pages.push(currentPage)
+      currentPage = []
+      currentWeight = 0
+    }
+
+    currentPage.push(block)
+    currentWeight += weight
+  }
+
+  if (currentPage.length > 0) {
+    pages.push(currentPage)
+  }
+
+  return pages
+}
+
+function renderDossierBlockContent(
+  block: WatchFileDossierBlock,
+  title: string
+) {
   if (block.__component === 'watch-file.rich-text-block') {
-    return renderPdfRichTextBlockPage(watchFile, block, title, pageNumber)
+    return renderPdfRichTextBlockContent(block, title)
+  }
+
+  if (block.__component === 'watch-file.image-block') {
+    return renderPdfImageBlockContent(block, title)
   }
 
   if (block.__component === 'watch-file.text-image-block') {
-    return renderPdfTextImageBlockPage(watchFile, block, title, pageNumber)
+    return renderPdfTextImageBlockContent(block, title)
   }
 
   if (block.__component === 'watch-file.before-after-block') {
-    return renderPdfBeforeAfterBlockPage(watchFile, block, title, pageNumber)
+    return renderPdfBeforeAfterBlockContent(block, title)
+  }
+
+  if (block.__component === 'watch-file.video-block') {
+    return renderPdfMediaBlockContent(block, title, 'video')
+  }
+
+  if (block.__component === 'watch-file.audio-block') {
+    return renderPdfMediaBlockContent(block, title, 'audio')
   }
 
   return null
 }
 
-function renderPdfRichTextBlockPage(
-  watchFile: WatchFile,
+function renderPdfRichTextBlockContent(
   block: WatchFileRichTextDossierBlock,
-  title: string,
-  pageNumber: number
+  title: string
 ) {
   const text = extractPlainTextFromStrapiBlocks(block.content)
   if (!text) return null
 
   return createElement(
-    Page,
-    { size: 'A4', style: styles.page, key: `dossier-page-${pageNumber}` },
-    createPdfTopBar(watchFile),
+    View,
+    { style: styles.dossierBlockSection, wrap: false },
     createElement(Text, { style: styles.dossierBlockTitle }, title),
-    createElement(View, { style: styles.contentDivider }),
-    createElement(Text, { style: styles.dossierBlockText }, text),
-    createPdfFooter(pageNumber)
+    createElement(Text, { style: styles.dossierBlockText }, text)
   )
 }
 
-function renderPdfTextImageBlockPage(
-  watchFile: WatchFile,
+function renderPdfImageBlockContent(
+  block: WatchFileImageDossierBlock,
+  title: string
+) {
+  const imageUrl = buildPdfMediaUrl(block.image?.url)
+  if (!imageUrl) return null
+
+  return createElement(
+    View,
+    { style: styles.dossierBlockSection, wrap: false },
+    createElement(Text, { style: styles.dossierBlockTitle }, title),
+    createElement(
+      View,
+      { style: styles.dossierImageFrame },
+      createElement(Image, {
+        src: imageUrl,
+        style: styles.dossierImage,
+      })
+    )
+  )
+}
+
+function renderPdfTextImageBlockContent(
   block: WatchFileTextImageDossierBlock,
-  title: string,
-  pageNumber: number
+  title: string
 ) {
   const text = extractPlainTextFromStrapiBlocks(block.content)
   const imageUrl = buildPdfMediaUrl(block.image?.url)
@@ -668,42 +969,47 @@ function renderPdfTextImageBlockPage(
     : null
 
   return createElement(
-    Page,
-    { size: 'A4', style: styles.page, key: `dossier-page-${pageNumber}` },
-    createPdfTopBar(watchFile),
+    View,
+    { style: styles.dossierBlockSection, wrap: false },
     createElement(Text, { style: styles.dossierBlockTitle }, title),
-    createElement(View, { style: styles.contentDivider }),
     createElement(
       View,
       { style: styles.dossierColumns },
       block.imagePosition === 'left'
         ? [imageColumn, textColumn]
         : [textColumn, imageColumn]
-    ),
-    createPdfFooter(pageNumber)
+    )
   )
 }
 
-function renderPdfBeforeAfterBlockPage(
-  watchFile: WatchFile,
+function renderPdfBeforeAfterBlockContent(
   block: WatchFileBeforeAfterDossierBlock,
-  title: string,
-  pageNumber: number
+  title: string
 ) {
+  const text = extractPlainTextFromStrapiBlocks(block.content)
   const beforeUrl = buildPdfMediaUrl(block.beforeImage?.url)
   const afterUrl = buildPdfMediaUrl(block.afterImage?.url)
 
   if (!beforeUrl || !afterUrl) return null
 
   return createElement(
-    Page,
-    { size: 'A4', style: styles.page, key: `dossier-page-${pageNumber}` },
-    createPdfTopBar(watchFile),
+    View,
+    { style: styles.dossierBlockSection, wrap: false },
     createElement(Text, { style: styles.dossierBlockTitle }, title),
-    createElement(View, { style: styles.contentDivider }),
+    text
+      ? createElement(
+          Text,
+          { style: [styles.dossierBlockText, { fontStyle: 'italic' }] },
+          text
+        )
+      : null,
     createElement(
       View,
-      { style: styles.dossierColumns },
+      {
+        style: text
+          ? [styles.dossierColumns, { marginTop: 10 }]
+          : styles.dossierColumns,
+      },
       createElement(
         View,
         { style: styles.dossierColumn },
@@ -730,7 +1036,197 @@ function renderPdfBeforeAfterBlockPage(
         ),
         createElement(Text, { style: styles.dossierImageCaption }, 'Après')
       )
+    )
+  )
+}
+
+function renderPdfMediaBlockContent(
+  block: WatchFileVideoDossierBlock | WatchFileAudioDossierBlock,
+  title: string,
+  mediaType: 'video' | 'audio',
+  qrCode?: DossierMediaQrCode
+) {
+  const text = extractPlainTextFromStrapiBlocks(block.content)
+  const media =
+    block.__component === 'watch-file.video-block' ? block.video : block.audio
+
+  if (!text && !media?.url && !title) return null
+
+  return createElement(
+    View,
+    { style: styles.dossierBlockSection, wrap: false },
+    createElement(Text, { style: styles.dossierBlockTitle }, title),
+    text ? createElement(Text, { style: styles.dossierBlockText }, text) : null,
+    createElement(
+      View,
+      { style: styles.dossierMediaNotice },
+      qrCode
+        ? createElement(
+            View,
+            null,
+            createElement(
+              Text,
+              { style: styles.dossierMediaNoticeEyebrow },
+              'Accès média'
+            ),
+            createElement(
+              View,
+              { style: styles.dossierMediaQrRow },
+              createElement(Image, {
+                src: qrCode.dataUrl,
+                style: styles.dossierMediaQrImage,
+              }),
+              createElement(
+                View,
+                { style: styles.dossierMediaQrTextWrap },
+                createElement(
+                  Text,
+                  { style: styles.dossierMediaQrTitle },
+                  mediaType === 'video'
+                    ? 'Consultation vidéo'
+                    : 'Consultation sonore'
+                ),
+                createElement(
+                  Text,
+                  { style: styles.dossierMediaNoticeText },
+                  mediaType === 'video'
+                    ? 'Le média complet est accessible depuis le dossier web sécurisé.'
+                    : "L'enregistrement complet est accessible depuis le dossier web sécurisé."
+                ),
+                createElement(
+                  Text,
+                  { style: styles.dossierMediaQrHint },
+                  'Scannez pour ouvrir directement le contenu associé.'
+                )
+              )
+            )
+          )
+        : createElement(
+            Text,
+            { style: styles.dossierMediaNoticeText },
+            mediaType === 'video'
+              ? "Vidéo consultable depuis l'espace client en ligne."
+              : "Audio consultable depuis l'espace client en ligne."
+          )
+    )
+  )
+}
+
+function buildWatchFileWebUrl(watchFile: WatchFile, anchor: string) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  return `${siteUrl}/fr/espace-client/mes-montres/${watchFile.documentId}#${anchor}`
+}
+
+async function buildDossierMediaQrCodes(watchFile: WatchFile) {
+  const entries = await Promise.all(
+    (watchFile.dossierBlocks ?? []).map(async (block, index) => {
+      if (
+        block.__component !== 'watch-file.video-block' &&
+        block.__component !== 'watch-file.audio-block'
+      ) {
+        return null
+      }
+
+      const media =
+        block.__component === 'watch-file.video-block'
+          ? block.video
+          : block.audio
+      if (!media?.url) return null
+
+      const key = getWatchFileDossierBlockKey(block, index)
+      const anchor = getWatchFileDossierBlockAnchor(block, index)
+      const href = buildWatchFileWebUrl(watchFile, anchor)
+      const dataUrl = await QRCode.toDataURL(href, {
+        margin: 1,
+        width: 144,
+        errorCorrectionLevel: 'M',
+      })
+
+      return [key, { href, dataUrl }] as const
+    })
+  )
+
+  return Object.fromEntries(
+    entries.filter(Boolean) as Array<readonly [string, DossierMediaQrCode]>
+  )
+}
+
+function renderDossierBlockContentWithQr(
+  block: WatchFileDossierBlock,
+  title: string,
+  qrCodes: Record<string, DossierMediaQrCode>,
+  blockIndex: number
+) {
+  if (block.__component === 'watch-file.video-block') {
+    return renderPdfMediaBlockContent(
+      block,
+      title,
+      'video',
+      qrCodes[getWatchFileDossierBlockKey(block, blockIndex)]
+    )
+  }
+
+  if (block.__component === 'watch-file.audio-block') {
+    return renderPdfMediaBlockContent(
+      block,
+      title,
+      'audio',
+      qrCodes[getWatchFileDossierBlockKey(block, blockIndex)]
+    )
+  }
+
+  return renderDossierBlockContent(block, title)
+}
+
+function renderDossierBlocksPage(
+  watchFile: WatchFile,
+  blocks: WatchFileDossierBlock[],
+  pageNumber: number,
+  pageIndex: number,
+  qrCodes: Record<string, DossierMediaQrCode>,
+  allBlocks: WatchFileDossierBlock[]
+) {
+  const contents = blocks
+    .map((block, index) => {
+      const originalIndex = allBlocks.indexOf(block)
+      const title =
+        block.title?.trim() || `Dossier visuel ${pageIndex + index + 1}`
+      const rendered = renderDossierBlockContentWithQr(
+        block,
+        title,
+        qrCodes,
+        originalIndex === -1 ? pageIndex + index : originalIndex
+      )
+      if (!rendered) return null
+
+      const isLast = index === blocks.length - 1
+      return createElement(
+        View,
+        {
+          key: `${block.__component}-${block.id ?? `${pageIndex}-${index}`}`,
+          style: isLast
+            ? [styles.dossierBlockSection, styles.dossierBlockSectionLast]
+            : styles.dossierBlockSection,
+          wrap: false,
+        },
+        rendered.props.children
+      )
+    })
+    .filter(Boolean)
+
+  if (contents.length === 0) return null
+
+  return createElement(
+    Page,
+    { size: 'A4', style: styles.page, key: `dossier-page-${pageNumber}` },
+    createPdfTopBar(watchFile),
+    createElement(
+      Text,
+      { style: styles.contentHeading },
+      '7. DOSSIER COMPLÉMENTAIRE'
     ),
+    createElement(View, { style: styles.contentDivider }),
+    ...contents,
     createPdfFooter(pageNumber)
   )
 }
@@ -742,7 +1238,7 @@ function createPdfTopBar(watchFile: WatchFile) {
     createElement(
       Text,
       { style: styles.topBarLeft },
-      'Dossier de reparation horlogere - atelier'
+      'Dossier de réparation horlogère - atelier'
     ),
     createElement(
       Text,
@@ -759,13 +1255,281 @@ function createPdfFooter(pageNumber: number) {
     createElement(
       Text,
       { style: styles.footerText },
-      'Document interne - Atelier horlogerie'
+      'Document interne - Atelier d’horlogerie'
     ),
     createElement(Text, { style: styles.footerText }, `Page ${pageNumber}`)
   )
 }
 
-function renderPoint2EtatPage(watchFile: WatchFile) {
+function renderPoint1OverviewPage(watchFile: WatchFile, pageNumber: number) {
+  const productName = asText(watchFile.product?.name, 'Montre ancienne')
+  const publicSummary = normalizeText(watchFile.marketingShortDescription, '')
+  const publicHistory = stripHtml(watchFile.marketingDescription)
+  const productHeroImageUrl = buildPdfMediaUrl(
+    watchFile.product?.images?.[0]?.url
+  )
+  const dossierRows = [
+    ['Référence dossier', asText(watchFile.reference)],
+    ['Horloger responsable', 'Romain Calmelet'],
+    ['Date de réception', formatDate(watchFile.dateReception)],
+    ['Date de mise en vente', formatDate(watchFile.dateMiseEnVente)],
+  ] as const
+
+  return createElement(
+    Page,
+    { size: 'A4', style: styles.page, key: 'overview-page' },
+    createPdfTopBar(watchFile),
+    createElement(
+      View,
+      { style: styles.hero },
+      createElement(Text, { style: styles.heroLineOne }, 'Dossier atelier'),
+      createElement(
+        Text,
+        { style: styles.heroLineTwo },
+        'Dossier de réparation horlogère'
+      ),
+      createElement(View, { style: styles.heroDivider })
+    ),
+    createElement(
+      View,
+      { style: styles.overviewIntroRow },
+      createElement(
+        View,
+        { style: styles.overviewIntroText },
+        createElement(
+          Text,
+          { style: styles.overviewIntroLabel },
+          'Montre documentée'
+        ),
+        createElement(Text, { style: styles.contentHeading }, productName),
+        createElement(
+          Text,
+          { style: styles.coverReference },
+          `Référence dossier ${asText(watchFile.reference).toUpperCase()}`
+        ),
+        publicSummary
+          ? createElement(
+              Text,
+              { style: styles.overviewSummary },
+              publicSummary
+            )
+          : null,
+        createElement(
+          View,
+          { style: styles.coverMetaCard },
+          ...dossierRows.map(([label, value], index) =>
+            createElement(
+              View,
+              {
+                key: label,
+                style:
+                  index === dossierRows.length - 1
+                    ? [styles.coverMetaRow, styles.coverMetaRowLast]
+                    : styles.coverMetaRow,
+              },
+              createElement(Text, { style: styles.coverMetaLabel }, label),
+              createElement(Text, { style: styles.coverMetaValue }, value)
+            )
+          )
+        )
+      ),
+      productHeroImageUrl
+        ? createElement(
+            View,
+            { style: styles.overviewIntroImage },
+            createElement(
+              View,
+              { style: styles.heroImageWrap },
+              createElement(
+                View,
+                { style: styles.heroImageInnerFrame },
+                createElement(Image, {
+                  src: productHeroImageUrl,
+                  style: styles.heroImage,
+                })
+              )
+            )
+          )
+        : null
+    ),
+    publicHistory
+      ? createElement(
+          View,
+          { style: styles.overviewHistoryBlock },
+          createElement(Text, { style: styles.sectionTitle }, '1. Histoire'),
+          createElement(Text, { style: styles.paragraph }, publicHistory)
+        )
+      : null,
+    createPdfFooter(pageNumber)
+  )
+}
+
+function renderPoint3IdentificationPage(
+  watchFile: WatchFile,
+  pageNumber: number
+) {
+  const identificationRows = [
+    [
+      'Marque',
+      asText(watchFile.marque, '-'),
+      'Modèle',
+      asText(watchFile.modele ?? watchFile.product?.name, '-'),
+    ],
+    [
+      'Référence',
+      asText(watchFile.referencePiece, '-'),
+      'Complications',
+      asText(watchFile.complications, '-'),
+    ],
+    [
+      'Mouvement',
+      asText(watchFile.mouvement, '-'),
+      'Calibre',
+      asText(watchFile.calibre, '-'),
+    ],
+    [
+      'Année estimée',
+      asText(watchFile.anneeEstimee, '-'),
+      'Matière du boîtier',
+      asText(watchFile.matiereBoitier, '-'),
+    ],
+    [
+      'Diamètre boîtier',
+      asText(watchFile.diametreBoitier, '-'),
+      'Epaisseur',
+      asText(watchFile.epaisseur, '-'),
+    ],
+    [
+      'Bracelet / matière',
+      asText(watchFile.matiereBracelet, '-'),
+      'Boucle',
+      asText(watchFile.boucle, '-'),
+    ],
+    [
+      'Verre',
+      asText(watchFile.verre, '-'),
+      'Étanchéité annoncée',
+      asText(watchFile.etancheiteAnnoncee, '-'),
+    ],
+  ] as const
+
+  const identificationNotes =
+    stripHtml(
+      watchFile.notesIdentification ??
+        watchFile.marketingShortDescription ??
+        undefined
+    ) || 'À compléter'
+
+  return createElement(
+    Page,
+    { size: 'A4', style: styles.page, key: 'identification-page' },
+    createPdfTopBar(watchFile),
+    createElement(
+      Text,
+      { style: styles.contentHeading },
+      '3. IDENTIFICATION DE LA MONTRE'
+    ),
+    createElement(View, { style: styles.contentDivider }),
+    createElement(
+      View,
+      { style: styles.technicalLead },
+      createElement(Text, { style: styles.technicalLeadIndex }, 'Point 3'),
+      createElement(
+        View,
+        { style: styles.technicalLeadBody },
+        createElement(
+          Text,
+          { style: styles.technicalLeadTitle },
+          "Base d'identification et caractéristiques observées"
+        ),
+        createElement(
+          Text,
+          { style: styles.technicalLeadText },
+          "Cette page rassemble les informations d'identification, les principales caractéristiques visibles et les notes utiles à la lecture technique du dossier."
+        )
+      )
+    ),
+    createElement(
+      View,
+      { style: styles.section },
+      createElement(
+        Text,
+        { style: styles.subsectionTitle },
+        '3.1 Description de la montre'
+      ),
+      createElement(
+        View,
+        { style: styles.identificationTable },
+        ...identificationRows.map((row, index) =>
+          createElement(
+            View,
+            {
+              key: row[0],
+              style:
+                index === identificationRows.length - 1
+                  ? [styles.identificationRow, styles.identificationRowLast]
+                  : styles.identificationRow,
+            },
+            createElement(
+              View,
+              { style: styles.identificationLabel },
+              createElement(
+                Text,
+                { style: styles.identificationLabelText },
+                row[0]
+              )
+            ),
+            createElement(
+              View,
+              { style: styles.identificationValue },
+              createElement(
+                Text,
+                { style: styles.identificationValueText },
+                row[1]
+              )
+            ),
+            createElement(
+              View,
+              { style: styles.identificationLabel },
+              createElement(
+                Text,
+                { style: styles.identificationLabelText },
+                row[2]
+              )
+            ),
+            createElement(
+              View,
+              {
+                style: [
+                  styles.identificationValue,
+                  styles.identificationValueLast,
+                ],
+              },
+              createElement(
+                Text,
+                { style: styles.identificationValueText },
+                row[3]
+              )
+            )
+          )
+        )
+      ),
+      createElement(
+        Text,
+        { style: styles.subsectionTitle },
+        "3.2 Notes d'identification"
+      ),
+      createElement(
+        View,
+        { style: styles.notesBox },
+        createElement(Text, { style: styles.paragraph }, identificationNotes)
+      )
+    ),
+    createPdfFooter(pageNumber)
+  )
+}
+
+function renderPoint4EtatPage(watchFile: WatchFile, pageNumber: number) {
   const globalRows = buildGlobalEtatRows(watchFile.etatGeneral)
   const observationRows = buildObservationEtatRows(watchFile.etatGeneral)
   const componentRows = buildComponentEtatRows(watchFile.etatGeneral)
@@ -785,9 +1549,28 @@ function renderPoint2EtatPage(watchFile: WatchFile) {
     createElement(
       Text,
       { style: styles.contentHeading },
-      '2. ETAT A LA RECEPTION'
+      '4. ÉTAT À LA RÉCEPTION'
     ),
     createElement(View, { style: styles.contentDivider }),
+    createElement(
+      View,
+      { style: styles.technicalLead },
+      createElement(Text, { style: styles.technicalLeadIndex }, 'Point 4'),
+      createElement(
+        View,
+        { style: styles.technicalLeadBody },
+        createElement(
+          Text,
+          { style: styles.technicalLeadTitle },
+          "Constat d'état avant intervention"
+        ),
+        createElement(
+          Text,
+          { style: styles.technicalLeadText },
+          "Le relevé ci-dessous résume l'état fonctionnel et visuel de la montre à son arrivée, avant toute opération d'atelier."
+        )
+      )
+    ),
     globalRows.length > 0
       ? createElement(
           View,
@@ -795,21 +1578,28 @@ function renderPoint2EtatPage(watchFile: WatchFile) {
           createElement(
             Text,
             { style: styles.subsectionTitle },
-            '2.0 Etat general global'
+            "4.0 Résumé d'état"
           ),
-          ...globalRows.map((row) =>
-            createElement(
-              View,
-              { key: row.label, style: styles.stateRow },
-              createElement(Text, { style: styles.stateLabel }, row.label),
+          createElement(
+            View,
+            { style: styles.stateCard },
+            ...globalRows.map((row) =>
               createElement(
                 View,
-                { style: styles.stateBarTrack },
-                createElement(View, {
-                  style: [styles.stateBarFill, { width: `${row.percentage}%` }],
-                })
-              ),
-              createElement(Text, { style: styles.stateComment }, row.comment)
+                { key: row.label, style: styles.stateRow },
+                createElement(Text, { style: styles.stateLabel }, row.label),
+                createElement(
+                  View,
+                  { style: styles.stateBarTrack },
+                  createElement(View, {
+                    style: [
+                      styles.stateBarFill,
+                      { width: `${row.percentage}%` },
+                    ],
+                  })
+                ),
+                createElement(Text, { style: styles.stateComment }, row.comment)
+              )
             )
           )
         )
@@ -821,7 +1611,7 @@ function renderPoint2EtatPage(watchFile: WatchFile) {
           createElement(
             Text,
             { style: styles.subsectionTitle },
-            '2.1 Fonctionnement avant intervention'
+            '4.1 Fonctionnement avant intervention'
           ),
           createElement(
             View,
@@ -894,7 +1684,7 @@ function renderPoint2EtatPage(watchFile: WatchFile) {
           createElement(
             Text,
             { style: styles.subsectionTitle },
-            '2.2 Etat visuel des composants'
+            '4.2 État visuel des composants'
           ),
           createElement(
             View,
@@ -960,7 +1750,7 @@ function renderPoint2EtatPage(watchFile: WatchFile) {
           )
         )
       : null,
-    createPdfFooter(3)
+    createPdfFooter(pageNumber)
   )
 }
 
@@ -988,9 +1778,28 @@ function renderPoint3OperationsPage(watchFile: WatchFile, pageNumber: number) {
     createElement(
       Text,
       { style: styles.contentHeading },
-      '3. OPERATIONS DE REPARATION'
+      '5. OPÉRATIONS DE RÉPARATION'
     ),
     createElement(View, { style: styles.contentDivider }),
+    createElement(
+      View,
+      { style: styles.technicalLead },
+      createElement(Text, { style: styles.technicalLeadIndex }, 'Point 5'),
+      createElement(
+        View,
+        { style: styles.technicalLeadBody },
+        createElement(
+          Text,
+          { style: styles.technicalLeadTitle },
+          'Interventions menées en atelier'
+        ),
+        createElement(
+          Text,
+          { style: styles.technicalLeadText },
+          'Cette page détaille les opérations effectuées, les choix de remise en état et les pièces remplacées le cas échéant.'
+        )
+      )
+    ),
     publicSummary
       ? createElement(
           View,
@@ -998,7 +1807,7 @@ function renderPoint3OperationsPage(watchFile: WatchFile, pageNumber: number) {
           createElement(
             Text,
             { style: styles.subsectionTitle },
-            '3.0 Resume public fiche produit'
+            '5.0 Synthèse des interventions'
           ),
           createElement(Text, { style: styles.paragraph }, publicSummary)
         )
@@ -1010,7 +1819,7 @@ function renderPoint3OperationsPage(watchFile: WatchFile, pageNumber: number) {
           createElement(
             Text,
             { style: styles.subsectionTitle },
-            '3.1 Demontage, nettoyage et remontage'
+            '5.1 Opérations effectuées'
           ),
           createElement(
             View,
@@ -1024,7 +1833,7 @@ function renderPoint3OperationsPage(watchFile: WatchFile, pageNumber: number) {
                 createElement(
                   Text,
                   { style: styles.detailHeaderText },
-                  'Operation'
+                  'Opération'
                 )
               ),
               createElement(
@@ -1033,7 +1842,7 @@ function renderPoint3OperationsPage(watchFile: WatchFile, pageNumber: number) {
                 createElement(
                   Text,
                   { style: styles.detailHeaderText },
-                  'Realisee'
+                  'Réalisée'
                 )
               ),
               createElement(
@@ -1105,7 +1914,7 @@ function renderPoint3OperationsPage(watchFile: WatchFile, pageNumber: number) {
           createElement(
             Text,
             { style: styles.subsectionTitle },
-            '3.2 Pieces remplacees'
+            '5.2 Pièces remplacées'
           ),
           createElement(
             View,
@@ -1119,7 +1928,7 @@ function renderPoint3OperationsPage(watchFile: WatchFile, pageNumber: number) {
                 createElement(
                   Text,
                   { style: styles.detailHeaderText },
-                  'Designation'
+                  'Désignation'
                 )
               ),
               createElement(
@@ -1128,13 +1937,13 @@ function renderPoint3OperationsPage(watchFile: WatchFile, pageNumber: number) {
                 createElement(
                   Text,
                   { style: styles.detailHeaderText },
-                  'Reference / calibre'
+                  'Référence / calibre'
                 )
               ),
               createElement(
                 View,
                 { style: [styles.detailHeaderCell, { width: '10%' }] },
-                createElement(Text, { style: styles.detailHeaderText }, 'Qte')
+                createElement(Text, { style: styles.detailHeaderText }, 'Qté')
               ),
               createElement(
                 View,
@@ -1154,7 +1963,7 @@ function renderPoint3OperationsPage(watchFile: WatchFile, pageNumber: number) {
                     { width: '20%' },
                   ],
                 },
-                createElement(Text, { style: styles.detailHeaderText }, 'Etat')
+                createElement(Text, { style: styles.detailHeaderText }, 'État')
               )
             ),
             ...replacedParts.map((row, index) =>
@@ -1233,6 +2042,19 @@ function renderPoint4QualityPage(watchFile: WatchFile, pageNumber: number) {
   const waterResistanceRows = buildWaterResistanceMeasureRows(
     watchFile.controleQualiteMesures
   )
+  const timingHeaderCells: Array<[string, string]> = [
+    ['Position', '28%'],
+    ['Rate', '12%'],
+    ['Amplitude', '14%'],
+    ['Beat error', '16%'],
+    ['Fréquence', '12%'],
+    ['Résultat', '18%'],
+  ]
+  const waterResistanceHeaderCells: Array<[string, string]> = [
+    ['Test', '34%'],
+    ['Valeur / résultat', '26%'],
+    ['Observations', '40%'],
+  ]
   const observations = normalizeText(
     watchFile.controleQualiteMesures?.observationsConclusions,
     ''
@@ -1253,9 +2075,28 @@ function renderPoint4QualityPage(watchFile: WatchFile, pageNumber: number) {
     createElement(
       Text,
       { style: styles.contentHeading },
-      '4. CONTROLE QUALITE & MESURES'
+      '6. CONTRÔLE QUALITÉ & MESURES'
     ),
     createElement(View, { style: styles.contentDivider }),
+    createElement(
+      View,
+      { style: styles.technicalLead },
+      createElement(Text, { style: styles.technicalLeadIndex }, 'Point 6'),
+      createElement(
+        View,
+        { style: styles.technicalLeadBody },
+        createElement(
+          Text,
+          { style: styles.technicalLeadTitle },
+          'Mesures, essais et validation technique'
+        ),
+        createElement(
+          Text,
+          { style: styles.technicalLeadText },
+          'Les relevés suivants documentent les contrôles de marche, les tests complémentaires et les conclusions retenues pour la remise de la montre.'
+        )
+      )
+    ),
     timingRows.length > 0
       ? createElement(
           View,
@@ -1263,7 +2104,7 @@ function renderPoint4QualityPage(watchFile: WatchFile, pageNumber: number) {
           createElement(
             Text,
             { style: styles.subsectionTitle },
-            '4.1 Reglage et precision'
+            '6.1 Réglage et précision du mouvement'
           ),
           createElement(
             View,
@@ -1271,62 +2112,62 @@ function renderPoint4QualityPage(watchFile: WatchFile, pageNumber: number) {
             createElement(
               View,
               { style: styles.detailHeader },
-              ...[
-                ['Position', '28%'],
-                ['Rate', '12%'],
-                ['Amplitude', '14%'],
-                ['Beat error', '16%'],
-                ['Frequence', '12%'],
-                ['Resultat', '18%'],
-              ].map(([label, width], index, array) =>
+              ...timingHeaderCells.map(([label, width], index, array) =>
                 createElement(
                   View,
                   {
                     key: label,
-                    style: [
-                      styles.detailHeaderCell,
+                    style:
                       index === array.length - 1
-                        ? styles.detailHeaderCellLast
-                        : null,
-                      { width },
-                    ],
+                        ? [
+                            styles.detailHeaderCell,
+                            styles.detailHeaderCellLast,
+                            { width },
+                          ]
+                        : [styles.detailHeaderCell, { width }],
                   },
                   createElement(Text, { style: styles.detailHeaderText }, label)
                 )
               )
             ),
             ...timingRows.map((row, index) =>
-              createElement(
-                View,
-                { key: `${row.position}-${index}`, style: styles.detailRow },
-                ...[
-                  [row.position, '28%'],
-                  [row.rate, '12%'],
-                  [row.amplitude, '14%'],
-                  [row.beatError, '16%'],
-                  [row.frequence, '12%'],
-                  [row.resultat, '18%'],
-                ].map(([value, width], cellIndex, array) =>
-                  createElement(
-                    View,
-                    {
-                      key: `${cellIndex}`,
-                      style: [
-                        styles.detailCell,
-                        cellIndex === array.length - 1
-                          ? styles.detailCellLast
-                          : null,
-                        { width },
-                      ],
-                    },
+              (() => {
+                const timingCells: Array<[string | null | undefined, string]> =
+                  [
+                    [row.position, '28%'],
+                    [row.rate, '12%'],
+                    [row.amplitude, '14%'],
+                    [row.beatError, '16%'],
+                    [row.frequence, '12%'],
+                    [row.resultat, '18%'],
+                  ]
+
+                return createElement(
+                  View,
+                  { key: `${row.position}-${index}`, style: styles.detailRow },
+                  ...timingCells.map(([value, width], cellIndex, array) =>
                     createElement(
-                      Text,
-                      { style: styles.detailCellText },
-                      normalizeText(value, '-')
+                      View,
+                      {
+                        key: `${cellIndex}`,
+                        style:
+                          cellIndex === array.length - 1
+                            ? [
+                                styles.detailCell,
+                                styles.detailCellLast,
+                                { width },
+                              ]
+                            : [styles.detailCell, { width }],
+                      },
+                      createElement(
+                        Text,
+                        { style: styles.detailCellText },
+                        normalizeText(value, '-')
+                      )
                     )
                   )
                 )
-              )
+              })()
             )
           )
         )
@@ -1338,7 +2179,7 @@ function renderPoint4QualityPage(watchFile: WatchFile, pageNumber: number) {
           createElement(
             Text,
             { style: styles.subsectionTitle },
-            "4.2 Test d'etancheite"
+            "6.2 Test d'étanchéité et contrôle"
           ),
           createElement(
             View,
@@ -1346,56 +2187,66 @@ function renderPoint4QualityPage(watchFile: WatchFile, pageNumber: number) {
             createElement(
               View,
               { style: styles.detailHeader },
-              ...[
-                ['Test', '34%'],
-                ['Valeur / resultat', '26%'],
-                ['Observations', '40%'],
-              ].map(([label, width], index, array) =>
-                createElement(
-                  View,
-                  {
-                    key: label,
-                    style: [
-                      styles.detailHeaderCell,
-                      index === array.length - 1
-                        ? styles.detailHeaderCellLast
-                        : null,
-                      { width },
-                    ],
-                  },
-                  createElement(Text, { style: styles.detailHeaderText }, label)
-                )
-              )
-            ),
-            ...waterResistanceRows.map((row, index) =>
-              createElement(
-                View,
-                { key: `${row.test}-${index}`, style: styles.detailRow },
-                ...[
-                  [row.test, '34%'],
-                  [row.valeurResultat, '26%'],
-                  [row.observations, '40%'],
-                ].map(([value, width], cellIndex, array) =>
+              ...waterResistanceHeaderCells.map(
+                ([label, width], index, array) =>
                   createElement(
                     View,
                     {
-                      key: `${cellIndex}`,
-                      style: [
-                        styles.detailCell,
-                        cellIndex === array.length - 1
-                          ? styles.detailCellLast
-                          : null,
-                        { width },
-                      ],
+                      key: label,
+                      style:
+                        index === array.length - 1
+                          ? [
+                              styles.detailHeaderCell,
+                              styles.detailHeaderCellLast,
+                              { width },
+                            ]
+                          : [styles.detailHeaderCell, { width }],
                     },
                     createElement(
                       Text,
-                      { style: styles.detailCellText },
-                      normalizeText(value, '-')
+                      { style: styles.detailHeaderText },
+                      label
                     )
                   )
-                )
               )
+            ),
+            ...waterResistanceRows.map((row, index) =>
+              (() => {
+                const waterResistanceCells: Array<
+                  [string | null | undefined, string]
+                > = [
+                  [row.test, '34%'],
+                  [row.valeurResultat, '26%'],
+                  [row.observations, '40%'],
+                ]
+
+                return createElement(
+                  View,
+                  { key: `${row.test}-${index}`, style: styles.detailRow },
+                  ...waterResistanceCells.map(
+                    ([value, width], cellIndex, array) =>
+                      createElement(
+                        View,
+                        {
+                          key: `${cellIndex}`,
+                          style:
+                            cellIndex === array.length - 1
+                              ? [
+                                  styles.detailCell,
+                                  styles.detailCellLast,
+                                  { width },
+                                ]
+                              : [styles.detailCell, { width }],
+                        },
+                        createElement(
+                          Text,
+                          { style: styles.detailCellText },
+                          normalizeText(value, '-')
+                        )
+                      )
+                  )
+                )
+              })()
             )
           )
         )
@@ -1407,7 +2258,7 @@ function renderPoint4QualityPage(watchFile: WatchFile, pageNumber: number) {
           createElement(
             Text,
             { style: styles.subsectionTitle },
-            '4.3 Observations & conclusions'
+            '6.3 Observations & conclusions'
           ),
           createElement(
             View,
@@ -1420,7 +2271,52 @@ function renderPoint4QualityPage(watchFile: WatchFile, pageNumber: number) {
   )
 }
 
-function renderPoint5ValidationPage(watchFile: WatchFile, pageNumber: number) {
+function renderOrderSection(watchFile: WatchFile) {
+  if (!watchFile.order) return null
+
+  return createElement(
+    View,
+    { style: [styles.section, { marginTop: 28 }] },
+    createElement(
+      Text,
+      { style: styles.contentHeading },
+      '9. COMMANDE ASSOCIÉE'
+    ),
+    createElement(View, { style: styles.contentDivider }),
+    createElement(
+      View,
+      { style: styles.section },
+      createElement(
+        View,
+        { style: styles.dossierTable },
+        createElement(
+          View,
+          { style: [styles.dossierRow, styles.dossierRowLast] },
+          createElement(
+            View,
+            { style: styles.dossierLabelCell },
+            createElement(Text, { style: styles.dossierLabelText }, 'Commande')
+          ),
+          createElement(
+            View,
+            { style: styles.dossierValueCell },
+            createElement(
+              Text,
+              { style: styles.dossierValueText },
+              `#${watchFile.order.documentId.slice(-8).toUpperCase()}`
+            )
+          )
+        )
+      )
+    )
+  )
+}
+
+function renderPoint5ValidationPage(
+  watchFile: WatchFile,
+  pageNumber: number,
+  includeOrderSection = false
+) {
   const validationAtelier = watchFile.validationAtelier
 
   if (
@@ -1439,7 +2335,7 @@ function renderPoint5ValidationPage(watchFile: WatchFile, pageNumber: number) {
     createElement(
       Text,
       { style: styles.contentHeading },
-      '5. VALIDATION ATELIER'
+      '8. VALIDATION ATELIER'
     ),
     createElement(View, { style: styles.contentDivider }),
     createElement(
@@ -1536,376 +2432,128 @@ function renderPoint5ValidationPage(watchFile: WatchFile, pageNumber: number) {
     ),
     createElement(
       View,
-      {
-        style: [
-          styles.section,
-          {
-            marginTop: 36,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            gap: 24,
-          },
-        ],
-      },
+      { style: [styles.section, styles.validationSignoffGrid] },
       createElement(
         View,
-        { style: { width: '60%' } },
-        createElement(Text, { style: styles.subsectionTitle }, 'Signature :'),
-        createElement(View, {
-          style: {
-            marginTop: 12,
-            borderBottomWidth: 1,
-            borderBottomColor: '#1c1917',
-            minHeight: 54,
-            justifyContent: 'flex-end',
-          },
-        }),
-        validationAtelier?.signature?.url
-          ? createElement(Image, {
-              src:
-                cleanImageUrl(validationAtelier.signature.url) ??
-                validationAtelier.signature.url,
-              style: {
-                marginTop: 8,
-                maxWidth: 150,
-                maxHeight: 52,
-                objectFit: 'contain',
-              },
-            })
-          : null
+        {
+          style: [styles.validationSignoffColumn, styles.validationSignoffCard],
+        },
+        createElement(
+          Text,
+          { style: styles.validationSignoffLabel },
+          'Signature'
+        ),
+        createElement(
+          View,
+          { style: styles.validationSignoffLine },
+          validationAtelier?.signature?.url
+            ? createElement(Image, {
+                src:
+                  cleanImageUrl(validationAtelier.signature.url) ??
+                  validationAtelier.signature.url,
+                style: styles.validationSignatureImage,
+              })
+            : null
+        )
       ),
       createElement(
         View,
-        { style: { width: '30%' } },
-        createElement(Text, { style: styles.subsectionTitle }, 'Date :'),
-        createElement(View, {
-          style: {
-            marginTop: 12,
-            borderBottomWidth: 1,
-            borderBottomColor: '#1c1917',
-            minHeight: 22,
-            justifyContent: 'flex-end',
-          },
-        }),
-        validationAtelier?.dateSignature
-          ? createElement(
-              Text,
-              { style: [styles.paragraph, { marginTop: 8 }] },
-              formatDate(validationAtelier.dateSignature)
-            )
-          : null
+        {
+          style: [styles.validationSignoffColumn, styles.validationSignoffCard],
+        },
+        createElement(Text, { style: styles.validationSignoffLabel }, 'Date'),
+        createElement(
+          View,
+          { style: styles.validationSignoffLine },
+          createElement(
+            Text,
+            { style: styles.validationDateText },
+            validationAtelier?.dateSignature
+              ? formatDate(validationAtelier.dateSignature)
+              : ' '
+          )
+        )
       )
     ),
+    includeOrderSection ? renderOrderSection(watchFile) : null,
     createPdfFooter(pageNumber)
   )
 }
 
-function WatchFileDocument({ watchFile }: { watchFile: WatchFile }) {
-  const productName = asText(watchFile.product?.name, 'Montre ancienne')
-  const notes = formatPublicOperationsSummary(watchFile.operationsReparation)
-  const etatGeneralPage = renderPoint2EtatPage(watchFile)
-  const operationsPage = renderPoint3OperationsPage(
-    watchFile,
-    etatGeneralPage ? 4 : 3
-  )
-  const qualityPageNumber =
-    3 + (etatGeneralPage ? 1 : 0) + (operationsPage ? 1 : 0)
-  const qualityPage = renderPoint4QualityPage(watchFile, qualityPageNumber)
-  const validationPageNumber = qualityPageNumber + (qualityPage ? 1 : 0)
+function WatchFileDocument({
+  watchFile,
+  dossierMediaQrCodes,
+}: {
+  watchFile: WatchFile
+  dossierMediaQrCodes: Record<string, DossierMediaQrCode>
+}) {
+  const pages: ReactElement[] = []
+  let pageNumber = 1
+
+  pages.push(renderPoint1OverviewPage(watchFile, pageNumber))
+  pageNumber += 1
+
+  pages.push(renderPoint3IdentificationPage(watchFile, pageNumber))
+  pageNumber += 1
+
+  const etatGeneralPage = renderPoint4EtatPage(watchFile, pageNumber)
+  if (etatGeneralPage) {
+    pages.push(etatGeneralPage)
+    pageNumber += 1
+  }
+
+  const operationsPage = renderPoint3OperationsPage(watchFile, pageNumber)
+  if (operationsPage) {
+    pages.push(operationsPage)
+    pageNumber += 1
+  }
+
+  const qualityPage = renderPoint4QualityPage(watchFile, pageNumber)
+  if (qualityPage) {
+    pages.push(qualityPage)
+    pageNumber += 1
+  }
+
+  const dossierBlockGroups = groupDossierBlocks(watchFile.dossierBlocks ?? [])
+  for (let index = 0; index < dossierBlockGroups.length; index += 1) {
+    const blockGroup = dossierBlockGroups[index]
+    const renderedGroupPage = renderDossierBlocksPage(
+      watchFile,
+      blockGroup,
+      pageNumber,
+      index * 2,
+      dossierMediaQrCodes,
+      watchFile.dossierBlocks ?? []
+    )
+    if (renderedGroupPage) {
+      pages.push(renderedGroupPage)
+      pageNumber += 1
+    }
+  }
+
   const validationPage = renderPoint5ValidationPage(
     watchFile,
-    validationPageNumber
+    pageNumber,
+    Boolean(watchFile.order)
   )
-  const dossierBlockPages = (watchFile.dossierBlocks ?? [])
-    .map((block, index) =>
-      renderDossierBlockPage(
-        watchFile,
-        block,
-        index +
-          3 +
-          (etatGeneralPage ? 1 : 0) +
-          (operationsPage ? 1 : 0) +
-          (qualityPage ? 1 : 0) +
-          (validationPage ? 1 : 0)
+  if (validationPage) {
+    pages.push(validationPage)
+    pageNumber += 1
+  }
+
+  if (watchFile.order && !validationPage) {
+    pages.push(
+      createElement(
+        Page,
+        { size: 'A4', style: styles.page, key: 'order-page' },
+        createPdfTopBar(watchFile),
+        renderOrderSection(watchFile),
+        createPdfFooter(pageNumber)
       )
     )
-    .filter(Boolean)
-  const beforeCount = Array.isArray(watchFile.publicBeforeImage)
-    ? watchFile.publicBeforeImage.length
-    : 0
-  const afterCount = Array.isArray(watchFile.publicAfterImage)
-    ? watchFile.publicAfterImage.length
-    : 0
+  }
 
-  const dossierRows = [
-    ['Reference dossier', asText(watchFile.reference)],
-    ['Date de reception', formatDate(watchFile.dateReception)],
-    ['Horloger responsable', 'Romain Calmelet'],
-    ['Date de mise en vente', formatDate(watchFile.dateMiseEnVente)],
-  ] as const
-
-  const identificationRows = [
-    [
-      'Marque',
-      asText(watchFile.marque, '-'),
-      'Modele',
-      asText(watchFile.modele ?? watchFile.product?.name, '-'),
-    ],
-    [
-      'Reference',
-      asText(watchFile.referencePiece, '-'),
-      'Complications',
-      asText(watchFile.complications, '-'),
-    ],
-    [
-      'Mouvement',
-      asText(watchFile.mouvement, '-'),
-      'Calibre',
-      asText(watchFile.calibre, '-'),
-    ],
-    [
-      'Annee estimee',
-      asText(watchFile.anneeEstimee, '-'),
-      'Matiere du boitier',
-      asText(watchFile.matiereBoitier, '-'),
-    ],
-    [
-      'Diametre boitier',
-      asText(watchFile.diametreBoitier, '-'),
-      'Epaisseur',
-      asText(watchFile.epaisseur, '-'),
-    ],
-    [
-      'Bracelet / matiere',
-      asText(watchFile.matiereBracelet, '-'),
-      'Boucle',
-      asText(watchFile.boucle, '-'),
-    ],
-    [
-      'Verre',
-      asText(watchFile.verre, '-'),
-      'Etancheite annoncee',
-      asText(watchFile.etancheiteAnnoncee, '-'),
-    ],
-  ] as const
-
-  const identificationNotes =
-    stripHtml(
-      watchFile.notesIdentification ??
-        watchFile.marketingShortDescription ??
-        undefined
-    ) || 'A completer'
-
-  return createElement(
-    Document,
-    null,
-    createElement(
-      Page,
-      { size: 'A4', style: styles.page },
-      createPdfTopBar(watchFile),
-      createElement(
-        View,
-        { style: styles.hero },
-        createElement(
-          Text,
-          { style: styles.heroLineOne },
-          'DOSSIER DE REPARATION'
-        ),
-        createElement(Text, { style: styles.heroLineTwo }, 'HORLOGERE'),
-        createElement(View, { style: styles.heroDivider })
-      ),
-      createElement(
-        View,
-        { style: styles.dossierTable },
-        ...dossierRows.map(([label, value], index) =>
-          createElement(
-            View,
-            {
-              key: label,
-              style: [
-                styles.dossierRow,
-                index === dossierRows.length - 1 ? styles.dossierRowLast : null,
-              ],
-            },
-            createElement(
-              View,
-              { style: styles.dossierLabelCell },
-              createElement(Text, { style: styles.dossierLabelText }, label)
-            ),
-            createElement(
-              View,
-              { style: styles.dossierValueCell },
-              createElement(Text, { style: styles.dossierValueText }, value)
-            )
-          )
-        )
-      ),
-      createElement(
-        View,
-        { style: styles.section },
-        createElement(Text, { style: styles.sectionTitle }, productName)
-      ),
-      notes
-        ? createElement(
-            View,
-            { style: styles.section },
-            createElement(
-              Text,
-              { style: styles.sectionTitle },
-              'Resume public'
-            ),
-            createElement(Text, { style: styles.paragraph }, notes)
-          )
-        : null,
-      createElement(
-        View,
-        { style: styles.section },
-        createElement(
-          Text,
-          { style: styles.sectionTitle },
-          'Pieces du dossier'
-        ),
-        createElement(
-          View,
-          { style: styles.row },
-          createElement(Text, null, 'Photos avant'),
-          createElement(Text, null, `${beforeCount}`)
-        ),
-        createElement(
-          View,
-          { style: styles.row },
-          createElement(Text, null, 'Photos apres'),
-          createElement(Text, null, `${afterCount}`)
-        ),
-        watchFile.order
-          ? createElement(
-              View,
-              { style: styles.row },
-              createElement(Text, null, 'Commande associee'),
-              createElement(
-                Text,
-                null,
-                `#${watchFile.order.documentId.slice(-8).toUpperCase()}`
-              )
-            )
-          : null
-      ),
-      createElement(
-        View,
-        { style: styles.footer },
-        createElement(
-          Text,
-          { style: styles.footerText },
-          'Document interne - Atelier horlogerie'
-        ),
-        createElement(Text, { style: styles.footerText }, 'Page 1')
-      )
-    ),
-    createElement(
-      Page,
-      { size: 'A4', style: styles.page },
-      createPdfTopBar(watchFile),
-      createElement(
-        Text,
-        { style: styles.contentHeading },
-        '1. IDENTIFICATION DE LA PIECE'
-      ),
-      createElement(View, { style: styles.contentDivider }),
-      createElement(
-        View,
-        { style: styles.section },
-        createElement(
-          Text,
-          { style: styles.subsectionTitle },
-          '1.1 Description de la montre'
-        ),
-        createElement(
-          View,
-          { style: styles.identificationTable },
-          ...identificationRows.map((row, index) =>
-            createElement(
-              View,
-              {
-                key: row[0],
-                style: [
-                  styles.identificationRow,
-                  index === identificationRows.length - 1
-                    ? styles.identificationRowLast
-                    : null,
-                ],
-              },
-              createElement(
-                View,
-                { style: styles.identificationLabel },
-                createElement(
-                  Text,
-                  { style: styles.identificationLabelText },
-                  row[0]
-                )
-              ),
-              createElement(
-                View,
-                { style: styles.identificationValue },
-                createElement(
-                  Text,
-                  { style: styles.identificationValueText },
-                  row[1]
-                )
-              ),
-              createElement(
-                View,
-                { style: styles.identificationLabel },
-                createElement(
-                  Text,
-                  { style: styles.identificationLabelText },
-                  row[2]
-                )
-              ),
-              createElement(
-                View,
-                {
-                  style: [
-                    styles.identificationValue,
-                    styles.identificationValueLast,
-                  ],
-                },
-                createElement(
-                  Text,
-                  { style: styles.identificationValueText },
-                  row[3]
-                )
-              )
-            )
-          )
-        ),
-        createElement(
-          Text,
-          { style: styles.subsectionTitle },
-          "1.2 Notes d'identification"
-        ),
-        createElement(
-          View,
-          { style: styles.notesBox },
-          createElement(Text, { style: styles.paragraph }, identificationNotes)
-        )
-      ),
-      createElement(
-        View,
-        { style: styles.footer },
-        createElement(
-          Text,
-          { style: styles.footerText },
-          'Document interne - Atelier horlogerie'
-        ),
-        createElement(Text, { style: styles.footerText }, 'Page 2')
-      )
-    ),
-    etatGeneralPage,
-    operationsPage,
-    qualityPage,
-    validationPage,
-    ...dossierBlockPages
-  )
+  return createElement(Document, null, ...pages)
 }
 
 export async function GET(
@@ -1913,7 +2561,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const jwt = await getStrapiSessionJwt()
+  const strapiUser = await getCurrentStrapiUser()
   if (!jwt) {
+    return NextResponse.json({ error: 'Non authentifie' }, { status: 401 })
+  }
+  if (!strapiUser) {
     return NextResponse.json({ error: 'Non authentifie' }, { status: 401 })
   }
 
@@ -1933,6 +2585,11 @@ export async function GET(
   queryParams.set('populate[order]', 'true')
   queryParams.set('populate[product][fields][0]', 'name')
   queryParams.set('populate[product][fields][1]', 'slug')
+  queryParams.set('populate[product][populate][images][fields][0]', 'url')
+  queryParams.set(
+    'populate[product][populate][images][fields][1]',
+    'alternativeText'
+  )
   queryParams.set('populate[customer]', 'true')
   queryParams.set('populate[etatGeneral][populate][0]', 'etatGeneralGlobal')
   queryParams.set(
@@ -1985,10 +2642,15 @@ export async function GET(
   if (!watchFile) {
     return NextResponse.json({ error: 'Dossier introuvable' }, { status: 404 })
   }
+  if (watchFile.customer?.id !== strapiUser.id) {
+    return NextResponse.json({ error: 'Acces refuse' }, { status: 403 })
+  }
 
   try {
+    const dossierMediaQrCodes = await buildDossierMediaQrCodes(watchFile)
     const pdfDocument = createElement(WatchFileDocument, {
       watchFile,
+      dossierMediaQrCodes,
     }) as unknown as ReactElement<DocumentProps>
     const buffer: Buffer = await renderToBuffer(pdfDocument)
 

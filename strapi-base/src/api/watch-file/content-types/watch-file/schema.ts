@@ -128,8 +128,11 @@ export default {
       "displayName": "Blocs du dossier",
       "components": [
         "watch-file.rich-text-block",
+        "watch-file.image-block",
         "watch-file.text-image-block",
-        "watch-file.before-after-block"
+        "watch-file.before-after-block",
+        "watch-file.video-block",
+        "watch-file.audio-block"
       ]
     },
     "publicBeforeImage": {

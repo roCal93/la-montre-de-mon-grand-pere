@@ -8,7 +8,6 @@ import { cleanImageUrl } from '@/lib/strapi'
 import WatchFileDossierBlocks from '@/components/espace-client/watch-file/WatchFileDossierBlocks'
 import {
   appendWatchFileDossierBlocksPopulate,
-  extractPlainTextFromStrapiBlocks,
   filterRenderableWatchFileDossierBlocks,
   type WatchFileDossierBlock,
 } from '@/lib/watch-file-dossier-blocks'
@@ -119,7 +118,11 @@ interface WatchFile {
   dateReception?: string
   dateMiseEnVente?: string
   order?: { documentId: string; total: number; createdAt: string }
-  product?: { name: string; slug: string }
+  product?: {
+    name: string
+    slug: string
+    images?: MediaFile[] | null
+  }
   customer?: { id: number }
 }
 
@@ -338,7 +341,8 @@ export default async function WatchFileDetailPage({
   const query = new URLSearchParams()
   query.set('populate[publicBadges]', 'true')
   query.set('populate[order]', 'true')
-  query.set('populate[product]', 'true')
+  query.set('populate[product][populate][images][fields][0]', 'url')
+  query.set('populate[product][populate][images][fields][1]', 'alternativeText')
   query.set('populate[customer]', 'true')
   query.set('populate[etatGeneral][populate][0]', 'etatGeneralGlobal')
   query.set(
@@ -366,15 +370,10 @@ export default async function WatchFileDetailPage({
 
   const watchFile = data?.data
   if (!watchFile || error) notFound()
+  if (watchFile.customer?.id !== strapiUser.id) notFound()
 
   const dossierBlocks = filterRenderableWatchFileDossierBlocks(
     watchFile.dossierBlocks
-  )
-  const narrativeDossierBlocks = dossierBlocks.filter(
-    (block) => block.__component !== 'watch-file.before-after-block'
-  )
-  const beforeAfterDossierBlocks = dossierBlocks.filter(
-    (block) => block.__component === 'watch-file.before-after-block'
   )
   const globalRows = buildGlobalRows(watchFile.etatGeneral)
   const observationRows = buildObservationRows(watchFile.etatGeneral)
@@ -401,6 +400,8 @@ export default async function WatchFileDetailPage({
     ) ?? 'Non renseignées'
   const publicSummary = normalizeText(watchFile.marketingShortDescription)
   const publicHistory = normalizeText(watchFile.marketingDescription)
+  const productHeroImage = watchFile.product?.images?.[0] ?? null
+  const productHeroImageUrl = cleanImageUrl(productHeroImage?.url)
   const validationAtelier = watchFile.validationAtelier ?? null
   const hasValidationAtelier =
     normalizeText(validationAtelier?.dureeIntervention) ||
@@ -419,32 +420,34 @@ export default async function WatchFileDetailPage({
         </Link>
       </div>
 
-      <div className="border-b border-neutral-300 pb-6 dark:border-neutral-600">
-        <div className="grid gap-6 md:grid-cols-[minmax(0,_1fr)_auto] md:items-start">
-          <div>
+      <div className="border-b border-neutral-300 pb-8 dark:border-neutral-600 sm:pb-10">
+        <div
+          className={`grid gap-8 ${productHeroImageUrl ? 'lg:grid-cols-[minmax(0,_1fr)_22rem]' : 'md:grid-cols-[minmax(0,_1fr)_auto]'} md:items-start lg:gap-10`}
+        >
+          <div className="pt-1">
             <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.14em] text-neutral-600 dark:text-neutral-300">
               Dossier montre
             </p>
-            <h1 className="mt-2 text-[23px] font-medium leading-snug text-neutral-900 dark:text-white">
+            <h1 className="mt-3 text-[23px] font-medium leading-snug text-neutral-900 dark:text-white sm:text-[26px]">
               {watchFile.product?.name ?? `Dossier ${watchFile.reference}`}
             </h1>
-            <p className="mt-1 font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.12em] text-neutral-700 dark:text-neutral-200">
+            <p className="mt-2 font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.12em] text-neutral-700 dark:text-neutral-200">
               REF — {watchFile.reference}
             </p>
 
             {publicSummary && (
-              <div className="my-5 max-w-3xl">
+              <div className="my-6 max-w-3xl sm:my-7">
                 <p className="mb-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.15em] text-neutral-600 dark:text-neutral-300">
                   Résumé
                 </p>
-                <p className="border-l-4 border-black pl-4 text-[14px] leading-[1.8] text-neutral-700 dark:text-neutral-200">
+                <p className="text-[14px] leading-[1.8] text-neutral-700 dark:text-neutral-200">
                   {publicSummary}
                 </p>
               </div>
             )}
 
             {publicBadgeLabels.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2.5 sm:gap-3">
                 {publicBadgeLabels.map((badge, index) => (
                   <span
                     key={`${badge}-${index}`}
@@ -455,21 +458,39 @@ export default async function WatchFileDetailPage({
                 ))}
               </div>
             )}
+
+            <div className="mt-6 sm:mt-7">
+              <Link
+                href={`/api/watch-files/${watchFile.documentId}/pdf`}
+                className="inline-flex items-center justify-center self-start rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-3 text-[13px] font-[family-name:var(--font-geist-mono)] uppercase tracking-[0.08em] text-white shadow-sm shadow-black/10 transition-colors hover:bg-neutral-700 dark:border-neutral-200 dark:bg-neutral-100 dark:text-black dark:hover:bg-white"
+              >
+                Télécharger le dossier PDF
+              </Link>
+            </div>
           </div>
 
-          <Link
-            href={`/api/watch-files/${watchFile.documentId}/pdf`}
-            className="inline-flex items-center justify-center self-start rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-3 text-[13px] font-[family-name:var(--font-geist-mono)] uppercase tracking-[0.08em] text-white shadow-sm shadow-black/10 transition-colors hover:bg-neutral-700 dark:border-neutral-200 dark:bg-neutral-100 dark:text-black dark:hover:bg-white"
-          >
-            Télécharger le dossier PDF
-          </Link>
+          {productHeroImageUrl ? (
+            <div className="overflow-hidden rounded-[1.5rem] border border-neutral-300 bg-neutral-100 shadow-sm shadow-black/5 dark:border-neutral-600 dark:bg-neutral-800 lg:mt-1">
+              <Image
+                src={productHeroImageUrl}
+                alt={
+                  productHeroImage?.alternativeText ??
+                  watchFile.product?.name ??
+                  'Photo de la montre'
+                }
+                width={800}
+                height={800}
+                className="aspect-square h-full w-full object-cover"
+              />
+            </div>
+          ) : null}
         </div>
       </div>
 
       {publicHistory && (
         <DossierSection index="1" title="Histoire">
           <div
-            className="border-l-4 border-black pl-4 text-[14px] leading-[1.8] text-neutral-700 dark:text-neutral-200 [&_p]:mb-3 [&_p:last-child]:mb-0"
+            className="text-[14px] leading-[1.8] text-neutral-700 dark:text-neutral-200 [&_p]:mb-3 [&_p:last-child]:mb-0"
             dangerouslySetInnerHTML={{ __html: publicHistory }}
           />
         </DossierSection>
@@ -838,70 +859,7 @@ export default async function WatchFileDetailPage({
 
       {dossierBlocks.length > 0 && (
         <DossierSection index="7" title="Dossier complémentaire">
-          {narrativeDossierBlocks.map((block, index) => {
-            const plainText =
-              block.__component === 'watch-file.before-after-block'
-                ? ''
-                : extractPlainTextFromStrapiBlocks(block.content)
-
-            const paragraphs = plainText
-              .split(/\n{2,}/)
-              .map((paragraph) => paragraph.trim())
-              .filter((paragraph) => paragraph.length > 0)
-
-            return (
-              <section
-                key={`${block.__component}-${block.id ?? index}`}
-                className="mt-6 rounded-[1.75rem] border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 md:p-8"
-              >
-                {block.title ? (
-                  <div className="mb-5">
-                    <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.14em] text-neutral-600 dark:text-neutral-300">
-                      Dossier narratif
-                    </p>
-                    <h2 className="mt-2 text-2xl font-serif font-semibold text-neutral-900 dark:text-white">
-                      {block.title}
-                    </h2>
-                  </div>
-                ) : null}
-
-                {block.__component === 'watch-file.text-image-block' &&
-                block.image?.url ? (
-                  <div className="mb-6 overflow-hidden rounded-[1.5rem] border border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800">
-                    <Image
-                      src={cleanImageUrl(block.image.url) ?? block.image.url}
-                      alt={
-                        block.image.alternativeText ??
-                        block.title ??
-                        'Image du dossier'
-                      }
-                      width={1200}
-                      height={900}
-                      className="h-auto w-full object-cover"
-                    />
-                  </div>
-                ) : null}
-
-                <div className="space-y-4">
-                  {paragraphs.map((paragraph, paragraphIndex) => (
-                    <p
-                      key={paragraphIndex}
-                      className="text-[15px] leading-[1.85] text-neutral-700 dark:text-neutral-200"
-                    >
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              </section>
-            )
-          })}
-
-          {beforeAfterDossierBlocks.length > 0 && (
-            <WatchFileDossierBlocks
-              blocks={beforeAfterDossierBlocks}
-              locale={locale}
-            />
-          )}
+          <WatchFileDossierBlocks blocks={dossierBlocks} locale={locale} />
         </DossierSection>
       )}
 
@@ -945,7 +903,7 @@ export default async function WatchFileDetailPage({
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
             <div>
               <SectionLabel>Signature</SectionLabel>
-              <div className="border-b border-neutral-300 pb-2 dark:border-neutral-600">
+              <div className="flex h-20 items-end border-b border-neutral-300 pb-2 dark:border-neutral-600">
                 {validationAtelier?.signature?.url ? (
                   <Image
                     src={
@@ -958,16 +916,16 @@ export default async function WatchFileDetailPage({
                     }
                     width={160}
                     height={64}
-                    className="h-16 w-auto object-contain"
+                    className="h-14 w-auto object-contain"
                   />
                 ) : (
-                  <div className="h-16" />
+                  <div className="h-14" />
                 )}
               </div>
             </div>
             <div>
               <SectionLabel>Date</SectionLabel>
-              <div className="border-b border-neutral-300 pb-2 text-sm text-neutral-700 dark:border-neutral-600 dark:text-neutral-100">
+              <div className="flex h-20 items-end border-b border-neutral-300 pb-2 text-sm text-neutral-700 dark:border-neutral-600 dark:text-neutral-100">
                 {validationAtelier?.dateSignature
                   ? formatLongDate(validationAtelier.dateSignature)
                   : ' '}

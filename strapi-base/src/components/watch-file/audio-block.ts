@@ -1,0 +1,27 @@
+export default {
+  "collectionName": "components_watch_file_audio_blocks",
+  "info": {
+    "displayName": "Dossier Audio",
+    "description": "Bloc audio pour le dossier de restauration"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "displayName": "Titre"
+    },
+    "content": {
+      "type": "blocks",
+      "required": false,
+      "displayName": "Contenu"
+    },
+    "audio": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["audios"],
+      "displayName": "Audio"
+    }
+  },
+  "config": {}
+};
