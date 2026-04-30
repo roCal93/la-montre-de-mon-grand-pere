@@ -25,8 +25,8 @@
     "next-intl": "^4.9.1",
     "qrcode": "^1.5.4",
     "react": "19.2.5",
-    "react-dom": "19.2.5",
-    "react-hook-form": "^7.73.1",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.74.0",
     "resend": "^6.12.2",
     "stripe": "^22.0.1",
     "zod": "^4.3.6"
