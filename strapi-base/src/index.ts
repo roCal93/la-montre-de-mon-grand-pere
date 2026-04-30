@@ -104,6 +104,23 @@ async function ensureWatchFileEditLayoutOrder(strapi: Core.Strapi) {
   }
 }
 
+async function normalizeWatchFileLocale(strapi: Core.Strapi) {
+  try {
+    const db = strapi.db.connection;
+    const updated = await db('watch_files')
+      .whereNotNull('locale')
+      .update({ locale: null });
+
+    if (updated) {
+      strapi.log.warn(
+        `[bootstrap] Normalized watch-file locale to null on ${updated} row(s)`
+      );
+    }
+  } catch (error) {
+    strapi.log.error('[bootstrap] Failed to normalize watch-file locale:', error);
+  }
+}
+
 export default {
   /**
    * An asynchronous register function that runs before
@@ -126,5 +143,6 @@ export default {
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await cleanupBrokenBlogCategoryLinks(strapi);
     await ensureWatchFileEditLayoutOrder(strapi);
+    await normalizeWatchFileLocale(strapi);
   },
 };
