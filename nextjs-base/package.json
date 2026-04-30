@@ -17,7 +17,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@react-pdf/renderer": "^4.5.1",
-    "@stripe/stripe-js": "^9.2.0",
+    "@stripe/stripe-js": "^9.3.1",
     "framer-motion": "^12.37.0",
     "js-cookie": "^3.0.5",
     "next": "16.2.4",
@@ -26,7 +26,7 @@
     "qrcode": "^1.5.4",
     "react": "19.2.5",
     "react-dom": "19.2.4",
-    "react-hook-form": "^7.73.1",
+    "react-hook-form": "^7.74.0",
     "resend": "^6.12.2",
     "stripe": "^22.0.1",
     "zod": "^4.3.6"
@@ -43,7 +43,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "husky": "^9.1.6",
-    "jsdom": "^29.0.2",
+    "jsdom": "^29.1.0",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
     "strapi-to-typescript": "^2.0.15",
