@@ -944,26 +944,36 @@ function renderPdfTextImageBlockContent(
   title: string
 ) {
   const text = extractPlainTextFromStrapiBlocks(block.content)
-  const imageUrl = buildPdfMediaUrl(block.image?.url)
+  const imageUrls = (block.images ?? [])
+    .map((image) => buildPdfMediaUrl(image?.url))
+    .filter((imageUrl): imageUrl is string => Boolean(imageUrl))
 
-  if (!text && !imageUrl) return null
+  if (!text && imageUrls.length === 0) return null
 
   const textColumn = createElement(
     View,
     { style: styles.dossierColumn },
     text ? createElement(Text, { style: styles.dossierBlockText }, text) : null
   )
-  const imageColumn = imageUrl
+  const imageColumn = imageUrls.length
     ? createElement(
         View,
         { style: styles.dossierColumn },
-        createElement(
-          View,
-          { style: styles.dossierImageFrame },
-          createElement(Image, {
-            src: imageUrl,
-            style: styles.dossierImage,
-          })
+        imageUrls.map((imageUrl, index) =>
+          createElement(
+            View,
+            {
+              key: `${imageUrl}-${index}`,
+              style:
+                index === 0
+                  ? styles.dossierImageFrame
+                  : [styles.dossierImageFrame, { marginTop: 10 }],
+            },
+            createElement(Image, {
+              src: imageUrl,
+              style: styles.dossierImage,
+            })
+          )
         )
       )
     : null

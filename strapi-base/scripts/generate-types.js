@@ -115,6 +115,14 @@ function convertStrapiType(attribute) {
         case 'relation':
             // Pour les relations, générer le type approprié avec StrapiEntity
             if (attribute.target) {
+                if (attribute.target === 'plugin::users-permissions.user') {
+                    if (attribute.relation === 'oneToMany' || attribute.relation === 'manyToMany') {
+                        return '(StrapiUser & StrapiEntity)[]';
+                    }
+
+                    return '(StrapiUser & StrapiEntity)';
+                }
+
                 const targetName = attribute.target.split('.').pop();
                 const typeName = targetName.split('-').map(w =>
                     w.charAt(0).toUpperCase() + w.slice(1)
@@ -267,6 +275,16 @@ export interface StrapiBlock {
     [key: string]: unknown;
   }>;
   [key: string]: unknown;
+}
+
+export interface StrapiUser {
+    username?: string;
+    email?: string;
+    firstname?: string;
+    lastname?: string;
+    blocked?: boolean;
+    confirmed?: boolean;
+    [key: string]: unknown;
 }
 
 // ============================================================================

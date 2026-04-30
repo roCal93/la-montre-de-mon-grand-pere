@@ -121,6 +121,46 @@ async function normalizeWatchFileLocale(strapi: Core.Strapi) {
   }
 }
 
+async function migrateWatchFileTextImageBlockMedia(strapi: Core.Strapi) {
+  try {
+    const db = strapi.db.connection;
+    const legacyRows = await db('files_related_mph')
+      .select('id', 'related_id')
+      .where({
+        related_type: 'watch-file.text-image-block',
+        field: 'image',
+      })
+      .orderBy('id');
+
+    if (!legacyRows.length) {
+      return;
+    }
+
+    for (const row of legacyRows) {
+      const maxOrderRow = await db('files_related_mph')
+        .where({
+          related_type: 'watch-file.text-image-block',
+          related_id: row.related_id,
+          field: 'images',
+        })
+        .max<{ maxOrder: number | null }>('order as maxOrder')
+        .first();
+
+      const nextOrder = Number(maxOrderRow?.maxOrder ?? 0) + 1;
+
+      await db('files_related_mph')
+        .where({ id: row.id })
+        .update({ field: 'images', order: nextOrder });
+    }
+
+    strapi.log.warn(
+      `[bootstrap] Migrated watch-file text-image media from image to images on ${legacyRows.length} row(s)`
+    );
+  } catch (error) {
+    strapi.log.error('[bootstrap] Failed to migrate watch-file text-image media:', error);
+  }
+}
+
 export default {
   /**
    * An asynchronous register function that runs before
@@ -144,5 +184,6 @@ export default {
     await cleanupBrokenBlogCategoryLinks(strapi);
     await ensureWatchFileEditLayoutOrder(strapi);
     await normalizeWatchFileLocale(strapi);
+    await migrateWatchFileTextImageBlockMedia(strapi);
   },
 };

@@ -28,7 +28,7 @@ export interface WatchFileImageDossierBlock extends BaseWatchFileDossierBlock {
 export interface WatchFileTextImageDossierBlock extends BaseWatchFileDossierBlock {
   __component: 'watch-file.text-image-block'
   content: StrapiBlock[]
-  image: WatchFileBlockMedia | null
+  images?: WatchFileBlockMedia[] | null
   imagePosition?: 'left' | 'right' | null
 }
 
@@ -87,7 +87,7 @@ export function appendWatchFileDossierBlocksPopulate(params: URLSearchParams) {
     'true'
   )
   params.set(
-    'populate[dossierBlocks][on][watch-file.text-image-block][populate][image]',
+    'populate[dossierBlocks][on][watch-file.text-image-block][populate][images]',
     'true'
   )
   params.set(
@@ -158,7 +158,7 @@ export function filterRenderableWatchFileDossierBlocks(
       return (
         hasTitle ||
         extractPlainTextFromStrapiBlocks(block.content).length > 0 ||
-        Boolean(block.image?.url)
+        Boolean(block.images?.some((image) => Boolean(image?.url)))
       )
     }
 

@@ -227,7 +227,7 @@ async function main() {
                             content: makeParagraph(
                                 'Le nettoyage de l\'habillage a ete volontairement mesuré afin de conserver la lecture historique de la piece.'
                             ),
-                            image: textImageId,
+                            images: [textImageId],
                             imagePosition: 'right',
                         },
                     ]

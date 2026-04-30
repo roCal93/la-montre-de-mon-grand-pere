@@ -1,6 +1,6 @@
 'use client'
 
-import type React from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import BeforeAfterSlider from '@/components/media/BeforeAfterSlider'
 import { cleanImageUrl } from '@/lib/strapi'
@@ -203,7 +203,34 @@ function ImageBlock({ block }: { block: WatchFileImageDossierBlock }) {
 }
 
 function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
-  const imageSrc = cleanImageUrl(block.image?.url)
+  const gallery = (block.images ?? [])
+    .map((image) => {
+      const src = cleanImageUrl(image?.url)
+
+      if (!src || !image) {
+        return null
+      }
+
+      return {
+        ...image,
+        src,
+      }
+    })
+    .filter(
+      (
+        image
+      ): image is NonNullable<typeof image> & {
+        src: string
+      } => Boolean(image?.src)
+    )
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    if (activeIndex >= gallery.length) {
+      setActiveIndex(0)
+    }
+  }, [activeIndex, gallery.length])
+
   const renderedContent = renderRichText(block.content)
   const hasRenderedContent = renderedContent.some(Boolean)
   const plainText = extractPlainTextFromStrapiBlocks(block.content)
@@ -214,15 +241,73 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
         : renderPlainTextFallback(plainText)}
     </div>
   )
-  const imageContent = imageSrc ? (
-    <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] border border-neutral-300 bg-neutral-100 dark:border-neutral-600 dark:bg-neutral-800">
-      <Image
-        src={imageSrc}
-        alt={block.image?.alternativeText ?? block.title ?? 'Image du dossier'}
-        fill
-        className="object-cover"
-        sizes="(max-width: 768px) 100vw, 40vw"
-      />
+  const activeImage = gallery[activeIndex]
+  const imageContent = activeImage ? (
+    <div className="space-y-3">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] border border-neutral-300 bg-neutral-100 dark:border-neutral-600 dark:bg-neutral-800">
+        <Image
+          src={activeImage.src}
+          alt={activeImage.alternativeText ?? block.title ?? 'Image du dossier'}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 40vw"
+        />
+
+        {gallery.length > 1 ? (
+          <>
+            <button
+              type="button"
+              onClick={() =>
+                setActiveIndex((currentIndex) =>
+                  currentIndex === 0 ? gallery.length - 1 : currentIndex - 1
+                )
+              }
+              aria-label="Image précédente"
+              className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-black/55 text-lg text-white backdrop-blur transition hover:bg-black/70"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setActiveIndex((currentIndex) =>
+                  currentIndex === gallery.length - 1 ? 0 : currentIndex + 1
+                )
+              }
+              aria-label="Image suivante"
+              className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-black/55 text-lg text-white backdrop-blur transition hover:bg-black/70"
+            >
+              ›
+            </button>
+            <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 font-[family-name:var(--font-geist-mono)] text-[11px] tracking-[0.08em] text-white backdrop-blur">
+              {activeIndex + 1} / {gallery.length}
+            </div>
+          </>
+        ) : null}
+      </div>
+
+      {gallery.length > 1 ? (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {gallery.map((image, index) => (
+            <button
+              key={`${image.url}-${index}`}
+              type="button"
+              onClick={() => setActiveIndex(index)}
+              aria-label={`Afficher l'image ${index + 1}`}
+              aria-pressed={index === activeIndex}
+              className={`relative h-16 w-16 flex-none overflow-hidden rounded-2xl border transition ${index === activeIndex ? 'border-neutral-900 ring-2 ring-neutral-900/15' : 'border-neutral-200 opacity-70 hover:opacity-100'}`}
+            >
+              <Image
+                src={image.src}
+                alt={image.alternativeText ?? `Miniature ${index + 1}`}
+                fill
+                className="object-cover"
+                sizes="64px"
+              />
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   ) : null
 

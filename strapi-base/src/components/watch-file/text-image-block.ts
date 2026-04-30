@@ -15,12 +15,11 @@ export default {
       "required": true,
       "displayName": "Contenu"
     },
-    "image": {
+    "images": {
       "type": "media",
-      "multiple": false,
-      "required": true,
+      "multiple": true,
       "allowedTypes": ["images"],
-      "displayName": "Image"
+      "displayName": "Images"
     },
     "imagePosition": {
       "type": "enumeration",

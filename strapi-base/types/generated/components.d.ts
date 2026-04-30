@@ -359,10 +359,10 @@ export interface BlocksTextImageBlock extends Struct.ComponentSchema {
   };
   attributes: {
     content: Schema.Attribute.Blocks & Schema.Attribute.Required;
-    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
     imagePosition: Schema.Attribute.Enumeration<['left', 'right']> &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'right'>;
+    images: Schema.Attribute.Media<'images', true>;
     imageSize: Schema.Attribute.Enumeration<['small', 'medium', 'large']> &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'medium'>;
@@ -793,10 +793,10 @@ export interface WatchFileTextImageBlock extends Struct.ComponentSchema {
   };
   attributes: {
     content: Schema.Attribute.Blocks & Schema.Attribute.Required;
-    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
     imagePosition: Schema.Attribute.Enumeration<['left', 'right']> &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'right'>;
+    images: Schema.Attribute.Media<'images', true>;
     title: Schema.Attribute.String;
   };
 }

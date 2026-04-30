@@ -61,7 +61,7 @@ const fetchBlogLandingPage = async ({
     filters: { slug: { $eq: 'blog' } },
     fields: ['title', 'hideTitle', 'slug'],
     populate:
-      'sections.blocks.cards.image,sections.blocks.image,sections.blocks.imageDesktop,sections.blocks.buttons.file,sections.blocks.items.images.image,sections.blocks.items.images.link,sections.blocks.examples,sections.blocks.workItems.image,sections.blocks.workItems.categories,sections.blocks.privacyPolicy,sections.blocks.markerImage,sections.blocks.openingDays,sections.blocks.category',
+      'sections.blocks.cards.image,sections.blocks.image,sections.blocks.images,sections.blocks.imageDesktop,sections.blocks.buttons.file,sections.blocks.items.images.image,sections.blocks.items.images.link,sections.blocks.examples,sections.blocks.workItems.image,sections.blocks.workItems.categories,sections.blocks.privacyPolicy,sections.blocks.markerImage,sections.blocks.openingDays,sections.blocks.category',
     locale,
     publicationState: isDraft ? 'preview' : 'live',
     pagination: { page: 1, pageSize: 1 },

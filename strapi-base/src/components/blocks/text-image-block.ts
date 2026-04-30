@@ -10,10 +10,9 @@ export default {
       "type": "blocks",
       "required": true
     },
-    "image": {
+    "images": {
       "type": "media",
-      "multiple": false,
-      "required": true,
+      "multiple": true,
       "allowedTypes": [
         "images"
       ]
