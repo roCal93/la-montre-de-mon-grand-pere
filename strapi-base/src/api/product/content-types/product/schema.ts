@@ -58,6 +58,11 @@ export default {
       "target": "api::product-category.product-category",
       "inversedBy": "products"
     },
+    "relatedArticles": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::blog-article.blog-article"
+    },
     "watchFile": {
       "type": "relation",
       "relation": "oneToOne",

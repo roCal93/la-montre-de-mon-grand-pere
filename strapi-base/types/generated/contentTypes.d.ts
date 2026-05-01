@@ -1153,6 +1153,10 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
         number
       >;
     publishedAt: Schema.Attribute.DateTime;
+    relatedArticles: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::blog-article.blog-article'
+    >;
     slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
     stripePriceId: Schema.Attribute.String & Schema.Attribute.Private;
     updatedAt: Schema.Attribute.DateTime;

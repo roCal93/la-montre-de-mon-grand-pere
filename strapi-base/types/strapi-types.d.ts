@@ -4,7 +4,7 @@
  * ⚠️  FICHIER AUTO-GÉNÉRÉ - NE PAS MODIFIER
  * 
  * Pour régénérer: npm run generate:types
- * Généré le: 2026-04-30T14:08:48.155Z
+ * Généré le: 2026-05-01T09:41:28.592Z
  */
 
 // ============================================================================
@@ -659,6 +659,7 @@ export interface Product {
   images?: StrapiMedia[];
   active: boolean;
   category?: (ProductCategory & StrapiEntity);
+  relatedArticles?: (BlogArticle & StrapiEntity)[];
   watchFile?: (WatchFile & StrapiEntity);
   stripePriceId?: string;
   locale?: string;

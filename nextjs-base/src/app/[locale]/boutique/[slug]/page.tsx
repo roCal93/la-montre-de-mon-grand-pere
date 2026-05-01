@@ -14,6 +14,18 @@ interface StrapiImage {
   alternativeText: string | null
 }
 
+interface RelatedBlogArticle {
+  id: number
+  documentId: string
+  title: string | null
+  slug: string | null
+  excerpt: string | null
+  publicationDate: string | null
+  createdAt?: string | null
+  locale?: string | null
+  coverImage: StrapiImage | null
+}
+
 interface PublicBadgeEntry {
   label: string | null
 }
@@ -141,6 +153,7 @@ interface StrapiProduct {
     name: string
     slug: string
   } | null
+  relatedArticles: RelatedBlogArticle[] | null
 }
 
 type ProductBadge = { label: string; highlight?: boolean }
@@ -176,6 +189,28 @@ export function buildPublicBadgeLabels(
   return (badges ?? [])
     .map((badge) => badge.label?.trim() ?? '')
     .filter((badge) => badge.length > 0)
+}
+
+function formatBlogArticleDate(
+  date: string | null | undefined,
+  locale: string
+) {
+  if (!date) return null
+
+  try {
+    const parsedDate = new Date(date)
+    if (Number.isNaN(parsedDate.getTime())) {
+      return null
+    }
+
+    return parsedDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  } catch {
+    return null
+  }
 }
 
 export function buildBeforeAfterPairs(
@@ -402,6 +437,23 @@ async function getProduct(
     url.searchParams.set('populate[images][fields][1]', 'alternativeText')
     url.searchParams.set('populate[category][fields][0]', 'name')
     url.searchParams.set('populate[category][fields][1]', 'slug')
+    url.searchParams.set('populate[relatedArticles][fields][0]', 'title')
+    url.searchParams.set('populate[relatedArticles][fields][1]', 'slug')
+    url.searchParams.set('populate[relatedArticles][fields][2]', 'excerpt')
+    url.searchParams.set(
+      'populate[relatedArticles][fields][3]',
+      'publicationDate'
+    )
+    url.searchParams.set('populate[relatedArticles][fields][4]', 'createdAt')
+    url.searchParams.set('populate[relatedArticles][fields][5]', 'locale')
+    url.searchParams.set(
+      'populate[relatedArticles][populate][coverImage][fields][0]',
+      'url'
+    )
+    url.searchParams.set(
+      'populate[relatedArticles][populate][coverImage][fields][1]',
+      'alternativeText'
+    )
 
     return url
   }
@@ -584,6 +636,11 @@ export default async function ProductPage({ params }: Props) {
   const hasSlider = beforeAfterPairs.length > 0
 
   const allBadges = buildProductBadges(resolvedBadges, isSoldOut, locale)
+  const relatedArticles = (product.relatedArticles ?? []).filter(
+    (article): article is RelatedBlogArticle =>
+      Boolean(article.slug && article.title) &&
+      (!article.locale || article.locale === locale)
+  )
 
   return (
     <Layout locale={locale}>
@@ -813,6 +870,68 @@ export default async function ProductPage({ params }: Props) {
             />
           </div>
         )}
+
+        {relatedArticles.length > 0 ? (
+          <div className="mt-10">
+            <SectionLabel>
+              {locale === 'fr' ? 'Autour de cette pièce' : 'Further reading'}
+            </SectionLabel>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {relatedArticles.slice(0, 3).map((article) => {
+                const coverImageUrl = article.coverImage?.url
+                  ? buildProductImageUrl(
+                      article.coverImage.url,
+                      process.env.NEXT_PUBLIC_STRAPI_URL
+                    )
+                  : null
+                const articleDate = formatBlogArticleDate(
+                  article.publicationDate || article.createdAt,
+                  locale
+                )
+
+                return (
+                  <Link
+                    key={article.documentId}
+                    href={`/${locale}/blog/${article.slug}`}
+                    className="group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-transform duration-300 hover:-translate-y-1"
+                  >
+                    {coverImageUrl ? (
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+                        <img
+                          src={coverImageUrl}
+                          alt={
+                            article.coverImage?.alternativeText ||
+                            article.title ||
+                            'Blog article cover image'
+                          }
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        />
+                      </div>
+                    ) : null}
+                    <div className="flex flex-1 flex-col gap-3 p-5">
+                      {articleDate ? (
+                        <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-400">
+                          {articleDate}
+                        </span>
+                      ) : null}
+                      <h2 className="text-[19px] font-medium leading-snug text-neutral-900 transition-colors group-hover:text-neutral-600">
+                        {article.title}
+                      </h2>
+                      {article.excerpt ? (
+                        <p className="border-l-2 border-black pl-4 text-[14px] leading-[1.75] text-neutral-500">
+                          {article.excerpt}
+                        </p>
+                      ) : null}
+                      <span className="mt-auto font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500">
+                        {locale === 'fr' ? "Lire l'article" : 'Read article'}
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
 
         {/* ── Footer strip ── */}
         <div className="mt-12 grid grid-cols-4 divide-x divide-neutral-200 border-t border-neutral-200 pt-6">

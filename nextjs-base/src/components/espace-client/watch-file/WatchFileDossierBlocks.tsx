@@ -241,6 +241,16 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsModalOpen(false)
+        return
+      }
+
+      if (gallery.length > 1 && event.key === 'ArrowLeft') {
+        goToPrevious()
+        return
+      }
+
+      if (gallery.length > 1 && event.key === 'ArrowRight') {
+        goToNext()
       }
     }
 
@@ -264,6 +274,7 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
     </div>
   )
   const activeImage = gallery[activeIndex]
+  const activeImageCaption = activeImage?.caption?.trim()
 
   const goToPrevious = () => {
     setActiveIndex((currentIndex) =>
@@ -288,7 +299,7 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
             onClick={() => setIsModalOpen(false)}
           >
             <div
-              className="relative flex max-h-[90vh] w-full max-w-5xl items-center justify-center"
+              className="relative flex max-h-[90vh] w-full max-w-5xl flex-col items-center justify-center gap-3"
               onClick={(event) => event.stopPropagation()}
             >
               <button
@@ -332,6 +343,11 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
                 sizes="100vw"
                 priority
               />
+              {activeImageCaption ? (
+                <p className="max-w-3xl text-center text-sm leading-relaxed text-white/85">
+                  {activeImageCaption}
+                </p>
+              ) : null}
               {gallery.length > 1 ? (
                 <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 font-[family-name:var(--font-geist-mono)] text-[11px] tracking-[0.08em] text-white backdrop-blur">
                   {activeIndex + 1} / {gallery.length}
@@ -387,6 +403,12 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
           </>
         ) : null}
       </div>
+
+      {activeImageCaption ? (
+        <p className="text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
+          {activeImageCaption}
+        </p>
+      ) : null}
     </div>
   ) : null
 

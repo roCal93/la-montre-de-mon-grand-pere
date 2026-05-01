@@ -3,6 +3,8 @@ import stripeSync from './extensions/stripeSync';
 
 const WATCH_FILE_LAYOUT_KEY =
   'plugin_content_manager_configuration_content_types::api::watch-file.watch-file';
+const PRODUCT_LAYOUT_KEY =
+  'plugin_content_manager_configuration_content_types::api::product.product';
 
 type ContentManagerLayoutItem = {
   name?: string;
@@ -10,6 +12,24 @@ type ContentManagerLayoutItem = {
 };
 
 type ContentManagerConfiguration = {
+  metadatas?: Record<
+    string,
+    {
+      edit?: {
+        label?: string;
+        description?: string;
+        placeholder?: string;
+        visible?: boolean;
+        editable?: boolean;
+        mainField?: string;
+      };
+      list?: {
+        label?: string;
+        searchable?: boolean;
+        sortable?: boolean;
+      };
+    }
+  >;
   layouts?: {
     edit?: ContentManagerLayoutItem[][];
   };
@@ -101,6 +121,77 @@ async function ensureWatchFileEditLayoutOrder(strapi: Core.Strapi) {
     );
   } catch (error) {
     strapi.log.error('[bootstrap] Failed to normalize watch-file edit layout:', error);
+  }
+}
+
+async function ensureProductEditLayoutHasRelatedArticles(strapi: Core.Strapi) {
+  try {
+    const db = strapi.db.connection;
+    const entry = await db('strapi_core_store_settings')
+      .select('id', 'key', 'value')
+      .where({ key: PRODUCT_LAYOUT_KEY })
+      .first();
+
+    if (!entry?.value) {
+      return;
+    }
+
+    const configuration = JSON.parse(entry.value) as ContentManagerConfiguration;
+    const editLayout = configuration.layouts?.edit;
+
+    if (!editLayout?.length) {
+      return;
+    }
+
+    const alreadyPresent = editLayout.some((row) =>
+      row.some((field) => field?.name === 'relatedArticles')
+    );
+    const hasMetadata = Boolean(configuration.metadatas?.relatedArticles?.edit);
+
+    if (alreadyPresent && hasMetadata) {
+      return;
+    }
+
+    const nextEditLayout = alreadyPresent
+      ? editLayout
+      : [...editLayout, [{ name: 'relatedArticles', size: 12 }]];
+    const nextMetadatas = {
+      ...(configuration.metadatas ?? {}),
+      relatedArticles: {
+        edit: {
+          label: 'relatedArticles',
+          description: '',
+          placeholder: '',
+          visible: true,
+          editable: true,
+          mainField: 'title',
+        },
+        list: {
+          label: 'relatedArticles',
+          searchable: false,
+          sortable: false,
+        },
+      },
+    };
+
+    configuration.layouts = {
+      ...configuration.layouts,
+      edit: nextEditLayout,
+    };
+    configuration.metadatas = nextMetadatas;
+
+    await db('strapi_core_store_settings')
+      .where({ key: PRODUCT_LAYOUT_KEY })
+      .update({ value: JSON.stringify(configuration) });
+
+    strapi.log.info(
+      '[bootstrap] Added relatedArticles to product edit layout and metadata'
+    );
+  } catch (error) {
+    strapi.log.error(
+      '[bootstrap] Failed to normalize product edit layout:',
+      error
+    );
   }
 }
 
@@ -203,6 +294,7 @@ export default {
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await cleanupBrokenBlogCategoryLinks(strapi);
     await ensureWatchFileEditLayoutOrder(strapi);
+    await ensureProductEditLayoutHasRelatedArticles(strapi);
     await normalizeWatchFileLocale(strapi);
     await normalizeLocalizedLocale(strapi, 'blog_articles', 'blog-article', 'fr');
     await normalizeLocalizedLocale(strapi, 'sections', 'section', 'fr');

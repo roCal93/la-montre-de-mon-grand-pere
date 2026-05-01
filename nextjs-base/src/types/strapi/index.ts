@@ -663,6 +663,7 @@ export interface Product {
   images?: StrapiMedia[];
   active: boolean;
   category?: (ProductCategory & StrapiEntity);
+  relatedArticles?: (BlogArticle & StrapiEntity)[];
   watchFile?: (WatchFile & StrapiEntity);
   stripePriceId?: string;
   locale?: string;

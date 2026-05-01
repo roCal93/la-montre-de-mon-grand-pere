@@ -1,6 +1,16 @@
 import React from 'react'
 import { StrapiBlock } from '@/types/strapi'
 
+type StrapiInlineNode = {
+  type?: string
+  text?: string
+  url?: string
+  bold?: boolean
+  italic?: boolean
+  underline?: boolean
+  children?: StrapiInlineNode[]
+}
+
 type TextBlockProps = {
   content: StrapiBlock[]
   textAlignment?: 'left' | 'center' | 'right' | 'justify'
@@ -35,6 +45,57 @@ const TextBlock = ({
     full: 'max-w-none',
   }
 
+  const renderInlineNodes = (nodes?: StrapiInlineNode[], keyPrefix = 'node') => {
+    return nodes?.map((node, index) => {
+      const key = `${keyPrefix}-${index}`
+
+      if (node.type === 'link' && node.url) {
+        const isExternal = /^https?:\/\//.test(node.url)
+
+        return (
+          <a
+            key={key}
+            href={node.url}
+            className="underline underline-offset-4 transition-opacity hover:opacity-70"
+            {...(isExternal
+              ? { target: '_blank', rel: 'noopener noreferrer' }
+              : {})}
+          >
+            {renderInlineNodes(node.children, `${key}-link`)}
+          </a>
+        )
+      }
+
+      if (node.type === 'text') {
+        let content: React.ReactNode = node.text ?? ''
+
+        if (node.bold) {
+          content = <strong>{content}</strong>
+        }
+
+        if (node.italic) {
+          content = <em>{content}</em>
+        }
+
+        if (node.underline) {
+          content = <u>{content}</u>
+        }
+
+        return <React.Fragment key={key}>{content}</React.Fragment>
+      }
+
+      if (Array.isArray(node.children)) {
+        return (
+          <React.Fragment key={key}>
+            {renderInlineNodes(node.children, `${key}-children`)}
+          </React.Fragment>
+        )
+      }
+
+      return null
+    })
+  }
+
   const renderBlocks = (blocks: StrapiBlock[]) => {
     return blocks.map((block, index) => {
       switch (block.type) {
@@ -44,19 +105,10 @@ const TextBlock = ({
               key={index}
               className={`mb-4 text-[14px] leading-[1.85] text-neutral-700 ${alignmentClasses[textAlignment]}`}
             >
-              {block.children?.map((child, childIndex) => {
-                if (child.type === 'text') {
-                  let text = <span key={childIndex}>{child.text}</span>
-                  if (child.bold)
-                    text = <strong key={childIndex}>{child.text}</strong>
-                  if (child.italic)
-                    text = <em key={childIndex}>{child.text}</em>
-                  if (child.underline)
-                    text = <u key={childIndex}>{child.text}</u>
-                  return text
-                }
-                return null
-              })}
+              {renderInlineNodes(
+                block.children as StrapiInlineNode[] | undefined,
+                `paragraph-${index}`
+              )}
             </p>
           )
         case 'heading':
@@ -75,12 +127,10 @@ const TextBlock = ({
               key={index}
               className={`${headingClasses[level as keyof typeof headingClasses]} ${alignmentClasses[textAlignment]}`}
             >
-              {block.children?.map((child, childIndex) => {
-                if (child.type === 'text') {
-                  return <span key={childIndex}>{child.text}</span>
-                }
-                return null
-              })}
+              {renderInlineNodes(
+                block.children as StrapiInlineNode[] | undefined,
+                `heading-${index}`
+              )}
             </HeadingTag>
           )
         case 'list':
@@ -94,19 +144,10 @@ const TextBlock = ({
             >
               {block.children?.map((child, childIndex) => (
                 <li key={childIndex} className="mb-2">
-                  {Array.isArray(child.children) &&
-                    child.children.map(
-                      (grandChild: StrapiBlock, grandChildIndex: number) => {
-                        if (grandChild.type === 'text') {
-                          return (
-                            <span key={grandChildIndex}>
-                              {String(grandChild.text || '')}
-                            </span>
-                          )
-                        }
-                        return null
-                      }
-                    )}
+                  {renderInlineNodes(
+                    child.children as StrapiInlineNode[] | undefined,
+                    `list-${index}-${childIndex}`
+                  )}
                 </li>
               ))}
             </ListTag>

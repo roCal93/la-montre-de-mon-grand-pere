@@ -6,6 +6,16 @@ import Image from 'next/image'
 import { StrapiMedia, StrapiBlock } from '@/types/strapi'
 import { cleanImageUrl } from '@/lib/strapi'
 
+type StrapiInlineNode = {
+  type?: string
+  text?: string
+  url?: string
+  bold?: boolean
+  italic?: boolean
+  underline?: boolean
+  children?: StrapiInlineNode[]
+}
+
 type TextImageBlockProps = {
   content: StrapiBlock[]
   images?: StrapiMedia[] | null
@@ -46,6 +56,16 @@ const TextImageBlock = ({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsModalOpen(false)
+        return
+      }
+
+      if (gallery.length > 1 && event.key === 'ArrowLeft') {
+        goToPrevious()
+        return
+      }
+
+      if (gallery.length > 1 && event.key === 'ArrowRight') {
+        goToNext()
       }
     }
 
@@ -86,6 +106,57 @@ const TextImageBlock = ({
     justify: 'text-justify',
   }
 
+  const renderInlineNodes = (nodes?: StrapiInlineNode[], keyPrefix = 'node') => {
+    return nodes?.map((node, index) => {
+      const key = `${keyPrefix}-${index}`
+
+      if (node.type === 'link' && node.url) {
+        const isExternal = /^https?:\/\//.test(node.url)
+
+        return (
+          <a
+            key={key}
+            href={node.url}
+            className="underline underline-offset-4 transition-opacity hover:opacity-70"
+            {...(isExternal
+              ? { target: '_blank', rel: 'noopener noreferrer' }
+              : {})}
+          >
+            {renderInlineNodes(node.children, `${key}-link`)}
+          </a>
+        )
+      }
+
+      if (node.type === 'text') {
+        let content: React.ReactNode = node.text ?? ''
+
+        if (node.bold) {
+          content = <strong>{content}</strong>
+        }
+
+        if (node.italic) {
+          content = <em>{content}</em>
+        }
+
+        if (node.underline) {
+          content = <u>{content}</u>
+        }
+
+        return <React.Fragment key={key}>{content}</React.Fragment>
+      }
+
+      if (Array.isArray(node.children)) {
+        return (
+          <React.Fragment key={key}>
+            {renderInlineNodes(node.children, `${key}-children`)}
+          </React.Fragment>
+        )
+      }
+
+      return null
+    })
+  }
+
   const resolveImageSrc = (media: StrapiMedia) => {
     const imageSrc = cleanImageUrl(media.url)
 
@@ -115,19 +186,10 @@ const TextImageBlock = ({
               key={index}
               className={`mb-4 text-[14px] leading-[1.85] text-neutral-700 ${textAlignmentClasses[textAlignment]}`}
             >
-              {block.children?.map((child, childIndex) => {
-                if (child.type === 'text') {
-                  let text = <span key={childIndex}>{child.text}</span>
-                  if (child.bold)
-                    text = <strong key={childIndex}>{child.text}</strong>
-                  if (child.italic)
-                    text = <em key={childIndex}>{child.text}</em>
-                  if (child.underline)
-                    text = <u key={childIndex}>{child.text}</u>
-                  return text
-                }
-                return null
-              })}
+              {renderInlineNodes(
+                block.children as StrapiInlineNode[] | undefined,
+                `paragraph-${index}`
+              )}
             </p>
           )
         case 'heading':
@@ -146,12 +208,10 @@ const TextImageBlock = ({
               key={index}
               className={`${headingClasses[level as keyof typeof headingClasses]} ${textAlignmentClasses[textAlignment]}`}
             >
-              {block.children?.map((child, childIndex) => {
-                if (child.type === 'text') {
-                  return <span key={childIndex}>{child.text}</span>
-                }
-                return null
-              })}
+              {renderInlineNodes(
+                block.children as StrapiInlineNode[] | undefined,
+                `heading-${index}`
+              )}
             </HeadingTag>
           )
         case 'list':
@@ -165,20 +225,10 @@ const TextImageBlock = ({
             >
               {block.children?.map((child, childIndex) => (
                 <li key={childIndex} className="mb-2">
-                  {Array.isArray(child.children) &&
-                    child.children.map(
-                      (
-                        grandChild: { type: string; text?: string },
-                        grandChildIndex: number
-                      ) => {
-                        if (grandChild.type === 'text') {
-                          return (
-                            <span key={grandChildIndex}>{grandChild.text}</span>
-                          )
-                        }
-                        return null
-                      }
-                    )}
+                  {renderInlineNodes(
+                    child.children as StrapiInlineNode[] | undefined,
+                    `list-${index}-${childIndex}`
+                  )}
                 </li>
               ))}
             </ListTag>
@@ -191,6 +241,7 @@ const TextImageBlock = ({
 
   const currentImage = gallery[activeIndex]
   const currentImageSrc = currentImage ? resolveImageSrc(currentImage) : null
+  const currentImageCaption = currentImage?.caption?.trim()
   const modal =
     isModalOpen && currentImage && typeof document !== 'undefined'
       ? createPortal(
@@ -202,7 +253,7 @@ const TextImageBlock = ({
             onClick={() => setIsModalOpen(false)}
           >
             <div
-              className="relative flex max-h-[90vh] w-full max-w-5xl items-center justify-center"
+              className="relative flex max-h-[90vh] w-full max-w-5xl flex-col items-center justify-center gap-3"
               onClick={(event) => event.stopPropagation()}
             >
               <button
@@ -242,6 +293,11 @@ const TextImageBlock = ({
                 sizes="100vw"
                 priority
               />
+              {currentImageCaption ? (
+                <p className="max-w-3xl text-center text-sm leading-relaxed text-white/85">
+                  {currentImageCaption}
+                </p>
+              ) : null}
               {gallery.length > 1 ? (
                 <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 font-[family-name:var(--font-geist-mono)] text-[11px] tracking-[0.08em] text-white backdrop-blur">
                   {activeIndex + 1} / {gallery.length}
@@ -300,6 +356,12 @@ const TextImageBlock = ({
           </>
         ) : null}
       </div>
+
+      {currentImageCaption ? (
+        <p className="mt-3 text-sm leading-relaxed text-neutral-500">
+          {currentImageCaption}
+        </p>
+      ) : null}
     </div>
   ) : null
 

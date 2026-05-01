@@ -194,7 +194,7 @@ export default async function BlogArticlePage({ params }: Props) {
           </header>
 
           {coverImageUrl ? (
-            <div className="relative mb-10 mx-auto aspect-[16/9] w-full max-w-2xl overflow-hidden rounded-2xl bg-neutral-100">
+            <div className="relative mb-10 mx-auto aspect-[3/2] w-full max-w-2xl overflow-hidden rounded-2xl bg-neutral-100">
               <Image
                 src={coverImageUrl}
                 alt={
