@@ -121,6 +121,26 @@ async function normalizeWatchFileLocale(strapi: Core.Strapi) {
   }
 }
 
+async function normalizeLocalizedLocale(
+  strapi: Core.Strapi,
+  tableName: string,
+  label: string,
+  locale: string
+) {
+  try {
+    const db = strapi.db.connection;
+    const updated = await db(tableName).whereNull('locale').update({ locale });
+
+    if (updated) {
+      strapi.log.warn(
+        `[bootstrap] Normalized ${label} locale to ${locale} on ${updated} row(s)`
+      );
+    }
+  } catch (error) {
+    strapi.log.error(`[bootstrap] Failed to normalize ${label} locale:`, error);
+  }
+}
+
 async function migrateWatchFileTextImageBlockMedia(strapi: Core.Strapi) {
   try {
     const db = strapi.db.connection;
@@ -184,6 +204,8 @@ export default {
     await cleanupBrokenBlogCategoryLinks(strapi);
     await ensureWatchFileEditLayoutOrder(strapi);
     await normalizeWatchFileLocale(strapi);
+    await normalizeLocalizedLocale(strapi, 'blog_articles', 'blog-article', 'fr');
+    await normalizeLocalizedLocale(strapi, 'sections', 'section', 'fr');
     await migrateWatchFileTextImageBlockMedia(strapi);
   },
 };

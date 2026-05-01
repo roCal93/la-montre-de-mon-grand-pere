@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { StrapiMedia, StrapiBlock } from '@/types/strapi'
 import { cleanImageUrl } from '@/lib/strapi'
@@ -29,12 +30,33 @@ const TextImageBlock = ({
   const gallery = (images ?? []).filter(Boolean) as StrapiMedia[]
 
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     if (activeIndex >= gallery.length) {
       setActiveIndex(0)
     }
   }, [activeIndex, gallery.length])
+
+  useEffect(() => {
+    if (!isModalOpen) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsModalOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [isModalOpen])
 
   const imageSizeClasses = {
     small: 'md:w-1/3',
@@ -168,22 +190,91 @@ const TextImageBlock = ({
   }
 
   const currentImage = gallery[activeIndex]
+  const currentImageSrc = currentImage ? resolveImageSrc(currentImage) : null
+  const modal =
+    isModalOpen && currentImage && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Image agrandie"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <div
+              className="relative flex max-h-[90vh] w-full max-w-5xl items-center justify-center"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/65 text-2xl text-white transition hover:bg-black/80"
+                aria-label="Fermer l'image"
+              >
+                ×
+              </button>
+              {gallery.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={goToPrevious}
+                    className="absolute left-3 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/65 text-2xl text-white transition hover:bg-black/80"
+                    aria-label="Image précédente"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goToNext}
+                    className="absolute right-3 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/65 text-2xl text-white transition hover:bg-black/80"
+                    aria-label="Image suivante"
+                  >
+                    ›
+                  </button>
+                </>
+              ) : null}
+              <Image
+                src={currentImageSrc || '/placeholder.jpg'}
+                alt={currentImage.alternativeText || `Image ${activeIndex + 1}`}
+                width={currentImage.width || 1600}
+                height={currentImage.height || 1200}
+                className="max-h-[85vh] w-auto max-w-full rounded-2xl object-contain"
+                sizes="100vw"
+                priority
+              />
+              {gallery.length > 1 ? (
+                <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 font-[family-name:var(--font-geist-mono)] text-[11px] tracking-[0.08em] text-white backdrop-blur">
+                  {activeIndex + 1} / {gallery.length}
+                </div>
+              ) : null}
+            </div>
+          </div>,
+          document.body
+        )
+      : null
 
   const imageElement = currentImage ? (
     <div
       className={`${roundedImage ? roundedImageSizeClasses[imageSize] : `w-full ${imageSizeClasses[imageSize]}`} flex-shrink-0 mx-auto`}
     >
       <div className="relative">
-        <Image
-          src={resolveImageSrc(currentImage) || '/placeholder.jpg'}
-          alt={currentImage.alternativeText || `Image ${activeIndex + 1}`}
-          width={roundedImage ? 800 : currentImage.width || 800}
-          height={roundedImage ? 800 : currentImage.height || 600}
-          className={`${roundedImage ? 'h-full w-full rounded-full object-cover dark:invert' : 'h-auto w-full rounded-2xl border border-neutral-200 object-cover dark:invert'}`}
-          sizes="(max-width: 768px) 100vw, 50vw"
-          priority={priority && activeIndex === 0}
-          loading={priority && activeIndex === 0 ? undefined : 'lazy'}
-        />
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="block w-full cursor-zoom-in"
+          aria-label="Ouvrir l'image en grand"
+        >
+          <Image
+            src={currentImageSrc || '/placeholder.jpg'}
+            alt={currentImage.alternativeText || `Image ${activeIndex + 1}`}
+            width={roundedImage ? 800 : currentImage.width || 800}
+            height={roundedImage ? 800 : currentImage.height || 600}
+            className={`${roundedImage ? 'h-full w-full rounded-full object-cover dark:invert' : 'h-auto w-full rounded-2xl border border-neutral-200 object-cover dark:invert'}`}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority={priority && activeIndex === 0}
+            loading={priority && activeIndex === 0 ? undefined : 'lazy'}
+          />
+        </button>
 
         {gallery.length > 1 ? (
           <>
@@ -209,30 +300,6 @@ const TextImageBlock = ({
           </>
         ) : null}
       </div>
-
-      {gallery.length > 1 ? (
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-          {gallery.map((media, index) => (
-            <button
-              key={`${media.id}-${index}`}
-              type="button"
-              onClick={() => setActiveIndex(index)}
-              aria-label={`Afficher l'image ${index + 1}`}
-              aria-pressed={index === activeIndex}
-              className={`relative h-16 w-16 flex-none overflow-hidden rounded-2xl border transition ${index === activeIndex ? 'border-neutral-900 ring-2 ring-neutral-900/15' : 'border-neutral-200 opacity-70 hover:opacity-100'}`}
-            >
-              <Image
-                src={resolveImageSrc(media) || '/placeholder.jpg'}
-                alt={media.alternativeText || `Miniature ${index + 1}`}
-                fill
-                className="object-cover"
-                sizes="64px"
-                loading="lazy"
-              />
-            </button>
-          ))}
-        </div>
-      ) : null}
     </div>
   ) : null
 
@@ -243,21 +310,24 @@ const TextImageBlock = ({
   )
 
   return (
-    <div
-      className={`flex flex-col md:flex-row gap-8 my-8 ${alignmentClasses[verticalAlignment]}`}
-    >
-      {imagePosition === 'left' ? (
-        <>
-          {imageElement}
-          {textElement}
-        </>
-      ) : (
-        <>
-          {textElement}
-          {imageElement}
-        </>
-      )}
-    </div>
+    <>
+      <div
+        className={`flex flex-col md:flex-row gap-8 my-8 ${alignmentClasses[verticalAlignment]}`}
+      >
+        {imagePosition === 'left' ? (
+          <>
+            {imageElement}
+            {textElement}
+          </>
+        ) : (
+          <>
+            {textElement}
+            {imageElement}
+          </>
+        )}
+      </div>
+      {modal}
+    </>
   )
 }
 
