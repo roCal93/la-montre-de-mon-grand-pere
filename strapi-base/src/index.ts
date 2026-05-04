@@ -35,6 +35,11 @@ type ContentManagerConfiguration = {
   };
 };
 
+const DEFAULT_LOCALE = 'fr';
+
+const hasMissingLocale = (value: unknown) =>
+  value == null || value === '' || value === 'null';
+
 async function cleanupBrokenBlogCategoryLinks(strapi: Core.Strapi) {
   try {
     const db = strapi.db.connection;
@@ -220,7 +225,11 @@ async function normalizeLocalizedLocale(
 ) {
   try {
     const db = strapi.db.connection;
-    const updated = await db(tableName).whereNull('locale').update({ locale });
+    const updated = await db(tableName)
+      .where((query) => {
+        query.whereNull('locale').orWhereIn('locale', ['', 'null']);
+      })
+      .update({ locale });
 
     if (updated) {
       strapi.log.warn(
@@ -296,8 +305,19 @@ export default {
     await ensureWatchFileEditLayoutOrder(strapi);
     await ensureProductEditLayoutHasRelatedArticles(strapi);
     await normalizeWatchFileLocale(strapi);
-    await normalizeLocalizedLocale(strapi, 'blog_articles', 'blog-article', 'fr');
-    await normalizeLocalizedLocale(strapi, 'sections', 'section', 'fr');
+    await normalizeLocalizedLocale(
+      strapi,
+      'blog_articles',
+      'blog-article',
+      DEFAULT_LOCALE
+    );
+    await normalizeLocalizedLocale(
+      strapi,
+      'products',
+      'product',
+      DEFAULT_LOCALE
+    );
+    await normalizeLocalizedLocale(strapi, 'sections', 'section', DEFAULT_LOCALE);
     await migrateWatchFileTextImageBlockMedia(strapi);
   },
 };
