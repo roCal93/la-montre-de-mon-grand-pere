@@ -274,10 +274,85 @@ function DossierSection({
       <SectionLabel>
         {index}. {title}
       </SectionLabel>
-      <div className="rounded-2xl border border-neutral-300 bg-white p-5 shadow-sm shadow-black/5 dark:border-neutral-600 dark:bg-neutral-900 sm:p-6">
+      <div className="rounded-2xl border border-neutral-300 bg-white p-4 shadow-sm shadow-black/5 dark:border-neutral-600 dark:bg-neutral-900 sm:p-6">
         {children}
       </div>
     </section>
+  )
+}
+
+function DossierTableFrame({
+  children,
+  minWidth = '42rem',
+}: {
+  children: React.ReactNode
+  minWidth?: string
+}) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-neutral-50/70 shadow-sm shadow-black/5 dark:border-neutral-700 dark:bg-neutral-900/60">
+      <div style={{ minWidth }}>{children}</div>
+    </div>
+  )
+}
+
+function DossierFactGrid({
+  items,
+}: {
+  items: Array<{ key: string; label: string; value: React.ReactNode }>
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {items.map((item) => (
+        <div
+          key={item.key}
+          className="rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 py-4 dark:border-neutral-700 dark:bg-neutral-800/40"
+        >
+          <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+            {item.label}
+          </p>
+          <div className="mt-2 text-[15px] leading-[1.65] text-neutral-900 dark:text-neutral-100">
+            {item.value}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function DossierMobileRecords({
+  records,
+}: {
+  records: Array<{
+    key: string
+    title: React.ReactNode
+    fields: Array<{ label: string; value: React.ReactNode }>
+  }>
+}) {
+  return (
+    <div className="grid gap-3 md:hidden">
+      {records.map((record) => (
+        <div
+          key={record.key}
+          className="rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 py-4 dark:border-neutral-700 dark:bg-neutral-800/40"
+        >
+          <p className="text-[15px] font-medium leading-[1.5] text-neutral-900 dark:text-neutral-100">
+            {record.title}
+          </p>
+          <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+            {record.fields.map((field) => (
+              <div key={`${record.key}-${field.label}`}>
+                <dt className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+                  {field.label}
+                </dt>
+                <dd className="mt-1 text-sm leading-[1.6] text-neutral-700 dark:text-neutral-200">
+                  {field.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -497,71 +572,92 @@ export default async function WatchFileDetailPage({
       )}
 
       <DossierSection index="2" title="Informations dossier">
-        <dl className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">
-              Référence dossier
-            </dt>
-            <dd className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-              {watchFile.reference}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">
-              Horloger responsable
-            </dt>
-            <dd className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-              Romain Calmelet
-            </dd>
-          </div>
-          <div>
-            <dt className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">
-              Date de réception
-            </dt>
-            <dd className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-              {formatLongDate(watchFile.dateReception)}
-            </dd>
-          </div>
-          <div>
-            <dt className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-600 dark:text-neutral-300">
-              Date de mise en vente
-            </dt>
-            <dd className="mt-1 text-sm font-medium text-neutral-900 dark:text-white">
-              {formatLongDate(watchFile.dateMiseEnVente)}
-            </dd>
-          </div>
-        </dl>
+        <DossierFactGrid
+          items={[
+            {
+              key: 'watch-file-reference',
+              label: 'Référence dossier',
+              value: watchFile.reference,
+            },
+            {
+              key: 'watchmaker',
+              label: 'Horloger responsable',
+              value: 'Romain Calmelet',
+            },
+            {
+              key: 'received-at',
+              label: 'Date de réception',
+              value: formatLongDate(watchFile.dateReception),
+            },
+            {
+              key: 'listed-at',
+              label: 'Date de mise en vente',
+              value: formatLongDate(watchFile.dateMiseEnVente),
+            },
+          ]}
+        />
       </DossierSection>
 
       <DossierSection index="3" title="Identification de la montre">
-        <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-          {identificationRows.map((row, index) => (
-            <div
-              key={row[0]}
-              className={`grid grid-cols-1 border-t border-neutral-200 dark:border-neutral-700 sm:grid-cols-[minmax(0,_0.24fr)_minmax(0,_0.26fr)_minmax(0,_0.24fr)_minmax(0,_0.26fr)] ${index === 0 ? 'border-t-0' : ''} ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
-            >
-              <div className="border-b border-neutral-200 px-4 py-2 sm:border-b-0 sm:border-r dark:border-neutral-700">
-                <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-300">
-                  {row[0]}
+        <div className="grid gap-3 md:hidden sm:grid-cols-2">
+          {identificationRows
+            .flatMap((row) => [
+              {
+                key: `${row[0]}-${row[2]}-left`,
+                label: row[0],
+                value: row[1],
+              },
+              {
+                key: `${row[0]}-${row[2]}-right`,
+                label: row[2],
+                value: row[3],
+              },
+            ])
+            .map((item) => (
+              <div
+                key={item.key}
+                className="rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 py-4 dark:border-neutral-700 dark:bg-neutral-800/40"
+              >
+                <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-[15px] leading-[1.65] text-neutral-900 dark:text-neutral-100">
+                  {item.value}
                 </p>
               </div>
-              <div className="border-b border-neutral-200 px-4 py-2 sm:border-b-0 sm:border-r dark:border-neutral-700">
-                <p className="text-sm text-neutral-700 dark:text-neutral-200">
-                  {row[1]}
-                </p>
+            ))}
+        </div>
+
+        <div className="hidden md:block">
+          <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+            {identificationRows.map((row, index) => (
+              <div
+                key={row[0]}
+                className={`grid grid-cols-[minmax(0,_0.24fr)_minmax(0,_0.26fr)_minmax(0,_0.24fr)_minmax(0,_0.26fr)] border-t border-neutral-200 dark:border-neutral-700 ${index === 0 ? 'border-t-0' : ''} ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
+              >
+                <div className="border-r border-neutral-200 px-4 py-2 dark:border-neutral-700">
+                  <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-300">
+                    {row[0]}
+                  </p>
+                </div>
+                <div className="border-r border-neutral-200 px-4 py-2 dark:border-neutral-700">
+                  <p className="text-sm text-neutral-700 dark:text-neutral-200">
+                    {row[1]}
+                  </p>
+                </div>
+                <div className="border-r border-neutral-200 px-4 py-2 dark:border-neutral-700">
+                  <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-300">
+                    {row[2]}
+                  </p>
+                </div>
+                <div className="px-4 py-2">
+                  <p className="text-sm text-neutral-700 dark:text-neutral-200">
+                    {row[3]}
+                  </p>
+                </div>
               </div>
-              <div className="border-b border-neutral-200 px-4 py-2 sm:border-b-0 sm:border-r dark:border-neutral-700">
-                <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-300">
-                  {row[2]}
-                </p>
-              </div>
-              <div className="px-4 py-2">
-                <p className="text-sm text-neutral-700 dark:text-neutral-200">
-                  {row[3]}
-                </p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div className="mt-6 rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
@@ -603,28 +699,44 @@ export default async function WatchFileDetailPage({
           {observationRows.length > 0 && (
             <div className="mt-6">
               <SectionLabel>4.1 Fonctionnement avant intervention</SectionLabel>
-              <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <div className="grid grid-cols-[minmax(0,_0.42fr)_minmax(0,_0.58fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
-                  <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
-                    Observation
-                  </div>
-                  <div className="px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em]">
-                    Constat
-                  </div>
-                </div>
-                {observationRows.map((row, index) => (
-                  <div
-                    key={`${row.observation}-${index}`}
-                    className={`grid grid-cols-[minmax(0,_0.42fr)_minmax(0,_0.58fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
-                  >
-                    <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
-                      {normalizeText(row.observation) ?? '—'}
+              <DossierMobileRecords
+                records={observationRows.map((row, index) => ({
+                  key: `observation-${index}`,
+                  title:
+                    normalizeText(row.observation) ??
+                    'Observation non renseignée',
+                  fields: [
+                    {
+                      label: 'Constat',
+                      value: normalizeText(row.constat) ?? '—',
+                    },
+                  ],
+                }))}
+              />
+              <div className="hidden md:block">
+                <DossierTableFrame minWidth="38rem">
+                  <div className="grid grid-cols-[minmax(0,_0.42fr)_minmax(0,_0.58fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
+                    <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
+                      Observation
                     </div>
-                    <div className="px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-200">
-                      {normalizeText(row.constat) ?? '—'}
+                    <div className="px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em]">
+                      Constat
                     </div>
                   </div>
-                ))}
+                  {observationRows.map((row, index) => (
+                    <div
+                      key={`${row.observation}-${index}`}
+                      className={`grid grid-cols-[minmax(0,_0.42fr)_minmax(0,_0.58fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
+                    >
+                      <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
+                        {normalizeText(row.observation) ?? '—'}
+                      </div>
+                      <div className="px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-200">
+                        {normalizeText(row.constat) ?? '—'}
+                      </div>
+                    </div>
+                  ))}
+                </DossierTableFrame>
               </div>
             </div>
           )}
@@ -632,28 +744,43 @@ export default async function WatchFileDetailPage({
           {componentRows.length > 0 && (
             <div className="mt-6">
               <SectionLabel>4.2 État visuel des composants</SectionLabel>
-              <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <div className="grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.72fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
-                  <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
-                    Composant
-                  </div>
-                  <div className="px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em]">
-                    Observations
-                  </div>
-                </div>
-                {componentRows.map((row, index) => (
-                  <div
-                    key={`${row.composant}-${index}`}
-                    className={`grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.72fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
-                  >
-                    <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
-                      {normalizeText(row.composant) ?? '—'}
+              <DossierMobileRecords
+                records={componentRows.map((row, index) => ({
+                  key: `component-${index}`,
+                  title:
+                    normalizeText(row.composant) ?? 'Composant non renseigné',
+                  fields: [
+                    {
+                      label: 'Observations',
+                      value: normalizeText(row.observations) ?? '—',
+                    },
+                  ],
+                }))}
+              />
+              <div className="hidden md:block">
+                <DossierTableFrame minWidth="38rem">
+                  <div className="grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.72fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
+                    <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
+                      Composant
                     </div>
-                    <div className="px-4 py-2.5 text-sm leading-[1.7] text-neutral-700 dark:text-neutral-200">
-                      {normalizeText(row.observations) ?? '—'}
+                    <div className="px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em]">
+                      Observations
                     </div>
                   </div>
-                ))}
+                  {componentRows.map((row, index) => (
+                    <div
+                      key={`${row.composant}-${index}`}
+                      className={`grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.72fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
+                    >
+                      <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
+                        {normalizeText(row.composant) ?? '—'}
+                      </div>
+                      <div className="px-4 py-2.5 text-sm leading-[1.7] text-neutral-700 dark:text-neutral-200">
+                        {normalizeText(row.observations) ?? '—'}
+                      </div>
+                    </div>
+                  ))}
+                </DossierTableFrame>
               </div>
             </div>
           )}
@@ -681,86 +808,147 @@ export default async function WatchFileDetailPage({
           )}
 
           {repairOperationRows.length > 0 && (
-            <div className="mt-6 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-              <div className="grid grid-cols-[minmax(0,_0.45fr)_minmax(0,_0.16fr)_minmax(0,_0.39fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
-                <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
-                  5.1 Opération
-                </div>
-                <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
-                  Réalisée
-                </div>
-                <div className="px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em]">
-                  Observations
-                </div>
+            <div className="mt-6">
+              <DossierMobileRecords
+                records={repairOperationRows.map((row, index) => ({
+                  key: `repair-operation-${index}`,
+                  title:
+                    normalizeText(row.operation) ?? 'Opération non renseignée',
+                  fields: [
+                    {
+                      label: 'Réalisée',
+                      value:
+                        row.realisee === true
+                          ? 'Oui'
+                          : row.realisee === false
+                            ? 'Non'
+                            : '—',
+                    },
+                    {
+                      label: 'Observations',
+                      value: normalizeText(row.observations) ?? '—',
+                    },
+                  ],
+                }))}
+              />
+              <div className="hidden md:block">
+                <DossierTableFrame minWidth="52rem">
+                  <div className="grid grid-cols-[minmax(0,_0.45fr)_minmax(0,_0.16fr)_minmax(0,_0.39fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
+                    <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
+                      5.1 Opération
+                    </div>
+                    <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
+                      Réalisée
+                    </div>
+                    <div className="px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em]">
+                      Observations
+                    </div>
+                  </div>
+                  {repairOperationRows.map((row, index) => (
+                    <div
+                      key={`${row.operation}-${index}`}
+                      className={`grid grid-cols-[minmax(0,_0.45fr)_minmax(0,_0.16fr)_minmax(0,_0.39fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
+                    >
+                      <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
+                        {normalizeText(row.operation) ?? '—'}
+                      </div>
+                      <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
+                        {row.realisee === true
+                          ? 'Oui'
+                          : row.realisee === false
+                            ? 'Non'
+                            : '—'}
+                      </div>
+                      <div className="px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-200">
+                        {normalizeText(row.observations) ?? '—'}
+                      </div>
+                    </div>
+                  ))}
+                </DossierTableFrame>
               </div>
-              {repairOperationRows.map((row, index) => (
-                <div
-                  key={`${row.operation}-${index}`}
-                  className={`grid grid-cols-[minmax(0,_0.45fr)_minmax(0,_0.16fr)_minmax(0,_0.39fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
-                >
-                  <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
-                    {normalizeText(row.operation) ?? '—'}
-                  </div>
-                  <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
-                    {row.realisee === true
-                      ? 'Oui'
-                      : row.realisee === false
-                        ? 'Non'
-                        : '—'}
-                  </div>
-                  <div className="px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-200">
-                    {normalizeText(row.observations) ?? '—'}
-                  </div>
-                </div>
-              ))}
             </div>
           )}
 
           {replacedPartRows.length > 0 && (
-            <div className="mt-6 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-              <div className="grid grid-cols-[minmax(0,_0.3fr)_minmax(0,_0.22fr)_minmax(0,_0.1fr)_minmax(0,_0.18fr)_minmax(0,_0.2fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
-                <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
-                  5.2 Pièce
-                </div>
-                <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
-                  Référence / calibre
-                </div>
-                <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
-                  Qté
-                </div>
-                <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
-                  Origine
-                </div>
-                <div className="px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em]">
-                  État
-                </div>
+            <div className="mt-6">
+              <DossierMobileRecords
+                records={replacedPartRows.map((row, index) => ({
+                  key: `replaced-part-${index}`,
+                  title:
+                    normalizeText(row.designationPiece) ??
+                    'Pièce non renseignée',
+                  fields: [
+                    {
+                      label: 'Référence / calibre',
+                      value: normalizeText(row.referenceCalibre) ?? '—',
+                    },
+                    {
+                      label: 'Quantité',
+                      value: row.quantite ?? '—',
+                    },
+                    {
+                      label: 'Origine',
+                      value: normalizeText(row.origine) ?? '—',
+                    },
+                    {
+                      label: 'État',
+                      value:
+                        row.etatPiece === 'orig'
+                          ? 'Orig.'
+                          : row.etatPiece === 'rep'
+                            ? 'Rep.'
+                            : '—',
+                    },
+                  ],
+                }))}
+              />
+              <div className="hidden md:block">
+                <DossierTableFrame minWidth="64rem">
+                  <div className="grid grid-cols-[minmax(0,_0.3fr)_minmax(0,_0.22fr)_minmax(0,_0.1fr)_minmax(0,_0.18fr)_minmax(0,_0.2fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
+                    <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
+                      5.2 Pièce
+                    </div>
+                    <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
+                      Référence / calibre
+                    </div>
+                    <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
+                      Qté
+                    </div>
+                    <div className="border-r border-neutral-300 px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] dark:border-neutral-600">
+                      Origine
+                    </div>
+                    <div className="px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em]">
+                      État
+                    </div>
+                  </div>
+                  {replacedPartRows.map((row, index) => (
+                    <div
+                      key={`${row.designationPiece}-${index}`}
+                      className={`grid grid-cols-[minmax(0,_0.3fr)_minmax(0,_0.22fr)_minmax(0,_0.1fr)_minmax(0,_0.18fr)_minmax(0,_0.2fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
+                    >
+                      <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
+                        {normalizeText(row.designationPiece) ?? '—'}
+                      </div>
+                      <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
+                        {normalizeText(row.referenceCalibre) ?? '—'}
+                      </div>
+                      <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
+                        {row.quantite ?? '—'}
+                      </div>
+                      <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
+                        {normalizeText(row.origine) ?? '—'}
+                      </div>
+                      <div className="px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-200">
+                        {row.etatPiece === 'orig'
+                          ? 'Orig.'
+                          : row.etatPiece === 'rep'
+                            ? 'Rep.'
+                            : '—'}
+                      </div>
+                    </div>
+                  ))}
+                </DossierTableFrame>
               </div>
-              {replacedPartRows.map((row, index) => (
-                <div
-                  key={`${row.designationPiece}-${index}`}
-                  className={`grid grid-cols-[minmax(0,_0.3fr)_minmax(0,_0.22fr)_minmax(0,_0.1fr)_minmax(0,_0.18fr)_minmax(0,_0.2fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
-                >
-                  <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
-                    {normalizeText(row.designationPiece) ?? '—'}
-                  </div>
-                  <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
-                    {normalizeText(row.referenceCalibre) ?? '—'}
-                  </div>
-                  <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
-                    {row.quantite ?? '—'}
-                  </div>
-                  <div className="border-r border-neutral-200 px-4 py-2.5 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-200">
-                    {normalizeText(row.origine) ?? '—'}
-                  </div>
-                  <div className="px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-200">
-                    {row.etatPiece === 'orig'
-                      ? 'Orig.'
-                      : row.etatPiece === 'rep'
-                        ? 'Rep.'
-                        : '—'}
-                  </div>
-                </div>
-              ))}
             </div>
           )}
         </DossierSection>
@@ -771,80 +959,133 @@ export default async function WatchFileDetailPage({
         qualityNotes) && (
         <DossierSection index="6" title="Contrôle qualité & mesures">
           {timingRows.length > 0 && (
-            <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-              <div className="grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.12fr)_minmax(0,_0.14fr)_minmax(0,_0.16fr)_minmax(0,_0.12fr)_minmax(0,_0.18fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
-                {[
-                  '6.1 Position',
-                  'Rate',
-                  'Amplitude',
-                  'Beat error',
-                  'Fréquence',
-                  'Résultat',
-                ].map((label, index) => (
-                  <div
-                    key={label}
-                    className={`px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] ${index < 5 ? 'border-r border-neutral-300 dark:border-neutral-600' : ''}`}
-                  >
-                    {label}
+            <>
+              <DossierMobileRecords
+                records={timingRows.map((row, index) => ({
+                  key: `timing-row-${index}`,
+                  title:
+                    normalizeText(row.position) ?? 'Position non renseignée',
+                  fields: [
+                    {
+                      label: 'Rate',
+                      value: normalizeText(row.rate) ?? '—',
+                    },
+                    {
+                      label: 'Amplitude',
+                      value: normalizeText(row.amplitude) ?? '—',
+                    },
+                    {
+                      label: 'Beat error',
+                      value: normalizeText(row.beatError) ?? '—',
+                    },
+                    {
+                      label: 'Fréquence',
+                      value: normalizeText(row.frequence) ?? '—',
+                    },
+                    {
+                      label: 'Résultat',
+                      value: normalizeText(row.resultat) ?? '—',
+                    },
+                  ],
+                }))}
+              />
+              <div className="hidden md:block">
+                <DossierTableFrame minWidth="68rem">
+                  <div className="grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.12fr)_minmax(0,_0.14fr)_minmax(0,_0.16fr)_minmax(0,_0.12fr)_minmax(0,_0.18fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
+                    {[
+                      '6.1 Position',
+                      'Rate',
+                      'Amplitude',
+                      'Beat error',
+                      'Fréquence',
+                      'Résultat',
+                    ].map((label, index) => (
+                      <div
+                        key={label}
+                        className={`px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] ${index < 5 ? 'border-r border-neutral-300 dark:border-neutral-600' : ''}`}
+                      >
+                        {label}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              {timingRows.map((row, index) => (
-                <div
-                  key={`${row.position}-${index}`}
-                  className={`grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.12fr)_minmax(0,_0.14fr)_minmax(0,_0.16fr)_minmax(0,_0.12fr)_minmax(0,_0.18fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
-                >
-                  {[
-                    row.position,
-                    row.rate,
-                    row.amplitude,
-                    row.beatError,
-                    row.frequence,
-                    row.resultat,
-                  ].map((value, cellIndex) => (
+                  {timingRows.map((row, index) => (
                     <div
-                      key={cellIndex}
-                      className={`px-3 py-2.5 text-sm text-neutral-700 dark:text-neutral-200 ${cellIndex < 5 ? 'border-r border-neutral-200 dark:border-neutral-700' : ''}`}
+                      key={`${row.position}-${index}`}
+                      className={`grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.12fr)_minmax(0,_0.14fr)_minmax(0,_0.16fr)_minmax(0,_0.12fr)_minmax(0,_0.18fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
                     >
-                      {normalizeText(value) ?? '—'}
+                      {[
+                        row.position,
+                        row.rate,
+                        row.amplitude,
+                        row.beatError,
+                        row.frequence,
+                        row.resultat,
+                      ].map((value, cellIndex) => (
+                        <div
+                          key={cellIndex}
+                          className={`px-3 py-2.5 text-sm text-neutral-700 dark:text-neutral-200 ${cellIndex < 5 ? 'border-r border-neutral-200 dark:border-neutral-700' : ''}`}
+                        >
+                          {normalizeText(value) ?? '—'}
+                        </div>
+                      ))}
                     </div>
                   ))}
-                </div>
-              ))}
-            </div>
+                </DossierTableFrame>
+              </div>
+            </>
           )}
 
           {waterResistanceRows.length > 0 && (
-            <div className="mt-6 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-              <div className="grid grid-cols-[minmax(0,_0.34fr)_minmax(0,_0.26fr)_minmax(0,_0.4fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
-                {['6.2 Test', 'Valeur / résultat', 'Observations'].map(
-                  (label, index) => (
+            <div className="mt-6">
+              <DossierMobileRecords
+                records={waterResistanceRows.map((row, index) => ({
+                  key: `water-resistance-${index}`,
+                  title: normalizeText(row.test) ?? 'Test non renseigné',
+                  fields: [
+                    {
+                      label: 'Valeur / résultat',
+                      value: normalizeText(row.valeurResultat) ?? '—',
+                    },
+                    {
+                      label: 'Observations',
+                      value: normalizeText(row.observations) ?? '—',
+                    },
+                  ],
+                }))}
+              />
+              <div className="hidden md:block">
+                <DossierTableFrame minWidth="44rem">
+                  <div className="grid grid-cols-[minmax(0,_0.34fr)_minmax(0,_0.26fr)_minmax(0,_0.4fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
+                    {['6.2 Test', 'Valeur / résultat', 'Observations'].map(
+                      (label, index) => (
+                        <div
+                          key={label}
+                          className={`px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] ${index < 2 ? 'border-r border-neutral-300 dark:border-neutral-600' : ''}`}
+                        >
+                          {label}
+                        </div>
+                      )
+                    )}
+                  </div>
+                  {waterResistanceRows.map((row, index) => (
                     <div
-                      key={label}
-                      className={`px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] ${index < 2 ? 'border-r border-neutral-300 dark:border-neutral-600' : ''}`}
+                      key={`${row.test}-${index}`}
+                      className={`grid grid-cols-[minmax(0,_0.34fr)_minmax(0,_0.26fr)_minmax(0,_0.4fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
                     >
-                      {label}
+                      {[row.test, row.valeurResultat, row.observations].map(
+                        (value, cellIndex) => (
+                          <div
+                            key={cellIndex}
+                            className={`px-3 py-2.5 text-sm text-neutral-700 dark:text-neutral-200 ${cellIndex < 2 ? 'border-r border-neutral-200 dark:border-neutral-700' : ''}`}
+                          >
+                            {normalizeText(value) ?? '—'}
+                          </div>
+                        )
+                      )}
                     </div>
-                  )
-                )}
+                  ))}
+                </DossierTableFrame>
               </div>
-              {waterResistanceRows.map((row, index) => (
-                <div
-                  key={`${row.test}-${index}`}
-                  className={`grid grid-cols-[minmax(0,_0.34fr)_minmax(0,_0.26fr)_minmax(0,_0.4fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
-                >
-                  {[row.test, row.valeurResultat, row.observations].map(
-                    (value, cellIndex) => (
-                      <div
-                        key={cellIndex}
-                        className={`px-3 py-2.5 text-sm text-neutral-700 dark:text-neutral-200 ${cellIndex < 2 ? 'border-r border-neutral-200 dark:border-neutral-700' : ''}`}
-                      >
-                        {normalizeText(value) ?? '—'}
-                      </div>
-                    )
-                  )}
-                </div>
-              ))}
             </div>
           )}
 
@@ -865,45 +1106,40 @@ export default async function WatchFileDetailPage({
 
       {hasValidationAtelier && (
         <DossierSection index="8" title="Validation atelier">
-          <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <div className="grid grid-cols-2 bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100 sm:grid-cols-4">
-              {['Horloger', 'Date de fin', "Durée d'intervention", ''].map(
-                (label, index) => (
-                  <div
-                    key={`${label}-${index}`}
-                    className={`px-4 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] ${index < 3 ? 'border-r border-neutral-300 dark:border-neutral-600' : ''} ${index === 3 ? 'hidden sm:block' : ''}`}
-                  >
-                    {label}
-                  </div>
-                )
-              )}
-            </div>
-            <div className="grid grid-cols-1 border-t border-neutral-200 dark:border-neutral-700 sm:grid-cols-[minmax(0,_1fr)_minmax(0,_1fr)]">
-              <div className="grid grid-cols-2 sm:grid-cols-[minmax(0,_1fr)_minmax(0,_1fr)]">
-                <div className="border-r border-neutral-200 px-4 py-3 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
-                  Romain Calmelet
-                </div>
-                <div className="px-4 py-3 text-sm text-neutral-700 dark:text-neutral-100">
-                  {validationAtelier?.dateFin
-                    ? formatLongDate(validationAtelier.dateFin)
-                    : '—'}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 border-t border-neutral-200 sm:border-l sm:border-t-0 dark:border-neutral-700 sm:grid-cols-[minmax(0,_1fr)_minmax(0,_1fr)]">
-                <div className="border-r border-neutral-200 px-4 py-3 text-sm text-neutral-700 dark:border-neutral-700 dark:text-neutral-100">
-                  {normalizeText(validationAtelier?.dureeIntervention) ?? '—'}
-                </div>
-                <div className="px-4 py-3 text-sm text-neutral-700 dark:text-neutral-100">
-                  —
-                </div>
-              </div>
-            </div>
-          </div>
+          <DossierFactGrid
+            items={[
+              {
+                key: 'validation-watchmaker',
+                label: 'Horloger',
+                value: 'Romain Calmelet',
+              },
+              {
+                key: 'validation-end-date',
+                label: 'Date de fin',
+                value: validationAtelier?.dateFin
+                  ? formatLongDate(validationAtelier.dateFin)
+                  : '—',
+              },
+              {
+                key: 'validation-duration',
+                label: "Durée d'intervention",
+                value:
+                  normalizeText(validationAtelier?.dureeIntervention) ?? '—',
+              },
+              {
+                key: 'validation-sign-date',
+                label: 'Date de signature',
+                value: validationAtelier?.dateSignature
+                  ? formatLongDate(validationAtelier.dateSignature)
+                  : '—',
+              },
+            ]}
+          />
 
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
             <div>
               <SectionLabel>Signature</SectionLabel>
-              <div className="flex h-20 items-end border-b border-neutral-300 pb-2 dark:border-neutral-600">
+              <div className="flex min-h-24 items-end rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 pb-3 pt-4 dark:border-neutral-700 dark:bg-neutral-800/40">
                 {validationAtelier?.signature?.url ? (
                   <Image
                     src={
@@ -919,16 +1155,18 @@ export default async function WatchFileDetailPage({
                     className="h-14 w-auto object-contain"
                   />
                 ) : (
-                  <div className="h-14" />
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Aucune signature enregistrée
+                  </span>
                 )}
               </div>
             </div>
             <div>
               <SectionLabel>Date</SectionLabel>
-              <div className="flex h-20 items-end border-b border-neutral-300 pb-2 text-sm text-neutral-700 dark:border-neutral-600 dark:text-neutral-100">
+              <div className="flex min-h-24 items-end rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 pb-3 pt-4 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800/40 dark:text-neutral-100">
                 {validationAtelier?.dateSignature
                   ? formatLongDate(validationAtelier.dateSignature)
-                  : ' '}
+                  : 'Aucune date de signature'}
               </div>
             </div>
           </div>
