@@ -1126,13 +1126,6 @@ export default async function WatchFileDetailPage({
                 value:
                   normalizeText(validationAtelier?.dureeIntervention) ?? '—',
               },
-              {
-                key: 'validation-sign-date',
-                label: 'Date de signature',
-                value: validationAtelier?.dateSignature
-                  ? formatLongDate(validationAtelier.dateSignature)
-                  : '—',
-              },
             ]}
           />
 
@@ -1163,7 +1156,7 @@ export default async function WatchFileDetailPage({
             </div>
             <div>
               <SectionLabel>Date</SectionLabel>
-              <div className="flex min-h-24 items-end rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 pb-3 pt-4 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800/40 dark:text-neutral-100">
+              <div className="flex min-h-24 items-center rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 py-4 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800/40 dark:text-neutral-100">
                 {validationAtelier?.dateSignature
                   ? formatLongDate(validationAtelier.dateSignature)
                   : 'Aucune date de signature'}
