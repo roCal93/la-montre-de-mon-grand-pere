@@ -194,20 +194,27 @@ export default async function BlogArticlePage({ params }: Props) {
           </header>
 
           {coverImageUrl ? (
-            <div className="relative mb-10 mx-auto aspect-[3/2] w-full max-w-2xl overflow-hidden rounded-2xl bg-neutral-100">
-              <Image
-                src={coverImageUrl}
-                alt={
-                  coverImage?.alternativeText ||
-                  article.title ||
-                  'Blog cover image'
-                }
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 1000px"
-              />
-            </div>
+            <figure className="mx-auto mb-10 w-full max-w-2xl">
+              <div className="relative aspect-[3/2] overflow-hidden rounded-2xl bg-neutral-100">
+                <Image
+                  src={coverImageUrl}
+                  alt={
+                    coverImage?.alternativeText ||
+                    article.title ||
+                    'Blog cover image'
+                  }
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 1000px"
+                />
+              </div>
+              {coverImage?.caption ? (
+                <figcaption className="mt-3 text-center text-sm leading-relaxed text-neutral-500">
+                  {coverImage.caption}
+                </figcaption>
+              ) : null}
+            </figure>
           ) : null}
 
           {sections.length > 0 ? (
