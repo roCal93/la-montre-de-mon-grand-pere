@@ -8,37 +8,6 @@ function normalizeOrigin(input: string): string | null {
   }
 }
 
-function getAllowedOrigins() {
-  const allowedEnv =
-    process.env.ALLOWED_ORIGINS || process.env.NEXT_PUBLIC_ALLOWED_ORIGINS
-  const strapiOrigin =
-    process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
-  const set = new Set<string>()
-
-  if (allowedEnv) {
-    allowedEnv
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .forEach((u) => {
-        const origin = normalizeOrigin(u)
-        if (origin) set.add(origin)
-      })
-  } else {
-    const strapi = normalizeOrigin(strapiOrigin)
-    if (strapi) set.add(strapi)
-  }
-
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.SITE_URL ||
-    'http://localhost:3000'
-  const siteOrigin = normalizeOrigin(siteUrl)
-  if (siteOrigin) set.add(siteOrigin)
-
-  return Array.from(set)
-}
-
 function getSiteOrigin(): string {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||

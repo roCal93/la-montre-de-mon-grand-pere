@@ -42,11 +42,8 @@ const TextImageBlock = ({
   const [activeIndex, setActiveIndex] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  useEffect(() => {
-    if (activeIndex >= gallery.length) {
-      setActiveIndex(0)
-    }
-  }, [activeIndex, gallery.length])
+  const safeActiveIndex =
+    gallery.length === 0 ? 0 : Math.min(activeIndex, gallery.length - 1)
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -60,12 +57,16 @@ const TextImageBlock = ({
       }
 
       if (gallery.length > 1 && event.key === 'ArrowLeft') {
-        goToPrevious()
+        setActiveIndex((currentIndex) =>
+          currentIndex === 0 ? gallery.length - 1 : currentIndex - 1
+        )
         return
       }
 
       if (gallery.length > 1 && event.key === 'ArrowRight') {
-        goToNext()
+        setActiveIndex((currentIndex) =>
+          currentIndex === gallery.length - 1 ? 0 : currentIndex + 1
+        )
       }
     }
 
@@ -76,7 +77,7 @@ const TextImageBlock = ({
       window.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
     }
-  }, [isModalOpen])
+  }, [isModalOpen, gallery.length])
 
   const imageSizeClasses = {
     small: 'md:w-1/3',
@@ -169,14 +170,26 @@ const TextImageBlock = ({
   }
 
   const goToPrevious = () => {
+    if (gallery.length === 0) {
+      return
+    }
+
     setActiveIndex((currentIndex) =>
-      currentIndex === 0 ? gallery.length - 1 : currentIndex - 1
+      (currentIndex >= gallery.length ? 0 : currentIndex) === 0
+        ? gallery.length - 1
+        : (currentIndex >= gallery.length ? 0 : currentIndex) - 1
     )
   }
 
   const goToNext = () => {
+    if (gallery.length === 0) {
+      return
+    }
+
     setActiveIndex((currentIndex) =>
-      currentIndex === gallery.length - 1 ? 0 : currentIndex + 1
+      (currentIndex >= gallery.length ? 0 : currentIndex) === gallery.length - 1
+        ? 0
+        : (currentIndex >= gallery.length ? 0 : currentIndex) + 1
     )
   }
 
@@ -242,7 +255,7 @@ const TextImageBlock = ({
     })
   }
 
-  const currentImage = gallery[activeIndex]
+  const currentImage = gallery[safeActiveIndex]
   const currentImageSrc = currentImage ? resolveImageSrc(currentImage) : null
   const currentImageCaption = currentImage?.caption?.trim()
   const modal =

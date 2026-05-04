@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -235,20 +236,6 @@ export function buildBeforeAfterPairs(
     beforeAlt: before.alternativeText ?? undefined,
     afterAlt: afterImages[idx].alternativeText ?? undefined,
   }))
-}
-
-function getTechSpecValue(
-  technicalSpecs: TechSpec[] | null,
-  keys: string[]
-): string | null {
-  if (!technicalSpecs) return null
-
-  const normalizedKeys = keys.map((key) => key.toLowerCase())
-  const spec = technicalSpecs.find((item) =>
-    normalizedKeys.includes(item.key.toLowerCase())
-  )
-
-  return spec?.val ?? null
 }
 
 function normalizeText(value: string | null | undefined): string | null {
@@ -897,14 +884,16 @@ export default async function ProductPage({ params }: Props) {
                   >
                     {coverImageUrl ? (
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
-                        <img
+                        <Image
                           src={coverImageUrl}
                           alt={
                             article.coverImage?.alternativeText ||
                             article.title ||
                             'Blog article cover image'
                           }
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                         />
                       </div>
                     ) : null}
