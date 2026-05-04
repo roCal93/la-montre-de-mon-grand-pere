@@ -45,7 +45,10 @@ const TextBlock = ({
     full: 'max-w-none',
   }
 
-  const renderInlineNodes = (nodes?: StrapiInlineNode[], keyPrefix = 'node') => {
+  const renderInlineNodes = (
+    nodes?: StrapiInlineNode[],
+    keyPrefix = 'node'
+  ) => {
     return nodes?.map((node, index) => {
       const key = `${keyPrefix}-${index}`
 
@@ -103,7 +106,7 @@ const TextBlock = ({
           return (
             <p
               key={index}
-              className={`mb-4 text-[14px] leading-[1.85] text-neutral-700 ${alignmentClasses[textAlignment]}`}
+              className={`mb-4 whitespace-pre-line text-[14px] leading-[1.85] text-neutral-700 ${alignmentClasses[textAlignment]}`}
             >
               {renderInlineNodes(
                 block.children as StrapiInlineNode[] | undefined,
@@ -143,7 +146,7 @@ const TextBlock = ({
               className={`${listClass} mb-4 ml-6 text-[14px] leading-[1.85] text-neutral-700 ${alignmentClasses[textAlignment]}`}
             >
               {block.children?.map((child, childIndex) => (
-                <li key={childIndex} className="mb-2">
+                <li key={childIndex} className="mb-2 whitespace-pre-line">
                   {renderInlineNodes(
                     child.children as StrapiInlineNode[] | undefined,
                     `list-${index}-${childIndex}`
