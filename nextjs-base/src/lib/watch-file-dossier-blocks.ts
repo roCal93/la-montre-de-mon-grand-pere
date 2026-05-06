@@ -95,12 +95,8 @@ export function appendWatchFileDossierBlocksPopulate(params: URLSearchParams) {
     'true'
   )
   params.set(
-    'populate[dossierBlocks][on][watch-file.before-after-block][populate][pairs][populate][beforeImage]',
-    'true'
-  )
-  params.set(
-    'populate[dossierBlocks][on][watch-file.before-after-block][populate][pairs][populate][afterImage]',
-    'true'
+    'populate[dossierBlocks][on][watch-file.before-after-block][populate][pairs][populate]',
+    '*'
   )
   params.set(
     'populate[dossierBlocks][on][watch-file.video-block][populate][video]',
