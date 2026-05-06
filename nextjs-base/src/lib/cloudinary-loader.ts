@@ -7,10 +7,9 @@
  * lets Cloudinary handle resizing / quality / format natively.
  *
  * Cloudinary URL pattern written by Strapi:
- *   https://res.cloudinary.com/{cloud}/image/upload[/v{timestamp}]/{public_id}
+ *   https://res.cloudinary.com/{cloud}/image/upload[/v{ts}]/{folder}/{file}.ext
  *
- * Transforms must be placed BEFORE the optional version segment:
- *   .../upload/w_800,q_90,f_auto/v1234567890/folder/file.jpg
+ * We inject `w_{width},q_{quality},f_auto` right after `/upload/`.
  */
 export default function cloudinaryLoader({
   src,
@@ -24,17 +23,11 @@ export default function cloudinaryLoader({
   const q = quality ?? 90
 
   if (src.includes('res.cloudinary.com')) {
-    // Skip if Cloudinary transforms are already present.
-    // Real transforms always contain an underscore (w_x, q_y, f_auto, c_fill …).
-    // Version segments (/v1234567890/) do NOT contain underscores.
-    const hasTransform = /\/upload\/[^/]*_[^/]*\//.test(src)
+    // Avoid double-injecting if transformations are already present
+    const hasTransform = /\/upload\/[a-z_,0-9]+\//.test(src)
     if (hasTransform) return src
 
-    // Inject transforms, preserving the optional version segment after /upload/
-    return src.replace(
-      /\/upload\/(v\d+\/)?/,
-      (_, version) => `/upload/w_${width},q_${q},f_auto/${version ?? ''}`
-    )
+    return src.replace('/upload/', `/upload/w_${width},q_${q},f_auto/`)
   }
 
   // Fallback for non-Cloudinary sources (local dev, etc.)

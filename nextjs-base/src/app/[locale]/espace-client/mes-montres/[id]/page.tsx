@@ -442,7 +442,7 @@ export default async function WatchFileDetailPage({
   const dossierQuery = new URLSearchParams()
   appendWatchFileDossierBlocksPopulate(dossierQuery)
 
-  const [{ data, error }, { data: dossierData }] = await Promise.all([
+  const [{ data, error }, dossierResponse] = await Promise.all([
     strapiAuthGet<StrapiSingle<WatchFile>>(
       `/watch-files/${id}?${query.toString()}`,
       0
@@ -457,9 +457,20 @@ export default async function WatchFileDetailPage({
   if (!watchFile || error) notFound()
   if (watchFile.customer?.id !== strapiUser.id) notFound()
 
-  const dossierBlocks = filterRenderableWatchFileDossierBlocks(
-    dossierData?.data?.dossierBlocks ?? []
-  )
+  let rawDossierBlocks = dossierResponse.data?.data?.dossierBlocks ?? []
+
+  if (rawDossierBlocks.length === 0) {
+    const dossierFallbackQuery = new URLSearchParams()
+    dossierFallbackQuery.set('populate[dossierBlocks]', 'true')
+
+    const { data: dossierFallbackData } = await strapiAuthGet<
+      StrapiSingle<WatchFile>
+    >(`/watch-files/${id}?${dossierFallbackQuery.toString()}`, 0)
+
+    rawDossierBlocks = dossierFallbackData?.data?.dossierBlocks ?? []
+  }
+
+  const dossierBlocks = filterRenderableWatchFileDossierBlocks(rawDossierBlocks)
   const globalRows = buildGlobalRows(watchFile.etatGeneral)
   const observationRows = buildObservationRows(watchFile.etatGeneral)
   const componentRows = buildComponentRows(watchFile.etatGeneral)

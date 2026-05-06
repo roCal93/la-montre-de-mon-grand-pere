@@ -35,16 +35,12 @@ export interface WatchFileTextImageDossierBlock extends BaseWatchFileDossierBloc
 export interface WatchFileBeforeAfterDossierBlock extends BaseWatchFileDossierBlock {
   __component: 'watch-file.before-after-block'
   content?: StrapiBlock[] | null
-  // New schema (multi-pair): Strapi redeployed with pairs component
-  pairs?: Array<{
+  pairs: Array<{
     id?: number
     label?: string | null
     beforeImage: WatchFileBlockMedia | null
     afterImage: WatchFileBlockMedia | null
-  }> | null
-  // Legacy schema (single pair): kept until all Strapi instances are migrated
-  beforeImage?: WatchFileBlockMedia | null
-  afterImage?: WatchFileBlockMedia | null
+  }>
 }
 
 export interface WatchFileVideoDossierBlock extends BaseWatchFileDossierBlock {
@@ -99,16 +95,11 @@ export function appendWatchFileDossierBlocksPopulate(params: URLSearchParams) {
     'true'
   )
   params.set(
-    'populate[dossierBlocks][on][watch-file.before-after-block][populate][pairs][populate]',
-    '*'
-  )
-  // Legacy fields: populated for Strapi instances not yet migrated to pairs
-  params.set(
-    'populate[dossierBlocks][on][watch-file.before-after-block][populate][beforeImage]',
+    'populate[dossierBlocks][on][watch-file.before-after-block][populate][pairs][populate][beforeImage]',
     'true'
   )
   params.set(
-    'populate[dossierBlocks][on][watch-file.before-after-block][populate][afterImage]',
+    'populate[dossierBlocks][on][watch-file.before-after-block][populate][pairs][populate][afterImage]',
     'true'
   )
   params.set(
@@ -176,15 +167,12 @@ export function filterRenderableWatchFileDossierBlocks(
     }
 
     if (block.__component === 'watch-file.before-after-block') {
-      const hasPairs = Boolean(
-        block.pairs?.some((p) => p.beforeImage?.url && p.afterImage?.url)
-      )
-      const hasLegacy = Boolean(block.beforeImage?.url && block.afterImage?.url)
       return (
         hasTitle ||
         extractPlainTextFromStrapiBlocks(block.content).length > 0 ||
-        hasPairs ||
-        hasLegacy
+        Boolean(
+          block.pairs?.some((p) => p.beforeImage?.url && p.afterImage?.url)
+        )
       )
     }
 

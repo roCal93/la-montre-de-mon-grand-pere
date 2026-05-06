@@ -88,40 +88,43 @@ describe('GET /api/watch-files/[id]/pdf', () => {
   it('returns a PDF response when the user owns the dossier', async () => {
     getStrapiSessionJwtMock.mockResolvedValue('jwt')
     getCurrentStrapiUserMock.mockResolvedValue({ id: 1 })
-    const fetchMock = vi.spyOn(global, 'fetch').mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          data: {
-            documentId: 'watch_12345678',
-            reference: 'MGP0001',
-            customer: { id: 1 },
-            etatGeneral: {
-              etatGeneralGlobal: {
-                boitier: { pourcentage: 85, commentaire: 'Tres bon' },
-              },
-            },
-            operationsReparation: {
-              operationsPubliques: 'Revision complete du mouvement',
-            },
-            controleQualiteMesures: {
-              marcheMoyennePublique: '+6 s/j',
-              etancheitePublique: '3 ATM',
-            },
-            validationAtelier: {
-              dateFin: '2026-04-26',
-              signature: { url: '/signature.png' },
-            },
-            dateReception: '2026-04-14',
-            dateMiseEnVente: '2026-04-24',
-            publicBeforeImage: [{ url: '/before.jpg' }],
-            publicAfterImage: [{ url: '/after.jpg' }],
-            product: { name: 'Europ Union' },
-            order: { documentId: 'ord_12345678', createdAt: '2026-04-24' },
+    const payload = {
+      data: {
+        documentId: 'watch_12345678',
+        reference: 'MGP0001',
+        customer: { id: 1 },
+        etatGeneral: {
+          etatGeneralGlobal: {
+            boitier: { pourcentage: 85, commentaire: 'Tres bon' },
           },
-        }),
-        { status: 200 }
+        },
+        operationsReparation: {
+          operationsPubliques: 'Revision complete du mouvement',
+        },
+        controleQualiteMesures: {
+          marcheMoyennePublique: '+6 s/j',
+          etancheitePublique: '3 ATM',
+        },
+        validationAtelier: {
+          dateFin: '2026-04-26',
+          signature: { url: '/signature.png' },
+        },
+        dateReception: '2026-04-14',
+        dateMiseEnVente: '2026-04-24',
+        publicBeforeImage: [{ url: '/before.jpg' }],
+        publicAfterImage: [{ url: '/after.jpg' }],
+        product: { name: 'Europ Union' },
+        order: { documentId: 'ord_12345678', createdAt: '2026-04-24' },
+      },
+    }
+    const fetchMock = vi
+      .spyOn(global, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
       )
-    )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
 
     const res = await GET({} as NextRequest, {
       params: Promise.resolve({ id: 'watch_12345678' }),
