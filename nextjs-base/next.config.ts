@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@react-pdf/renderer'],
 
   images: {
+    // Delegate optimization to Cloudinary for production images.
+    // This avoids double-compression (Next.js re-encoding already-uploaded photos).
+    // The loader injects w_{width},q_{quality},f_auto into the Cloudinary URL directly.
+    loaderFile: './src/lib/cloudinary-loader.ts',
     remotePatterns: [
       {
         protocol: 'http',
@@ -35,11 +39,10 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
-    unoptimized: process.env.NODE_ENV === 'development', // Activer l'optimisation en production
-    formats: ['image/webp', 'image/avif'], // Formats modernes pour réduire la taille
+    // Keep unoptimized for local dev (no Cloudinary URL → loader falls through)
+    unoptimized: process.env.NODE_ENV === 'development',
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    qualities: [75, 85], // Qualités d'images autorisées
   },
 
   // Optimisations de performance
