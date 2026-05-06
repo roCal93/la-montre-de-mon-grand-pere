@@ -454,17 +454,37 @@ function BeforeAfterBlock({
   block: WatchFileBeforeAfterDossierBlock
   locale: string
 }) {
-  const validPairs = (block.pairs ?? [])
-    .map((pair) => ({
-      beforeUrl: cleanImageUrl(pair.beforeImage?.url),
-      afterUrl: cleanImageUrl(pair.afterImage?.url),
-      beforeAlt: pair.beforeImage?.alternativeText ?? 'Avant réparation',
-      afterAlt: pair.afterImage?.alternativeText ?? 'Après réparation',
-      label: pair.label ?? undefined,
-    }))
-    .filter((p): p is typeof p & { beforeUrl: string; afterUrl: string } =>
-      Boolean(p.beforeUrl && p.afterUrl)
-    )
+  // New schema: pairs[] — fall back to legacy single beforeImage/afterImage
+  const validPairs = (() => {
+    if (block.pairs && block.pairs.length > 0) {
+      return block.pairs
+        .map((pair) => ({
+          beforeUrl: cleanImageUrl(pair.beforeImage?.url),
+          afterUrl: cleanImageUrl(pair.afterImage?.url),
+          beforeAlt: pair.beforeImage?.alternativeText ?? 'Avant réparation',
+          afterAlt: pair.afterImage?.alternativeText ?? 'Après réparation',
+          label: pair.label ?? undefined,
+        }))
+        .filter((p): p is typeof p & { beforeUrl: string; afterUrl: string } =>
+          Boolean(p.beforeUrl && p.afterUrl)
+        )
+    }
+    // Legacy single-pair fields (Strapi not yet migrated)
+    const beforeUrl = cleanImageUrl(block.beforeImage?.url)
+    const afterUrl = cleanImageUrl(block.afterImage?.url)
+    if (beforeUrl && afterUrl) {
+      return [
+        {
+          beforeUrl,
+          afterUrl,
+          beforeAlt: block.beforeImage?.alternativeText ?? 'Avant réparation',
+          afterAlt: block.afterImage?.alternativeText ?? 'Après réparation',
+          label: undefined,
+        },
+      ]
+    }
+    return []
+  })()
 
   const renderedContent = block.content ? renderRichText(block.content) : []
   const hasRenderedContent = renderedContent.some(Boolean)

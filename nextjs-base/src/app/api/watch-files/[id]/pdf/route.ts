@@ -997,13 +997,22 @@ function renderPdfBeforeAfterBlockContent(
   title: string
 ) {
   const text = extractPlainTextFromStrapiBlocks(block.content)
-  const validPairs = (block.pairs ?? [])
-    .map((pair) => ({
-      beforeUrl: buildPdfMediaUrl(pair.beforeImage?.url),
-      afterUrl: buildPdfMediaUrl(pair.afterImage?.url),
-      label: pair.label ?? null,
-    }))
-    .filter((p) => Boolean(p.beforeUrl && p.afterUrl))
+  const validPairs = (() => {
+    if (block.pairs && block.pairs.length > 0) {
+      return block.pairs
+        .map((pair) => ({
+          beforeUrl: buildPdfMediaUrl(pair.beforeImage?.url),
+          afterUrl: buildPdfMediaUrl(pair.afterImage?.url),
+          label: pair.label ?? null,
+        }))
+        .filter((p) => Boolean(p.beforeUrl && p.afterUrl))
+    }
+    // Legacy single-pair fields (Strapi not yet migrated)
+    const beforeUrl = buildPdfMediaUrl(block.beforeImage?.url)
+    const afterUrl = buildPdfMediaUrl(block.afterImage?.url)
+    if (beforeUrl && afterUrl) return [{ beforeUrl, afterUrl, label: null }]
+    return []
+  })()
 
   if (validPairs.length === 0) return null
 

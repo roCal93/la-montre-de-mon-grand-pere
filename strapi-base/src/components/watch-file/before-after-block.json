@@ -19,8 +19,7 @@
       "type": "component",
       "repeatable": true,
       "component": "watch-file.before-after-pair",
-      "required": true,
-      "min": 1,
+      "required": false,
       "displayName": "Paires avant / après"
     }
   },

@@ -35,12 +35,16 @@ export interface WatchFileTextImageDossierBlock extends BaseWatchFileDossierBloc
 export interface WatchFileBeforeAfterDossierBlock extends BaseWatchFileDossierBlock {
   __component: 'watch-file.before-after-block'
   content?: StrapiBlock[] | null
-  pairs: Array<{
+  // New schema (multi-pair): Strapi redeployed with pairs component
+  pairs?: Array<{
     id?: number
     label?: string | null
     beforeImage: WatchFileBlockMedia | null
     afterImage: WatchFileBlockMedia | null
-  }>
+  }> | null
+  // Legacy schema (single pair): kept until all Strapi instances are migrated
+  beforeImage?: WatchFileBlockMedia | null
+  afterImage?: WatchFileBlockMedia | null
 }
 
 export interface WatchFileVideoDossierBlock extends BaseWatchFileDossierBlock {
@@ -97,6 +101,15 @@ export function appendWatchFileDossierBlocksPopulate(params: URLSearchParams) {
   params.set(
     'populate[dossierBlocks][on][watch-file.before-after-block][populate][pairs][populate]',
     '*'
+  )
+  // Legacy fields: populated for Strapi instances not yet migrated to pairs
+  params.set(
+    'populate[dossierBlocks][on][watch-file.before-after-block][populate][beforeImage]',
+    'true'
+  )
+  params.set(
+    'populate[dossierBlocks][on][watch-file.before-after-block][populate][afterImage]',
+    'true'
   )
   params.set(
     'populate[dossierBlocks][on][watch-file.video-block][populate][video]',
@@ -163,12 +176,15 @@ export function filterRenderableWatchFileDossierBlocks(
     }
 
     if (block.__component === 'watch-file.before-after-block') {
+      const hasPairs = Boolean(
+        block.pairs?.some((p) => p.beforeImage?.url && p.afterImage?.url)
+      )
+      const hasLegacy = Boolean(block.beforeImage?.url && block.afterImage?.url)
       return (
         hasTitle ||
         extractPlainTextFromStrapiBlocks(block.content).length > 0 ||
-        Boolean(
-          block.pairs?.some((p) => p.beforeImage?.url && p.afterImage?.url)
-        )
+        hasPairs ||
+        hasLegacy
       )
     }
 
