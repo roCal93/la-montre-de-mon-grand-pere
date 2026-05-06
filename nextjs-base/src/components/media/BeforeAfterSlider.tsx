@@ -66,7 +66,7 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
           alt={afterAlt}
           fill
           className="pointer-events-none object-cover"
-          sizes="(max-width: 1024px) 100vw, 50vw"
+          sizes="100vw"
           draggable={false}
         />
 
@@ -79,7 +79,7 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
             alt={beforeAlt}
             fill
             className="pointer-events-none object-cover"
-            sizes="(max-width: 1024px) 100vw, 50vw"
+            sizes="100vw"
             draggable={false}
           />
         </div>
