@@ -18,7 +18,6 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [position, setPosition] = useState(50)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
 
   const activePair = pairs[activeIndex]
@@ -49,9 +48,8 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
     }
   }, [isModalOpen])
 
-  const setPos = (clientX: number) => {
-    const rect = wrapRef.current?.getBoundingClientRect()
-    if (!rect) return
+  const setPos = (clientX: number, surface: HTMLDivElement) => {
+    const rect = surface.getBoundingClientRect()
 
     const pct = Math.min(
       Math.max(((clientX - rect.left) / rect.width) * 100, 2),
@@ -69,17 +67,16 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
   }) => {
     return (
       <div
-        ref={wrapRef}
         className={className}
         style={{ touchAction: 'none' }}
         onPointerDown={(event) => {
           event.preventDefault()
           dragging.current = true
           event.currentTarget.setPointerCapture(event.pointerId)
-          setPos(event.clientX)
+          setPos(event.clientX, event.currentTarget)
         }}
         onPointerMove={(event) => {
-          if (dragging.current) setPos(event.clientX)
+          if (dragging.current) setPos(event.clientX, event.currentTarget)
         }}
         onPointerUp={() => {
           dragging.current = false
