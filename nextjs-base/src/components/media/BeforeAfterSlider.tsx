@@ -20,8 +20,6 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
-  const pointerStartX = useRef<number | null>(null)
-  const hasDragged = useRef(false)
 
   const activePair = pairs[activeIndex]
 
@@ -50,6 +48,131 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [isModalOpen])
+
+  const setPos = (clientX: number) => {
+    const rect = wrapRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const pct = Math.min(
+      Math.max(((clientX - rect.left) / rect.width) * 100, 2),
+      98
+    )
+    setPosition(pct)
+  }
+
+  const renderComparisonSurface = ({
+    className,
+    showZoomButton,
+  }: {
+    className: string
+    showZoomButton: boolean
+  }) => {
+    return (
+      <div
+        ref={wrapRef}
+        className={className}
+        style={{ touchAction: 'none' }}
+        onPointerDown={(event) => {
+          event.preventDefault()
+          dragging.current = true
+          event.currentTarget.setPointerCapture(event.pointerId)
+          setPos(event.clientX)
+        }}
+        onPointerMove={(event) => {
+          if (dragging.current) setPos(event.clientX)
+        }}
+        onPointerUp={() => {
+          dragging.current = false
+        }}
+        onPointerCancel={() => {
+          dragging.current = false
+        }}
+        onLostPointerCapture={() => {
+          dragging.current = false
+        }}
+      >
+        {showZoomButton ? (
+          <button
+            type="button"
+            onPointerDown={(event) => {
+              event.stopPropagation()
+            }}
+            onClick={() => setIsModalOpen(true)}
+            className="absolute right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition hover:bg-black/75"
+            aria-label={
+              locale === 'fr' ? 'Ouvrir la vue en grand' : 'Open expanded view'
+            }
+          >
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 4H4v4M12 4h4v4M16 12v4h-4M4 12v4h4"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        ) : null}
+
+        <Image
+          src={activePair.afterUrl}
+          alt={afterAlt}
+          fill
+          className="pointer-events-none object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 92vw, 1200px"
+          quality={85}
+          draggable={false}
+        />
+
+        <div
+          className="absolute inset-0 overflow-hidden"
+          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+        >
+          <Image
+            src={activePair.beforeUrl}
+            alt={beforeAlt}
+            fill
+            className="pointer-events-none object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 92vw, 1200px"
+            quality={85}
+            draggable={false}
+          />
+        </div>
+
+        <div
+          className="pointer-events-none absolute inset-y-0 w-px bg-black"
+          style={{ left: `${position}%` }}
+        />
+
+        <div
+          className="pointer-events-none absolute top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-black"
+          style={{ left: `${position}%` }}
+        >
+          <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4">
+            <path
+              d="M5 8H11M5 8L3 6M5 8L3 10M11 8L13 6M11 8L13 10"
+              stroke="white"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+
+        <span className="pointer-events-none absolute bottom-3 left-3 border border-neutral-300 bg-white px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+          {locale === 'fr' ? 'Avant' : 'Before'}
+        </span>
+        <span className="pointer-events-none absolute bottom-3 right-3 bg-black px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-white">
+          {locale === 'fr' ? 'Après' : 'After'}
+        </span>
+      </div>
+    )
+  }
 
   const modal =
     isModalOpen && typeof document !== 'undefined'
@@ -82,158 +205,31 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
                 ×
               </button>
 
-              <div className="grid gap-4 lg:grid-cols-2">
-                <figure className="flex flex-col gap-3 rounded-[24px] bg-white/6 p-3">
-                  <div className="overflow-hidden rounded-[20px] bg-black/30">
-                    <Image
-                      src={activePair.beforeUrl}
-                      alt={beforeAlt}
-                      width={1600}
-                      height={1200}
-                      className="h-auto max-h-[72vh] w-full object-contain"
-                      sizes="(max-width: 1024px) 100vw, 50vw"
-                      quality={85}
-                      priority
-                    />
-                  </div>
-                  <figcaption className="text-sm font-medium text-white/80">
-                    {beforeAlt}
-                  </figcaption>
-                </figure>
+              {renderComparisonSurface({
+                className:
+                  'relative aspect-[16/9] w-full select-none overflow-hidden rounded-[24px] border border-white/10 bg-neutral-100',
+                showZoomButton: false,
+              })}
 
-                <figure className="flex flex-col gap-3 rounded-[24px] bg-white/6 p-3">
-                  <div className="overflow-hidden rounded-[20px] bg-black/30">
-                    <Image
-                      src={activePair.afterUrl}
-                      alt={afterAlt}
-                      width={1600}
-                      height={1200}
-                      className="h-auto max-h-[72vh] w-full object-contain"
-                      sizes="(max-width: 1024px) 100vw, 50vw"
-                      quality={85}
-                      priority
-                    />
-                  </div>
-                  <figcaption className="text-sm font-medium text-white/80">
-                    {afterAlt}
-                  </figcaption>
-                </figure>
-              </div>
+              <p className="text-center text-sm font-medium text-white/70">
+                {locale === 'fr'
+                  ? 'Glissez pour comparer les deux vues en grand format'
+                  : 'Drag to compare both images in the expanded view'}
+              </p>
             </div>
           </div>,
           document.body
         )
       : null
 
-  const setPos = (clientX: number) => {
-    const rect = wrapRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const pct = Math.min(
-      Math.max(((clientX - rect.left) / rect.width) * 100, 2),
-      98
-    )
-    setPosition(pct)
-  }
-
   return (
     <>
       <div className="space-y-4">
-        <div
-          ref={wrapRef}
-          className="relative aspect-[16/9] w-full cursor-zoom-in select-none overflow-hidden border border-neutral-200 bg-neutral-100"
-          style={{ touchAction: 'none' }}
-          onPointerDown={(e) => {
-            e.preventDefault()
-            dragging.current = true
-            pointerStartX.current = e.clientX
-            hasDragged.current = false
-            e.currentTarget.setPointerCapture(e.pointerId)
-            setPos(e.clientX)
-          }}
-          onPointerMove={(e) => {
-            if (!dragging.current) return
-
-            if (
-              pointerStartX.current !== null &&
-              Math.abs(e.clientX - pointerStartX.current) > 6
-            ) {
-              hasDragged.current = true
-            }
-
-            setPos(e.clientX)
-          }}
-          onPointerUp={() => {
-            dragging.current = false
-            pointerStartX.current = null
-          }}
-          onPointerCancel={() => {
-            dragging.current = false
-            pointerStartX.current = null
-          }}
-          onLostPointerCapture={() => {
-            dragging.current = false
-            pointerStartX.current = null
-          }}
-          onClick={() => {
-            if (hasDragged.current) {
-              hasDragged.current = false
-              return
-            }
-
-            setIsModalOpen(true)
-          }}
-        >
-          <Image
-            src={activePair.afterUrl}
-            alt={afterAlt}
-            fill
-            className="pointer-events-none object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 92vw, 1200px"
-            quality={85}
-            draggable={false}
-          />
-
-          <div
-            className="absolute inset-0 overflow-hidden"
-            style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
-          >
-            <Image
-              src={activePair.beforeUrl}
-              alt={beforeAlt}
-              fill
-              className="pointer-events-none object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 92vw, 1200px"
-              quality={85}
-              draggable={false}
-            />
-          </div>
-
-          <div
-            className="pointer-events-none absolute inset-y-0 w-px bg-black"
-            style={{ left: `${position}%` }}
-          />
-
-          <div
-            className="pointer-events-none absolute top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-black"
-            style={{ left: `${position}%` }}
-          >
-            <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4">
-              <path
-                d="M5 8H11M5 8L3 6M5 8L3 10M11 8L13 6M11 8L13 10"
-                stroke="white"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-
-          <span className="pointer-events-none absolute bottom-3 left-3 border border-neutral-300 bg-white px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500 dark:bg-neutral-800 dark:border-neutral-600 dark:text-neutral-400">
-            {locale === 'fr' ? 'Avant' : 'Before'}
-          </span>
-          <span className="pointer-events-none absolute bottom-3 right-3 bg-black px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-white">
-            {locale === 'fr' ? 'Après' : 'After'}
-          </span>
-        </div>
+        {renderComparisonSurface({
+          className:
+            'relative aspect-[16/9] w-full select-none overflow-hidden border border-neutral-200 bg-neutral-100',
+          showZoomButton: true,
+        })}
 
         {pairs.length > 1 && (
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -267,8 +263,8 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
 
         <p className="text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-500">
           {locale === 'fr'
-            ? 'Cliquez pour afficher les images en grand, glissez pour comparer'
-            : 'Click to open the images in high definition, drag to compare'}
+            ? 'Cliquez sur la loupe pour afficher les images en grand'
+            : 'Use the zoom button to open the images in high definition'}
         </p>
       </div>
 
