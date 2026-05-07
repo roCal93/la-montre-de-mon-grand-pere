@@ -20,6 +20,8 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
+  const pointerStartX = useRef<number | null>(null)
+  const hasDragged = useRef(false)
 
   const activePair = pairs[activeIndex]
 
@@ -138,51 +140,49 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
       <div className="space-y-4">
         <div
           ref={wrapRef}
-          className="relative aspect-[16/9] w-full select-none overflow-hidden border border-neutral-200 bg-neutral-100"
+          className="relative aspect-[16/9] w-full cursor-zoom-in select-none overflow-hidden border border-neutral-200 bg-neutral-100"
           style={{ touchAction: 'none' }}
           onPointerDown={(e) => {
             e.preventDefault()
             dragging.current = true
+            pointerStartX.current = e.clientX
+            hasDragged.current = false
             e.currentTarget.setPointerCapture(e.pointerId)
             setPos(e.clientX)
           }}
           onPointerMove={(e) => {
-            if (dragging.current) setPos(e.clientX)
+            if (!dragging.current) return
+
+            if (
+              pointerStartX.current !== null &&
+              Math.abs(e.clientX - pointerStartX.current) > 6
+            ) {
+              hasDragged.current = true
+            }
+
+            setPos(e.clientX)
           }}
           onPointerUp={() => {
             dragging.current = false
+            pointerStartX.current = null
           }}
           onPointerCancel={() => {
             dragging.current = false
+            pointerStartX.current = null
           }}
           onLostPointerCapture={() => {
             dragging.current = false
+            pointerStartX.current = null
+          }}
+          onClick={() => {
+            if (hasDragged.current) {
+              hasDragged.current = false
+              return
+            }
+
+            setIsModalOpen(true)
           }}
         >
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition hover:bg-black/75"
-            aria-label={
-              locale === 'fr' ? 'Ouvrir la vue en grand' : 'Open expanded view'
-            }
-          >
-            <svg
-              viewBox="0 0 20 20"
-              fill="none"
-              className="h-5 w-5"
-              aria-hidden="true"
-            >
-              <path
-                d="M8 4H4v4M12 4h4v4M16 12v4h-4M4 12v4h4"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-
           <Image
             src={activePair.afterUrl}
             alt={afterAlt}
@@ -267,8 +267,8 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
 
         <p className="text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-500">
           {locale === 'fr'
-            ? 'Cliquez sur la loupe pour afficher les images en grand'
-            : 'Use the zoom button to open the images in high definition'}
+            ? 'Cliquez pour afficher les images en grand, glissez pour comparer'
+            : 'Click to open the images in high definition, drag to compare'}
         </p>
       </div>
 
