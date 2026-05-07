@@ -178,7 +178,7 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
     isModalOpen && typeof document !== 'undefined'
       ? createPortal(
           <div
-            className="fixed inset-0 z-[220] flex items-center justify-center bg-black/88 px-4 py-6"
+            className="fixed inset-0 z-[220] bg-black"
             onClick={() => setIsModalOpen(false)}
             role="dialog"
             aria-modal="true"
@@ -189,13 +189,13 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
             }
           >
             <div
-              className="relative flex max-h-[92vh] w-full max-w-7xl flex-col gap-4 overflow-auto rounded-[28px] bg-neutral-950/96 p-4 text-white shadow-2xl sm:p-6"
+              className="relative flex h-screen w-screen flex-col bg-black text-white"
               onClick={(event) => event.stopPropagation()}
             >
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/12 text-2xl text-white transition hover:bg-white/20"
+                className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/12 text-2xl text-white transition hover:bg-white/20"
                 aria-label={
                   locale === 'fr'
                     ? 'Fermer la vue en grand'
@@ -207,15 +207,9 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
 
               {renderComparisonSurface({
                 className:
-                  'relative aspect-[16/9] w-full select-none overflow-hidden rounded-[24px] border border-white/10 bg-neutral-100',
+                  'relative h-full w-full select-none overflow-hidden bg-neutral-100',
                 showZoomButton: false,
               })}
-
-              <p className="text-center text-sm font-medium text-white/70">
-                {locale === 'fr'
-                  ? 'Glissez pour comparer les deux vues en grand format'
-                  : 'Drag to compare both images in the expanded view'}
-              </p>
             </div>
           </div>,
           document.body
@@ -260,12 +254,6 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
             ))}
           </div>
         )}
-
-        <p className="text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-500">
-          {locale === 'fr'
-            ? 'Cliquez sur la loupe pour afficher les images en grand'
-            : 'Use the zoom button to open the images in high definition'}
-        </p>
       </div>
 
       {modal}
