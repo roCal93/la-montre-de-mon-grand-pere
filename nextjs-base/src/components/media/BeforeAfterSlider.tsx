@@ -22,11 +22,6 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
 
   const activePair = pairs[activeIndex]
 
-  if (!activePair) return null
-
-  const beforeAlt = activePair.beforeAlt ?? 'Avant réparation'
-  const afterAlt = activePair.afterAlt ?? 'Après réparation'
-
   useEffect(() => {
     if (!isModalOpen) {
       return
@@ -47,6 +42,11 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [isModalOpen])
+
+  if (!activePair) return null
+
+  const beforeAlt = activePair.beforeAlt ?? 'Avant réparation'
+  const afterAlt = activePair.afterAlt ?? 'Après réparation'
 
   const setPos = (clientX: number, surface: HTMLDivElement) => {
     const rect = surface.getBoundingClientRect()
