@@ -436,20 +436,41 @@ export default async function WatchFileDetailPage({
   )
   query.set('populate[controleQualiteMesures][populate][1]', 'testEtancheite')
   query.set('populate[validationAtelier][populate][0]', 'signature')
-  appendWatchFileDossierBlocksPopulate(query)
 
-  const { data, error } = await strapiAuthGet<StrapiSingle<WatchFile>>(
-    `/watch-files/${id}?${query.toString()}`,
-    0
-  )
+  // dossierBlocks are fetched in a separate query so that a populate error
+  // (e.g. during schema migration) never brings down the entire page.
+  const dossierQuery = new URLSearchParams()
+  appendWatchFileDossierBlocksPopulate(dossierQuery)
+
+  const [{ data, error }, dossierResponse] = await Promise.all([
+    strapiAuthGet<StrapiSingle<WatchFile>>(
+      `/watch-files/${id}?${query.toString()}`,
+      0
+    ),
+    strapiAuthGet<StrapiSingle<WatchFile>>(
+      `/watch-files/${id}?${dossierQuery.toString()}`,
+      0
+    ),
+  ])
 
   const watchFile = data?.data
   if (!watchFile || error) notFound()
   if (watchFile.customer?.id !== strapiUser.id) notFound()
 
-  const dossierBlocks = filterRenderableWatchFileDossierBlocks(
-    watchFile.dossierBlocks
-  )
+  let rawDossierBlocks = dossierResponse.data?.data?.dossierBlocks ?? []
+
+  if (rawDossierBlocks.length === 0) {
+    const dossierFallbackQuery = new URLSearchParams()
+    dossierFallbackQuery.set('populate[dossierBlocks]', 'true')
+
+    const { data: dossierFallbackData } = await strapiAuthGet<
+      StrapiSingle<WatchFile>
+    >(`/watch-files/${id}?${dossierFallbackQuery.toString()}`, 0)
+
+    rawDossierBlocks = dossierFallbackData?.data?.dossierBlocks ?? []
+  }
+
+  const dossierBlocks = filterRenderableWatchFileDossierBlocks(rawDossierBlocks)
   const globalRows = buildGlobalRows(watchFile.etatGeneral)
   const observationRows = buildObservationRows(watchFile.etatGeneral)
   const componentRows = buildComponentRows(watchFile.etatGeneral)

@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import path from 'node:path'
 
 function normalizeOrigin(input: string): string | null {
   try {
@@ -49,8 +50,9 @@ const nextConfig: NextConfig = {
   // For Turbopack: explicitly set workspace root to this Next app to avoid
   // module resolution issues when the repo contains multiple lockfiles.
   // See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory
+  outputFileTracingRoot: path.resolve(__dirname, '..'),
   turbopack: {
-    root: __dirname,
+    root: path.resolve(__dirname, '..'),
   } as const,
 
   // Autoriser l'admin Strapi à intégrer le site en iframe pour la Preview

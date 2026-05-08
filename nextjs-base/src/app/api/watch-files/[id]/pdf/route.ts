@@ -997,10 +997,23 @@ function renderPdfBeforeAfterBlockContent(
   title: string
 ) {
   const text = extractPlainTextFromStrapiBlocks(block.content)
-  const beforeUrl = buildPdfMediaUrl(block.beforeImage?.url)
-  const afterUrl = buildPdfMediaUrl(block.afterImage?.url)
+  const validPairs = (block.pairs ?? [])
+    .map((pair) => ({
+      label: pair.label?.trim() || null,
+      beforeUrl: buildPdfMediaUrl(pair.beforeImage?.url),
+      afterUrl: buildPdfMediaUrl(pair.afterImage?.url),
+    }))
+    .filter(
+      (
+        pair
+      ): pair is {
+        label: string | null
+        beforeUrl: string
+        afterUrl: string
+      } => Boolean(pair.beforeUrl && pair.afterUrl)
+    )
 
-  if (!beforeUrl || !afterUrl) return null
+  if (validPairs.length === 0) return null
 
   return createElement(
     View,
@@ -1013,38 +1026,55 @@ function renderPdfBeforeAfterBlockContent(
           text
         )
       : null,
-    createElement(
-      View,
-      {
-        style: text
-          ? [styles.dossierColumns, { marginTop: 10 }]
-          : styles.dossierColumns,
-      },
+    ...validPairs.map((pair, index) =>
       createElement(
         View,
-        { style: styles.dossierColumn },
+        {
+          key: `${pair.beforeUrl}-${pair.afterUrl}-${index}`,
+          style:
+            index === 0
+              ? text
+                ? [{ marginTop: 10 }]
+                : undefined
+              : [{ marginTop: 10 }],
+        },
+        pair.label
+          ? createElement(
+              Text,
+              { style: styles.dossierImageCaption },
+              pair.label
+            )
+          : null,
         createElement(
           View,
-          { style: styles.dossierImageFrame },
-          createElement(Image, {
-            src: beforeUrl,
-            style: styles.dossierImage,
-          })
-        ),
-        createElement(Text, { style: styles.dossierImageCaption }, 'Avant')
-      ),
-      createElement(
-        View,
-        { style: styles.dossierColumn },
-        createElement(
-          View,
-          { style: styles.dossierImageFrame },
-          createElement(Image, {
-            src: afterUrl,
-            style: styles.dossierImage,
-          })
-        ),
-        createElement(Text, { style: styles.dossierImageCaption }, 'Après')
+          { style: styles.dossierColumns },
+          createElement(
+            View,
+            { style: styles.dossierColumn },
+            createElement(
+              View,
+              { style: styles.dossierImageFrame },
+              createElement(Image, {
+                src: pair.beforeUrl,
+                style: styles.dossierImage,
+              })
+            ),
+            createElement(Text, { style: styles.dossierImageCaption }, 'Avant')
+          ),
+          createElement(
+            View,
+            { style: styles.dossierColumn },
+            createElement(
+              View,
+              { style: styles.dossierImageFrame },
+              createElement(Image, {
+                src: pair.afterUrl,
+                style: styles.dossierImage,
+              })
+            ),
+            createElement(Text, { style: styles.dossierImageCaption }, 'Après')
+          )
+        )
       )
     )
   )

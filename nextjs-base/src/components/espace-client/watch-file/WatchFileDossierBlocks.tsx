@@ -454,13 +454,23 @@ function BeforeAfterBlock({
   block: WatchFileBeforeAfterDossierBlock
   locale: string
 }) {
-  const beforeUrl = cleanImageUrl(block.beforeImage?.url)
-  const afterUrl = cleanImageUrl(block.afterImage?.url)
+  const validPairs = (block.pairs ?? [])
+    .map((pair) => ({
+      beforeUrl: cleanImageUrl(pair.beforeImage?.url),
+      afterUrl: cleanImageUrl(pair.afterImage?.url),
+      beforeAlt: pair.beforeImage?.alternativeText ?? 'Avant réparation',
+      afterAlt: pair.afterImage?.alternativeText ?? 'Après réparation',
+      label: pair.label ?? undefined,
+    }))
+    .filter((p): p is typeof p & { beforeUrl: string; afterUrl: string } =>
+      Boolean(p.beforeUrl && p.afterUrl)
+    )
+
   const renderedContent = block.content ? renderRichText(block.content) : []
   const hasRenderedContent = renderedContent.some(Boolean)
   const plainText = extractPlainTextFromStrapiBlocks(block.content)
 
-  if (!beforeUrl || !afterUrl) return null
+  if (validPairs.length === 0) return null
 
   return (
     <SectionFrame title={block.title}>
@@ -473,18 +483,7 @@ function BeforeAfterBlock({
           </div>
         ) : null}
 
-        <BeforeAfterSlider
-          locale={locale}
-          pairs={[
-            {
-              beforeUrl,
-              afterUrl,
-              beforeAlt:
-                block.beforeImage?.alternativeText ?? 'Avant réparation',
-              afterAlt: block.afterImage?.alternativeText ?? 'Après réparation',
-            },
-          ]}
-        />
+        <BeforeAfterSlider locale={locale} pairs={validPairs} />
       </div>
     </SectionFrame>
   )
