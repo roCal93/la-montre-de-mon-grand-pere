@@ -1,0 +1,30 @@
+export default {
+  collectionName: 'components_watch_file_before_after_pairs',
+  info: {
+    displayName: 'Dossier Before / After Pair',
+    description: "Paire d'images avant / après pour le dossier de restauration",
+  },
+  options: {},
+  attributes: {
+    label: {
+      type: 'string',
+      required: false,
+      displayName: 'Label',
+    },
+    beforeImage: {
+      type: 'media',
+      multiple: false,
+      required: true,
+      allowedTypes: ['images'],
+      displayName: 'Image avant',
+    },
+    afterImage: {
+      type: 'media',
+      multiple: false,
+      required: true,
+      allowedTypes: ['images'],
+      displayName: 'Image après',
+    },
+  },
+  config: {},
+}
