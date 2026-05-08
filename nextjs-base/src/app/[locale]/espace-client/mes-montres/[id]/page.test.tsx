@@ -123,8 +123,19 @@ describe('WatchFileDetailPage', () => {
       params: Promise.resolve({ locale: 'fr', id: 'watch_1' }),
     })
 
-    expect(strapiAuthGetMock).toHaveBeenCalledWith(
-      '/watch-files/watch_1?populate%5BpublicBadges%5D=true&populate%5Border%5D=true&populate%5Bproduct%5D%5Bpopulate%5D%5Bimages%5D%5Bfields%5D%5B0%5D=url&populate%5Bproduct%5D%5Bpopulate%5D%5Bimages%5D%5Bfields%5D%5B1%5D=alternativeText&populate%5Bcustomer%5D=true&populate%5BetatGeneral%5D%5Bpopulate%5D%5B0%5D=etatGeneralGlobal&populate%5BetatGeneral%5D%5Bpopulate%5D%5B1%5D=fonctionnementAvantIntervention&populate%5BetatGeneral%5D%5Bpopulate%5D%5B2%5D=etatVisuelComposants&populate%5BoperationsReparation%5D%5Bpopulate%5D%5B0%5D=operationsEffectuees&populate%5BoperationsReparation%5D%5Bpopulate%5D%5B1%5D=piecesRemplacees&populate%5BcontroleQualiteMesures%5D%5Bpopulate%5D%5B0%5D=reglageEtPrecision&populate%5BcontroleQualiteMesures%5D%5Bpopulate%5D%5B1%5D=testEtancheite&populate%5BvalidationAtelier%5D%5Bpopulate%5D%5B0%5D=signature&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.rich-text-block%5D%5Bpopulate%5D=*&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.image-block%5D%5Bpopulate%5D%5Bimage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.text-image-block%5D%5Bpopulate%5D%5Bimages%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.before-after-block%5D%5Bpopulate%5D%5BbeforeImage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.before-after-block%5D%5Bpopulate%5D%5BafterImage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.video-block%5D%5Bpopulate%5D%5Bvideo%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.audio-block%5D%5Bpopulate%5D%5Baudio%5D=true',
+    expect(strapiAuthGetMock).toHaveBeenNthCalledWith(
+      1,
+      '/watch-files/watch_1?populate%5BpublicBadges%5D=true&populate%5Border%5D=true&populate%5Bproduct%5D%5Bpopulate%5D%5Bimages%5D%5Bfields%5D%5B0%5D=url&populate%5Bproduct%5D%5Bpopulate%5D%5Bimages%5D%5Bfields%5D%5B1%5D=alternativeText&populate%5Bcustomer%5D=true&populate%5BetatGeneral%5D%5Bpopulate%5D%5B0%5D=etatGeneralGlobal&populate%5BetatGeneral%5D%5Bpopulate%5D%5B1%5D=fonctionnementAvantIntervention&populate%5BetatGeneral%5D%5Bpopulate%5D%5B2%5D=etatVisuelComposants&populate%5BoperationsReparation%5D%5Bpopulate%5D%5B0%5D=operationsEffectuees&populate%5BoperationsReparation%5D%5Bpopulate%5D%5B1%5D=piecesRemplacees&populate%5BcontroleQualiteMesures%5D%5Bpopulate%5D%5B0%5D=reglageEtPrecision&populate%5BcontroleQualiteMesures%5D%5Bpopulate%5D%5B1%5D=testEtancheite&populate%5BvalidationAtelier%5D%5Bpopulate%5D%5B0%5D=signature',
+      0
+    )
+    expect(strapiAuthGetMock).toHaveBeenNthCalledWith(
+      2,
+      '/watch-files/watch_1?populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.rich-text-block%5D%5Bpopulate%5D=*&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.image-block%5D%5Bpopulate%5D%5Bimage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.text-image-block%5D%5Bpopulate%5D%5Bimages%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.before-after-block%5D%5Bpopulate%5D%5Bpairs%5D%5Bpopulate%5D%5BbeforeImage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.before-after-block%5D%5Bpopulate%5D%5Bpairs%5D%5Bpopulate%5D%5BafterImage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.video-block%5D%5Bpopulate%5D%5Bvideo%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.audio-block%5D%5Bpopulate%5D%5Baudio%5D=true',
+      0
+    )
+    expect(strapiAuthGetMock).toHaveBeenNthCalledWith(
+      3,
+      '/watch-files/watch_1?populate%5BdossierBlocks%5D=true',
       0
     )
     expect(notFoundMock).not.toHaveBeenCalled()
