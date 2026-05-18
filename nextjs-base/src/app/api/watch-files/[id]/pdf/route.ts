@@ -27,14 +27,17 @@ import {
   type WatchFileTextImageDossierBlock,
   type WatchFileAudioDossierBlock,
   type WatchFileVideoDossierBlock,
+  type WatchFileBlockMedia,
 } from '@/lib/watch-file-dossier-blocks'
 import QRCode from 'qrcode'
+import sharp from 'sharp'
 
 export const runtime = 'nodejs'
 
 interface MediaFile {
   url: string
   alternativeText?: string
+  mime?: string | null
 }
 
 interface EtatGeneralIndicator {
@@ -852,6 +855,179 @@ function chunkArray<T>(items: T[], size: number) {
   }
 
   return chunks
+}
+
+const pdfMediaConversionCache = new Map<string, Promise<string | undefined>>()
+
+function getPdfMediaExtension(url: string) {
+  try {
+    const pathname = new URL(url).pathname
+    const extension = pathname.split('.').pop()?.toLowerCase()
+    return extension ?? null
+  } catch {
+    return url.split('?')[0].split('.').pop()?.toLowerCase() ?? null
+  }
+}
+
+function shouldConvertPdfMedia(url: string, mime?: string | null) {
+  const lowerMime = mime?.toLowerCase() ?? ''
+  const extension = getPdfMediaExtension(url)
+
+  return (
+    lowerMime.includes('gif') ||
+    lowerMime.includes('webp') ||
+    lowerMime.includes('svg') ||
+    extension === 'gif' ||
+    extension === 'webp' ||
+    extension === 'svg'
+  )
+}
+
+function toDataUrl(buffer: Buffer, mime: string) {
+  return `data:${mime};base64,${buffer.toString('base64')}`
+}
+
+async function resolvePdfMediaUrl(url?: string | null, mime?: string | null) {
+  const sourceUrl = buildPdfMediaUrl(url)
+  if (!sourceUrl) return undefined
+
+  if (!shouldConvertPdfMedia(sourceUrl, mime)) {
+    return sourceUrl
+  }
+
+  const cacheKey = `${mime ?? ''}:${sourceUrl}`
+  const cached = pdfMediaConversionCache.get(cacheKey)
+  if (cached) return cached
+
+  const conversionPromise = (async () => {
+    try {
+      const response = await fetch(sourceUrl, { cache: 'no-store' })
+      if (!response.ok) {
+        console.warn('PDF media conversion fetch failed', {
+          sourceUrl,
+          status: response.status,
+        })
+        return sourceUrl
+      }
+
+      const inputBuffer = Buffer.from(await response.arrayBuffer())
+      const outputBuffer = await sharp(inputBuffer, { animated: true })
+        .png()
+        .toBuffer()
+
+      return toDataUrl(outputBuffer, 'image/png')
+    } catch (error) {
+      console.warn('PDF media conversion failed', {
+        sourceUrl,
+        error,
+      })
+      return sourceUrl
+    }
+  })()
+
+  pdfMediaConversionCache.set(cacheKey, conversionPromise)
+  return conversionPromise
+}
+
+async function normalizePdfMediaFile<
+  T extends { url: string; mime?: string | null },
+>(media: T | null | undefined): Promise<T | null | undefined> {
+  if (!media?.url) return media
+
+  const resolvedUrl = await resolvePdfMediaUrl(media.url, media.mime)
+  if (!resolvedUrl || resolvedUrl === media.url) return media
+
+  return {
+    ...media,
+    url: resolvedUrl,
+  }
+}
+
+async function normalizePdfMediaArray<
+  T extends { url: string; mime?: string | null },
+>(medias?: T[] | null) {
+  if (!medias?.length) return medias ?? null
+
+  return Promise.all(
+    medias.map(async (media) => (await normalizePdfMediaFile(media)) ?? media)
+  )
+}
+
+async function normalizeWatchFileBlockForPdf(block: WatchFileDossierBlock) {
+  if (block.__component === 'watch-file.image-block') {
+    return {
+      ...block,
+      image: (await normalizePdfMediaFile(block.image)) ?? block.image,
+    } satisfies WatchFileImageDossierBlock
+  }
+
+  if (block.__component === 'watch-file.text-image-block') {
+    return {
+      ...block,
+      images: await normalizePdfMediaArray(block.images),
+    } satisfies WatchFileTextImageDossierBlock
+  }
+
+  if (block.__component === 'watch-file.before-after-block') {
+    return {
+      ...block,
+      pairs: await Promise.all(
+        block.pairs.map(async (pair) => ({
+          ...pair,
+          beforeImage:
+            (await normalizePdfMediaFile(pair.beforeImage)) ?? pair.beforeImage,
+          afterImage:
+            (await normalizePdfMediaFile(pair.afterImage)) ?? pair.afterImage,
+        }))
+      ),
+    } satisfies WatchFileBeforeAfterDossierBlock
+  }
+
+  if (block.__component === 'watch-file.video-block') {
+    return block
+  }
+
+  if (block.__component === 'watch-file.audio-block') {
+    return block
+  }
+
+  return block
+}
+
+async function normalizeWatchFileForPdf(
+  watchFile: WatchFile
+): Promise<WatchFile> {
+  return {
+    ...watchFile,
+    publicBeforeImage:
+      (await normalizePdfMediaArray(watchFile.publicBeforeImage)) ??
+      watchFile.publicBeforeImage,
+    publicAfterImage:
+      (await normalizePdfMediaArray(watchFile.publicAfterImage)) ??
+      watchFile.publicAfterImage,
+    product: watchFile.product
+      ? {
+          ...watchFile.product,
+          images: await normalizePdfMediaArray(watchFile.product.images),
+        }
+      : watchFile.product,
+    validationAtelier: watchFile.validationAtelier
+      ? {
+          ...watchFile.validationAtelier,
+          signature:
+            (await normalizePdfMediaFile(
+              watchFile.validationAtelier.signature
+            )) ?? watchFile.validationAtelier.signature,
+        }
+      : watchFile.validationAtelier,
+    dossierBlocks: watchFile.dossierBlocks
+      ? await Promise.all(
+          watchFile.dossierBlocks.map((block) =>
+            normalizeWatchFileBlockForPdf(block)
+          )
+        )
+      : watchFile.dossierBlocks,
+  }
 }
 
 function getDossierBlockWeight(block: WatchFileDossierBlock) {
@@ -2764,9 +2940,11 @@ export async function GET(
   }
 
   try {
-    const dossierMediaQrCodes = await buildDossierMediaQrCodes(watchFile)
+    const normalizedWatchFile = await normalizeWatchFileForPdf(watchFile)
+    const dossierMediaQrCodes =
+      await buildDossierMediaQrCodes(normalizedWatchFile)
     const pdfDocument = createElement(WatchFileDocument, {
-      watchFile,
+      watchFile: normalizedWatchFile,
       dossierMediaQrCodes,
     }) as unknown as ReactElement<DocumentProps>
     const buffer: Buffer = await renderToBuffer(pdfDocument)
