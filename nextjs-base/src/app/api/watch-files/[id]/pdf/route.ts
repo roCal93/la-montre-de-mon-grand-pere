@@ -1579,7 +1579,6 @@ function renderDossierBlocksPage(
           style: isLast
             ? [styles.dossierBlockSection, styles.dossierBlockSectionLast]
             : styles.dossierBlockSection,
-          wrap: false,
         },
         rendered.props.children
       )
