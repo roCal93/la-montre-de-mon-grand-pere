@@ -701,6 +701,7 @@ const styles = StyleSheet.create({
   },
   dossierImage: {
     width: '100%',
+    maxHeight: 320,
   },
   dossierImageCaption: {
     marginTop: 4,
@@ -1308,7 +1309,7 @@ function renderPdfTextImageBlockContent(
 
   return createElement(
     View,
-    { style: styles.dossierBlockSection, wrap: false },
+    { style: styles.dossierBlockSection },
     createElement(Text, { style: styles.dossierBlockTitle }, title),
     ...stackedParts.filter(Boolean).map((content, index) =>
       createElement(
