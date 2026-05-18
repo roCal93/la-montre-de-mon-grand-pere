@@ -676,6 +676,26 @@ const styles = StyleSheet.create({
     gap: 10,
     alignItems: 'stretch',
   },
+  dossierTextColumn: {
+    flex: 1.15,
+  },
+  dossierImageColumn: {
+    flex: 0.85,
+  },
+  dossierStackedContent: {
+    marginTop: 10,
+  },
+  dossierImageGalleryRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+  },
+  dossierImageGalleryItem: {
+    flex: 1,
+  },
+  dossierImageGalleryItemFull: {
+    width: '100%',
+  },
   dossierColumn: {
     flex: 1,
   },
@@ -689,6 +709,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 205,
     objectFit: 'cover',
+  },
+  dossierGalleryImage: {
+    width: '100%',
+    height: 220,
+    objectFit: 'contain',
   },
   dossierImageCaption: {
     marginTop: 4,
@@ -835,6 +860,16 @@ function buildPdfMediaUrl(url?: string | null) {
   return cleanImageUrl(url ?? undefined) ?? undefined
 }
 
+function chunkArray<T>(items: T[], size: number) {
+  const chunks: T[][] = []
+
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size))
+  }
+
+  return chunks
+}
+
 function getDossierBlockWeight(block: WatchFileDossierBlock) {
   if (
     block.__component === 'watch-file.image-block' ||
@@ -944,50 +979,110 @@ function renderPdfTextImageBlockContent(
   title: string
 ) {
   const text = extractPlainTextFromStrapiBlocks(block.content)
-  const imageUrls = (block.images ?? [])
-    .map((image) => buildPdfMediaUrl(image?.url))
-    .filter((imageUrl): imageUrl is string => Boolean(imageUrl))
+  const images = (block.images ?? [])
+    .map((image) => {
+      const url = buildPdfMediaUrl(image?.url)
 
-  if (!text && imageUrls.length === 0) return null
+      if (!url) return null
 
-  const textColumn = createElement(
-    View,
-    { style: styles.dossierColumn },
-    text ? createElement(Text, { style: styles.dossierBlockText }, text) : null
-  )
-  const imageColumn = imageUrls.length
+      return {
+        url,
+        caption: image?.caption?.trim() || image?.alternativeText?.trim() || null,
+      }
+    })
+    .filter(
+      (image): image is { url: string; caption: string | null } =>
+        Boolean(image?.url)
+    )
+
+  if (!text && images.length === 0) return null
+
+  const textContent = text
     ? createElement(
         View,
-        { style: styles.dossierColumn },
-        imageUrls.map((imageUrl, index) =>
+        { style: styles.dossierTextColumn },
+        createElement(Text, { style: styles.dossierBlockText }, text)
+      )
+    : null
+
+  const imageGallery = images.length
+    ? createElement(
+        View,
+        { style: styles.dossierImageColumn },
+        ...chunkArray(images, 2).map((row, rowIndex) =>
           createElement(
             View,
             {
-              key: `${imageUrl}-${index}`,
+              key: `row-${rowIndex}`,
               style:
-                index === 0
-                  ? styles.dossierImageFrame
-                  : [styles.dossierImageFrame, { marginTop: 10 }],
+                rowIndex === 0
+                  ? styles.dossierImageGalleryRow
+                  : [styles.dossierImageGalleryRow, { marginTop: 10 }],
             },
-            createElement(Image, {
-              src: imageUrl,
-              style: styles.dossierImage,
-            })
+            ...row.map((image, imageIndex) =>
+              createElement(
+                View,
+                {
+                  key: `${image.url}-${imageIndex}`,
+                  style:
+                    row.length === 1
+                      ? styles.dossierImageGalleryItemFull
+                      : styles.dossierImageGalleryItem,
+                },
+                createElement(
+                  View,
+                  { style: styles.dossierImageFrame },
+                  createElement(Image, {
+                    src: image.url,
+                    style: styles.dossierGalleryImage,
+                  })
+                ),
+                image.caption
+                  ? createElement(
+                      Text,
+                      { style: styles.dossierImageCaption },
+                      image.caption
+                    )
+                  : null
+              )
+            )
           )
         )
       )
     : null
 
+  if (text && images.length <= 1) {
+    return createElement(
+      View,
+      { style: styles.dossierBlockSection, wrap: false },
+      createElement(Text, { style: styles.dossierBlockTitle }, title),
+      createElement(
+        View,
+        { style: styles.dossierColumns },
+        block.imagePosition === 'left'
+          ? [imageGallery, textContent]
+          : [textContent, imageGallery]
+      )
+    )
+  }
+
+  const stackedContent = block.imagePosition === 'left'
+    ? [imageGallery, textContent]
+    : [textContent, imageGallery]
+
   return createElement(
     View,
     { style: styles.dossierBlockSection, wrap: false },
     createElement(Text, { style: styles.dossierBlockTitle }, title),
-    createElement(
-      View,
-      { style: styles.dossierColumns },
-      block.imagePosition === 'left'
-        ? [imageColumn, textColumn]
-        : [textColumn, imageColumn]
+    ...stackedContent.filter(Boolean).map((content, index) =>
+      createElement(
+        View,
+        {
+          key: `stacked-${index}`,
+          style: index === 0 ? undefined : styles.dossierStackedContent,
+        },
+        content
+      )
     )
   )
 }
