@@ -701,8 +701,6 @@ const styles = StyleSheet.create({
   },
   dossierImage: {
     width: '100%',
-    height: 205,
-    objectFit: 'cover',
   },
   dossierImageCaption: {
     marginTop: 4,
