@@ -685,17 +685,6 @@ const styles = StyleSheet.create({
   dossierStackedContent: {
     marginTop: 10,
   },
-  dossierImageGalleryRow: {
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'flex-start',
-  },
-  dossierImageGalleryItem: {
-    flex: 1,
-  },
-  dossierImageGalleryItemFull: {
-    width: '100%',
-  },
   dossierColumn: {
     flex: 1,
   },
@@ -709,11 +698,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 205,
     objectFit: 'cover',
-  },
-  dossierGalleryImage: {
-    width: '100%',
-    height: 220,
-    objectFit: 'contain',
   },
   dossierImageCaption: {
     marginTop: 4,
@@ -987,12 +971,12 @@ function renderPdfTextImageBlockContent(
 
       return {
         url,
-        caption: image?.caption?.trim() || image?.alternativeText?.trim() || null,
+        caption:
+          image?.caption?.trim() || image?.alternativeText?.trim() || null,
       }
     })
-    .filter(
-      (image): image is { url: string; caption: string | null } =>
-        Boolean(image?.url)
+    .filter((image): image is { url: string; caption: string | null } =>
+      Boolean(image?.url)
     )
 
   if (!text && images.length === 0) return null
@@ -1016,25 +1000,22 @@ function renderPdfTextImageBlockContent(
               key: `row-${rowIndex}`,
               style:
                 rowIndex === 0
-                  ? styles.dossierImageGalleryRow
-                  : [styles.dossierImageGalleryRow, { marginTop: 10 }],
+                  ? styles.dossierColumns
+                  : [styles.dossierColumns, { marginTop: 10 }],
             },
             ...row.map((image, imageIndex) =>
               createElement(
                 View,
                 {
                   key: `${image.url}-${imageIndex}`,
-                  style:
-                    row.length === 1
-                      ? styles.dossierImageGalleryItemFull
-                      : styles.dossierImageGalleryItem,
+                  style: styles.dossierColumn,
                 },
                 createElement(
                   View,
                   { style: styles.dossierImageFrame },
                   createElement(Image, {
                     src: image.url,
-                    style: styles.dossierGalleryImage,
+                    style: styles.dossierImage,
                   })
                 ),
                 image.caption
@@ -1066,9 +1047,10 @@ function renderPdfTextImageBlockContent(
     )
   }
 
-  const stackedContent = block.imagePosition === 'left'
-    ? [imageGallery, textContent]
-    : [textContent, imageGallery]
+  const stackedContent =
+    block.imagePosition === 'left'
+      ? [imageGallery, textContent]
+      : [textContent, imageGallery]
 
   return createElement(
     View,
