@@ -846,7 +846,10 @@ const styles = StyleSheet.create({
 })
 
 function buildPdfMediaUrl(url?: string | null) {
-  return cleanImageUrl(url ?? undefined) ?? undefined
+  if (!url) return undefined
+  // Already resolved (data URI) — pass through without URL parsing
+  if (url.startsWith('data:')) return url
+  return cleanImageUrl(url) ?? undefined
 }
 
 function chunkArray<T>(items: T[], size: number) {
@@ -949,48 +952,48 @@ function toDataUrl(buffer: Buffer, mime: string) {
 async function resolvePdfMediaUrl(url?: string | null, mime?: string | null) {
   const sourceUrl = buildPdfMediaUrl(url)
   if (!sourceUrl) return undefined
+  // Already a data URI — nothing to do
+  if (sourceUrl.startsWith('data:')) return sourceUrl
 
-  const localResolvedUrl = await resolveLocalPdfMediaUrl(sourceUrl, mime)
-  if (localResolvedUrl) {
-    return localResolvedUrl
-  }
-
-  if (!shouldConvertPdfMedia(sourceUrl, mime)) {
-    return sourceUrl
-  }
-
-  const cacheKey = `${mime ?? ''}:${sourceUrl}`
+  const cacheKey = sourceUrl
   const cached = pdfMediaConversionCache.get(cacheKey)
-  if (cached) return cached
+  if (cached !== undefined) return cached
 
-  const conversionPromise = (async () => {
+  const resolutionPromise = (async () => {
+    // 1. Try local filesystem (dev: Strapi uploads directory)
+    const localResolvedUrl = await resolveLocalPdfMediaUrl(sourceUrl, mime)
+    if (localResolvedUrl) return localResolvedUrl
+
+    // 2. Fetch and embed as data URI so react-pdf never has to make HTTP calls
+    //    (react-pdf's internal HTTP client can silently fail on localhost URLs)
     try {
       const response = await fetch(sourceUrl, { cache: 'no-store' })
       if (!response.ok) {
-        console.warn('PDF media conversion fetch failed', {
-          sourceUrl,
-          status: response.status,
-        })
+        console.warn('[pdf] media fetch failed', { sourceUrl, status: response.status })
         return sourceUrl
       }
-
       const inputBuffer = Buffer.from(await response.arrayBuffer())
-      const outputBuffer = await sharp(inputBuffer, { animated: true })
-        .png()
-        .toBuffer()
+      const effectiveMime =
+        mime?.trim() ||
+        response.headers.get('content-type')?.split(';')[0].trim() ||
+        getPdfMediaMimeType(sourceUrl, null)
 
-      return toDataUrl(outputBuffer, 'image/png')
+      if (shouldConvertPdfMedia(sourceUrl, effectiveMime)) {
+        const outputBuffer = await sharp(inputBuffer, { animated: true })
+          .png()
+          .toBuffer()
+        return toDataUrl(outputBuffer, 'image/png')
+      }
+
+      return toDataUrl(inputBuffer, effectiveMime)
     } catch (error) {
-      console.warn('PDF media conversion failed', {
-        sourceUrl,
-        error,
-      })
+      console.warn('[pdf] media resolution failed', { sourceUrl, error })
       return sourceUrl
     }
   })()
 
-  pdfMediaConversionCache.set(cacheKey, conversionPromise)
-  return conversionPromise
+  pdfMediaConversionCache.set(cacheKey, resolutionPromise)
+  return resolutionPromise
 }
 
 async function normalizePdfMediaFile<
