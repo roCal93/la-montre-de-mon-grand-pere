@@ -969,7 +969,10 @@ async function resolvePdfMediaUrl(url?: string | null, mime?: string | null) {
     try {
       const response = await fetch(sourceUrl, { cache: 'no-store' })
       if (!response.ok) {
-        console.warn('[pdf] media fetch failed', { sourceUrl, status: response.status })
+        console.warn('[pdf] media fetch failed', {
+          sourceUrl,
+          status: response.status,
+        })
         return sourceUrl
       }
       const inputBuffer = Buffer.from(await response.arrayBuffer())
@@ -1224,58 +1227,57 @@ function renderPdfTextImageBlockContent(
 
   if (!text && images.length === 0) return null
 
-  const textContent = text
-    ? createElement(
-        View,
-        { style: styles.dossierTextColumn },
-        createElement(Text, { style: styles.dossierBlockText }, text)
-      )
-    : null
-
-  const imageGallery = images.length
-    ? createElement(
-        View,
-        { style: styles.dossierImageColumn },
-        ...chunkArray(images, 2).map((row, rowIndex) =>
-          createElement(
-            View,
-            {
-              key: `row-${rowIndex}`,
-              style:
-                rowIndex === 0
-                  ? styles.dossierColumns
-                  : [styles.dossierColumns, { marginTop: 10 }],
-            },
-            ...row.map((image, imageIndex) =>
+  // Grille d'images partagée (rangées de 2)
+  const imageGrid = images.length
+    ? chunkArray(images, 2).map((row, rowIndex) =>
+        createElement(
+          View,
+          {
+            key: `row-${rowIndex}`,
+            style:
+              rowIndex === 0
+                ? styles.dossierColumns
+                : [styles.dossierColumns, { marginTop: 10 }],
+          },
+          ...row.map((image, imageIndex) =>
+            createElement(
+              View,
+              {
+                key: `${image.url}-${imageIndex}`,
+                style: styles.dossierColumn,
+              },
               createElement(
                 View,
-                {
-                  key: `${image.url}-${imageIndex}`,
-                  style: styles.dossierColumn,
-                },
-                createElement(
-                  View,
-                  { style: styles.dossierImageFrame },
-                  createElement(Image, {
-                    src: image.url,
-                    style: styles.dossierImage,
-                  })
-                ),
-                image.caption
-                  ? createElement(
-                      Text,
-                      { style: styles.dossierImageCaption },
-                      image.caption
-                    )
-                  : null
-              )
+                { style: styles.dossierImageFrame },
+                createElement(Image, {
+                  src: image.url,
+                  style: styles.dossierImage,
+                })
+              ),
+              image.caption
+                ? createElement(
+                    Text,
+                    { style: styles.dossierImageCaption },
+                    image.caption
+                  )
+                : null
             )
           )
         )
       )
     : null
 
+  // Chemin 2 colonnes : texte + 1 image côte à côte
   if (text && images.length <= 1) {
+    const textColumn = createElement(
+      View,
+      { style: styles.dossierTextColumn },
+      createElement(Text, { style: styles.dossierBlockText }, text)
+    )
+    const imageColumn = imageGrid
+      ? createElement(View, { style: styles.dossierImageColumn }, ...imageGrid)
+      : null
+
     return createElement(
       View,
       { style: styles.dossierBlockSection, wrap: false },
@@ -1284,22 +1286,33 @@ function renderPdfTextImageBlockContent(
         View,
         { style: styles.dossierColumns },
         block.imagePosition === 'left'
-          ? [imageGallery, textContent]
-          : [textContent, imageGallery]
+          ? [imageColumn, textColumn]
+          : [textColumn, imageColumn]
       )
     )
   }
 
-  const stackedContent =
+  // Chemin empilé : blocs pleine largeur (pas de flex-shrink)
+  const textBlock = text
+    ? createElement(
+        View,
+        null,
+        createElement(Text, { style: styles.dossierBlockText }, text)
+      )
+    : null
+
+  const imageBlock = imageGrid ? createElement(View, null, ...imageGrid) : null
+
+  const stackedParts =
     block.imagePosition === 'left'
-      ? [imageGallery, textContent]
-      : [textContent, imageGallery]
+      ? [imageBlock, textBlock]
+      : [textBlock, imageBlock]
 
   return createElement(
     View,
     { style: styles.dossierBlockSection, wrap: false },
     createElement(Text, { style: styles.dossierBlockTitle }, title),
-    ...stackedContent.filter(Boolean).map((content, index) =>
+    ...stackedParts.filter(Boolean).map((content, index) =>
       createElement(
         View,
         {
