@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import {
   Document,
   type DocumentProps,
@@ -859,6 +861,8 @@ function chunkArray<T>(items: T[], size: number) {
 
 const pdfMediaConversionCache = new Map<string, Promise<string | undefined>>()
 
+const LOCAL_STRAPI_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
+
 function getPdfMediaExtension(url: string) {
   try {
     const pathname = new URL(url).pathname
@@ -883,6 +887,61 @@ function shouldConvertPdfMedia(url: string, mime?: string | null) {
   )
 }
 
+function getPdfMediaMimeType(url: string, mime?: string | null) {
+  if (mime?.trim()) return mime
+
+  const extension = getPdfMediaExtension(url)
+  if (extension === 'jpg' || extension === 'jpeg') return 'image/jpeg'
+  if (extension === 'png') return 'image/png'
+  if (extension === 'webp') return 'image/webp'
+  if (extension === 'gif') return 'image/gif'
+  if (extension === 'svg') return 'image/svg+xml'
+
+  return 'application/octet-stream'
+}
+
+function getLocalStrapiMediaPath(sourceUrl: string) {
+  try {
+    const parsedUrl = new URL(sourceUrl)
+    if (!LOCAL_STRAPI_HOSTS.has(parsedUrl.hostname)) return null
+    if (!parsedUrl.pathname.startsWith('/uploads/')) return null
+
+    const relativePath = parsedUrl.pathname.replace(/^\//, '')
+    return path.resolve(process.cwd(), '../strapi-base/public', relativePath)
+  } catch {
+    return null
+  }
+}
+
+async function resolveLocalPdfMediaUrl(
+  sourceUrl: string,
+  mime?: string | null
+) {
+  const localPath = getLocalStrapiMediaPath(sourceUrl)
+  if (!localPath) return null
+
+  try {
+    const inputBuffer = await readFile(localPath)
+
+    if (shouldConvertPdfMedia(sourceUrl, mime)) {
+      const outputBuffer = await sharp(inputBuffer, { animated: true })
+        .png()
+        .toBuffer()
+
+      return toDataUrl(outputBuffer, 'image/png')
+    }
+
+    return toDataUrl(inputBuffer, getPdfMediaMimeType(sourceUrl, mime))
+  } catch (error) {
+    console.warn('Local PDF media read failed', {
+      sourceUrl,
+      localPath,
+      error,
+    })
+    return null
+  }
+}
+
 function toDataUrl(buffer: Buffer, mime: string) {
   return `data:${mime};base64,${buffer.toString('base64')}`
 }
@@ -890,6 +949,11 @@ function toDataUrl(buffer: Buffer, mime: string) {
 async function resolvePdfMediaUrl(url?: string | null, mime?: string | null) {
   const sourceUrl = buildPdfMediaUrl(url)
   if (!sourceUrl) return undefined
+
+  const localResolvedUrl = await resolveLocalPdfMediaUrl(sourceUrl, mime)
+  if (localResolvedUrl) {
+    return localResolvedUrl
+  }
 
   if (!shouldConvertPdfMedia(sourceUrl, mime)) {
     return sourceUrl
