@@ -1245,6 +1245,7 @@ function renderPdfTextImageBlockContent(
               {
                 key: `${image.url}-${imageIndex}`,
                 style: styles.dossierColumn,
+                wrap: false,
               },
               createElement(
                 View,
