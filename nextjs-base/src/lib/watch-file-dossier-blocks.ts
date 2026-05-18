@@ -20,6 +20,12 @@ export interface WatchFileRichTextDossierBlock extends BaseWatchFileDossierBlock
   content: StrapiBlock[]
 }
 
+export interface WatchFileHistoricalContextDossierBlock extends BaseWatchFileDossierBlock {
+  __component: 'watch-file.historical-context-block'
+  period?: string | null
+  content: StrapiBlock[]
+}
+
 export interface WatchFileImageDossierBlock extends BaseWatchFileDossierBlock {
   __component: 'watch-file.image-block'
   image: WatchFileBlockMedia | null
@@ -57,6 +63,7 @@ export interface WatchFileAudioDossierBlock extends BaseWatchFileDossierBlock {
 
 export type WatchFileDossierBlock =
   | WatchFileRichTextDossierBlock
+  | WatchFileHistoricalContextDossierBlock
   | WatchFileImageDossierBlock
   | WatchFileTextImageDossierBlock
   | WatchFileBeforeAfterDossierBlock
@@ -84,6 +91,10 @@ export function appendWatchFileDossierBlocksPopulate(params: URLSearchParams) {
   // causes a qs parse conflict that mangles the result into a broken object.
   params.set(
     'populate[dossierBlocks][on][watch-file.rich-text-block][populate]',
+    '*'
+  )
+  params.set(
+    'populate[dossierBlocks][on][watch-file.historical-context-block][populate]',
     '*'
   )
   params.set(
@@ -149,6 +160,12 @@ export function filterRenderableWatchFileDossierBlocks(
       typeof block.title === 'string' && block.title.trim().length > 0
 
     if (block.__component === 'watch-file.rich-text-block') {
+      return (
+        hasTitle || extractPlainTextFromStrapiBlocks(block.content).length > 0
+      )
+    }
+
+    if (block.__component === 'watch-file.historical-context-block') {
       return (
         hasTitle || extractPlainTextFromStrapiBlocks(block.content).length > 0
       )

@@ -24,6 +24,7 @@ import {
   getWatchFileDossierBlockKey,
   type WatchFileBeforeAfterDossierBlock,
   type WatchFileDossierBlock,
+  type WatchFileHistoricalContextDossierBlock,
   type WatchFileImageDossierBlock,
   type WatchFileRichTextDossierBlock,
   type WatchFileTextImageDossierBlock,
@@ -676,6 +677,22 @@ const styles = StyleSheet.create({
     lineHeight: 1.45,
     color: '#292524',
   },
+  historicalPeriodBadge: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#c9a96e',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginBottom: 6,
+  },
+  historicalPeriodText: {
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    color: '#b8884a',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
   dossierColumns: {
     flexDirection: 'row',
     gap: 10,
@@ -1144,6 +1161,10 @@ function renderDossierBlockContent(
     return renderPdfRichTextBlockContent(block, title)
   }
 
+  if (block.__component === 'watch-file.historical-context-block') {
+    return renderPdfHistoricalContextBlockContent(block, title)
+  }
+
   if (block.__component === 'watch-file.image-block') {
     return renderPdfImageBlockContent(block, title)
   }
@@ -1178,6 +1199,32 @@ function renderPdfRichTextBlockContent(
     View,
     { style: styles.dossierBlockSection, wrap: false },
     createElement(Text, { style: styles.dossierBlockTitle }, title),
+    createElement(Text, { style: styles.dossierBlockText }, text)
+  )
+}
+
+function renderPdfHistoricalContextBlockContent(
+  block: WatchFileHistoricalContextDossierBlock,
+  title: string
+) {
+  const text = extractPlainTextFromStrapiBlocks(block.content)
+  if (!text) return null
+
+  return createElement(
+    View,
+    { style: styles.dossierBlockSection },
+    createElement(Text, { style: styles.dossierBlockTitle }, title),
+    block.period?.trim()
+      ? createElement(
+          View,
+          { style: styles.historicalPeriodBadge },
+          createElement(
+            Text,
+            { style: styles.historicalPeriodText },
+            block.period.trim()
+          )
+        )
+      : null,
     createElement(Text, { style: styles.dossierBlockText }, text)
   )
 }

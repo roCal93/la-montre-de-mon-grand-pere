@@ -13,6 +13,7 @@ import {
   getWatchFileDossierBlockKey,
   type WatchFileBeforeAfterDossierBlock,
   type WatchFileDossierBlock,
+  type WatchFileHistoricalContextDossierBlock,
   type WatchFileImageDossierBlock,
   type WatchFileRichTextDossierBlock,
   type WatchFileTextImageDossierBlock,
@@ -172,6 +173,31 @@ function RichTextBlock({ block }: { block: WatchFileRichTextDossierBlock }) {
 
   return (
     <SectionFrame title={block.title}>
+      <div className="space-y-4">
+        {hasRenderedContent
+          ? renderedContent
+          : renderPlainTextFallback(plainText)}
+      </div>
+    </SectionFrame>
+  )
+}
+
+function HistoricalContextBlock({
+  block,
+}: {
+  block: WatchFileHistoricalContextDossierBlock
+}) {
+  const renderedContent = renderRichText(block.content)
+  const hasRenderedContent = renderedContent.some(Boolean)
+  const plainText = extractPlainTextFromStrapiBlocks(block.content)
+
+  return (
+    <SectionFrame title={block.title ?? 'Contexte historique'}>
+      {block.period ? (
+        <p className="mb-3 inline-block rounded-full border border-[#c9a96e]/40 bg-[#c9a96e]/10 px-3 py-0.5 text-xs font-semibold uppercase tracking-widest text-[#b8884a]">
+          {block.period}
+        </p>
+      ) : null}
       <div className="space-y-4">
         {hasRenderedContent
           ? renderedContent
@@ -583,6 +609,8 @@ export default function WatchFileDossierBlocks({
         switch (block.__component) {
           case 'watch-file.rich-text-block':
             return <RichTextBlock key={key} block={block} />
+          case 'watch-file.historical-context-block':
+            return <HistoricalContextBlock key={key} block={block} />
           case 'watch-file.image-block':
             return <ImageBlock key={key} block={block} />
           case 'watch-file.text-image-block':
