@@ -39,7 +39,7 @@ export default async function AdminDossiersPage({
   if (!isAdminUser(strapiUser)) notFound()
 
   const { data } = await strapiAuthGet<StrapiList<WatchFileAdmin>>(
-    '/watch-files?sort=createdAt:desc&populate[product]=true&populate[customer]=true',
+    '/watch-files?adminAll=true&sort=createdAt:desc&populate[product]=true&populate[customer]=true',
     0
   )
 

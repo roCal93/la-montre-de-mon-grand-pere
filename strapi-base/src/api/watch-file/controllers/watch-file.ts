@@ -45,6 +45,7 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     const adminEmail = process.env.ADMIN_EMAIL
     const isAdmin =
       adminEmail && user.email?.toLowerCase() === adminEmail.toLowerCase()
+    const adminAll = ctx.query.adminAll === 'true'
 
     await this.validateQuery(ctx)
     const sanitizedQuery = await this.sanitizeQuery(ctx)
@@ -52,7 +53,9 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entries = await (strapi.documents(MODEL_UID) as any).findMany({
       ...sanitizedQuery,
-      ...(isAdmin ? {} : { filters: { customer: { id: { $eq: user.id } } } }),
+      ...(isAdmin && adminAll
+        ? {}
+        : { filters: { customer: { id: { $eq: user.id } } } }),
       populate: mergePopulate(sanitizedQuery.populate, {
         publicBeforeImage: true,
         publicAfterImage: true,
