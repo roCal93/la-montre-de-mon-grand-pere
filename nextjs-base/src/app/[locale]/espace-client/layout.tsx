@@ -1,6 +1,7 @@
 import { EspaceClientSidebar } from '@/components/espace-client/EspaceClientSidebar'
 import { Layout } from '@/components/layout'
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
+import { isAdminUser } from '@/lib/is-admin-user'
 import type { Metadata } from 'next'
 
 interface Props {
@@ -29,7 +30,7 @@ export default async function EspaceClientLayout({ children, params }: Props) {
 
   return (
     <div className="flex min-h-screen bg-white dark:bg-neutral-950">
-      <EspaceClientSidebar locale={locale} />
+      <EspaceClientSidebar locale={locale} isAdmin={isAdminUser(strapiUser)} />
 
       <main className="flex-1 min-w-0 px-4 py-8 md:px-8 md:py-10">
         <div className="mb-6 font-[family-name:var(--font-geist-mono)] text-[15px] uppercase tracking-[0.12em] text-neutral-400 dark:text-neutral-500">

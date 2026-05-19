@@ -98,3 +98,51 @@ export async function strapiAuthPatch<T = unknown>(
 export async function strapiAuthDelete<T = unknown>(path: string) {
   return strapiAuthFetch<T>(path, { method: 'DELETE' })
 }
+
+/**
+ * Strapi service client authenticated with the server-side API token.
+ * Bypasses per-user filtering — use only in admin server components.
+ */
+export async function strapiServiceGet<T = unknown>(
+  path: string,
+  revalidate?: number
+): Promise<{ data: T | null; error: string | null; status: number }> {
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  if (!strapiUrl) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
+
+  const token = process.env.STRAPI_API_TOKEN
+  if (!token) return { data: null, error: 'STRAPI_API_TOKEN manquant', status: 500 }
+
+  let res: Response
+
+  try {
+    res = await fetch(`${strapiUrl}/api${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      ...(revalidate !== undefined ? { next: { revalidate } } : {}),
+    })
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Échec de connexion à Strapi'
+    return { data: null, error: `Erreur réseau Strapi: ${message}`, status: 503 }
+  }
+
+  const text = await res.text()
+  let parsed: T | null = null
+  try {
+    parsed = JSON.parse(text) as T
+  } catch {
+    // non-JSON response (e.g. 204 No Content)
+  }
+
+  if (!res.ok) {
+    const errMsg =
+      (parsed as Record<string, unknown> | null)?.error?.toString() ??
+      `Erreur Strapi ${res.status}`
+    return { data: null, error: errMsg, status: res.status }
+  }
+
+  return { data: parsed, error: null, status: res.status }
+}

@@ -1,4 +1,5 @@
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
+import { isAdminUser } from '@/lib/is-admin-user'
 import { redirect } from 'next/navigation'
 import { notFound } from 'next/navigation'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
@@ -455,7 +456,7 @@ export default async function WatchFileDetailPage({
 
   const watchFile = data?.data
   if (!watchFile || error) notFound()
-  if (watchFile.customer?.id !== strapiUser.id) notFound()
+  if (watchFile.customer?.id !== strapiUser.id && !isAdminUser(strapiUser)) notFound()
 
   let rawDossierBlocks = dossierResponse.data?.data?.dossierBlocks ?? []
 

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { useState } from 'react'
 
-const navItems = [
+const BASE_NAV_ITEMS = [
   { href: '/espace-client/tableau-de-bord', label: 'Tableau de bord' },
   { href: '/espace-client/commandes', label: 'Mes commandes' },
   { href: '/espace-client/mes-montres', label: 'Mes montres' },
@@ -14,11 +14,25 @@ const navItems = [
   { href: '/espace-client/profil', label: 'Mon profil' },
 ]
 
-export function EspaceClientSidebar({ locale }: { locale: string }) {
+const ADMIN_NAV_ITEM = {
+  href: '/espace-client/admin/dossiers',
+  label: 'Admin — Tous les dossiers',
+}
+
+export function EspaceClientSidebar({
+  locale,
+  isAdmin = false,
+}: {
+  locale: string
+  isAdmin?: boolean
+}) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const localePrefix = `/${locale}`
+  const navItems = isAdmin
+    ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM]
+    : BASE_NAV_ITEMS
 
   return (
     <>

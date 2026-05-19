@@ -16,6 +16,7 @@ import {
   getCurrentStrapiUser,
   getStrapiSessionJwt,
 } from '@/lib/strapi-session-cookie'
+import { isAdminUser } from '@/lib/is-admin-user'
 import { cleanImageUrl } from '@/lib/strapi'
 import {
   appendWatchFileDossierBlocksPopulate,
@@ -3062,7 +3063,7 @@ export async function GET(
   if (!watchFile) {
     return NextResponse.json({ error: 'Dossier introuvable' }, { status: 404 })
   }
-  if (watchFile.customer?.id !== strapiUser.id) {
+  if (watchFile.customer?.id !== strapiUser.id && !isAdminUser(strapiUser)) {
     return NextResponse.json({ error: 'Acces refuse' }, { status: 403 })
   }
 
