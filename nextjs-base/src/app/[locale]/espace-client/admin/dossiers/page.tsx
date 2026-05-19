@@ -1,6 +1,6 @@
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
-import { strapiServiceGet } from '@/lib/strapi-auth-client'
+import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 
@@ -38,7 +38,7 @@ export default async function AdminDossiersPage({
   if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
   if (!isAdminUser(strapiUser)) notFound()
 
-  const { data } = await strapiServiceGet<StrapiList<WatchFileAdmin>>(
+  const { data } = await strapiAuthGet<StrapiList<WatchFileAdmin>>(
     '/watch-files?sort=createdAt:desc&populate[product]=true&populate[customer]=true',
     0
   )

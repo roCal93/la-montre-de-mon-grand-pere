@@ -111,7 +111,8 @@ export async function strapiServiceGet<T = unknown>(
   if (!strapiUrl) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
 
   const token = process.env.STRAPI_API_TOKEN
-  if (!token) return { data: null, error: 'STRAPI_API_TOKEN manquant', status: 500 }
+  if (!token)
+    return { data: null, error: 'STRAPI_API_TOKEN manquant', status: 500 }
 
   let res: Response
 
@@ -126,7 +127,11 @@ export async function strapiServiceGet<T = unknown>(
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Échec de connexion à Strapi'
-    return { data: null, error: `Erreur réseau Strapi: ${message}`, status: 503 }
+    return {
+      data: null,
+      error: `Erreur réseau Strapi: ${message}`,
+      status: 503,
+    }
   }
 
   const text = await res.text()

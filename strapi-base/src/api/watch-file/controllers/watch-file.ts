@@ -39,8 +39,12 @@ function mergePopulate(
 
 export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
   async find(ctx) {
-    const user = ctx.state.user as { id: number } | null
+    const user = ctx.state.user as { id: number; email?: string } | null
     if (!user) return ctx.unauthorized('Authentification requise')
+
+    const adminEmail = process.env.ADMIN_EMAIL
+    const isAdmin =
+      adminEmail && user.email?.toLowerCase() === adminEmail.toLowerCase()
 
     await this.validateQuery(ctx)
     const sanitizedQuery = await this.sanitizeQuery(ctx)
@@ -48,7 +52,7 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entries = await (strapi.documents(MODEL_UID) as any).findMany({
       ...sanitizedQuery,
-      filters: { customer: { id: { $eq: user.id } } },
+      ...(isAdmin ? {} : { filters: { customer: { id: { $eq: user.id } } } }),
       populate: mergePopulate(sanitizedQuery.populate, {
         publicBeforeImage: true,
         publicAfterImage: true,
@@ -61,8 +65,12 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
   },
 
   async findOne(ctx) {
-    const user = ctx.state.user as { id: number } | null
+    const user = ctx.state.user as { id: number; email?: string } | null
     if (!user) return ctx.unauthorized('Authentification requise')
+
+    const adminEmail = process.env.ADMIN_EMAIL
+    const isAdmin =
+      adminEmail && user.email?.toLowerCase() === adminEmail.toLowerCase()
 
     const { id } = ctx.params as { id: string }
     await this.validateQuery(ctx)
@@ -77,7 +85,7 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     if (!entry) return ctx.notFound('Dossier introuvable')
 
     const customerId = (entry.customer as { id: number } | null)?.id
-    if (customerId !== user.id) return ctx.forbidden('Accès refusé')
+    if (customerId !== user.id && !isAdmin) return ctx.forbidden('Accès refusé')
 
     return { data: entry }
   },

@@ -456,7 +456,8 @@ export default async function WatchFileDetailPage({
 
   const watchFile = data?.data
   if (!watchFile || error) notFound()
-  if (watchFile.customer?.id !== strapiUser.id && !isAdminUser(strapiUser)) notFound()
+  if (watchFile.customer?.id !== strapiUser.id && !isAdminUser(strapiUser))
+    notFound()
 
   let rawDossierBlocks = dossierResponse.data?.data?.dossierBlocks ?? []
 
