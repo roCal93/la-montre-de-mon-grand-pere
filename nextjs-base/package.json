@@ -17,8 +17,8 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@react-pdf/renderer": "^4.5.1",
-    "@stripe/stripe-js": "^9.6.0",
-    "framer-motion": "^12.37.0",
+    "@stripe/stripe-js": "^9.5.0",
+    "framer-motion": "^12.39.0",
     "js-cookie": "^3.0.5",
     "next": "16.2.6",
     "next-auth": "5.0.0-beta.31",
