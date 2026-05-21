@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { appendWatchFileDossierBlocksPopulate } from '@/lib/watch-file-dossier-blocks'
 
 const {
   getCurrentStrapiUserMock,
@@ -34,6 +35,13 @@ vi.mock('@/lib/strapi', () => ({
 }))
 
 import WatchFileDetailPage from './page'
+
+function buildDossierBlocksRequest(documentId: string) {
+  const params = new URLSearchParams()
+  appendWatchFileDossierBlocksPopulate(params)
+
+  return `/watch-files/${documentId}?${params.toString()}`
+}
 
 describe('WatchFileDetailPage', () => {
   beforeEach(() => {
@@ -130,7 +138,7 @@ describe('WatchFileDetailPage', () => {
     )
     expect(strapiAuthGetMock).toHaveBeenNthCalledWith(
       2,
-      '/watch-files/watch_1?populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.rich-text-block%5D%5Bpopulate%5D=*&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.image-block%5D%5Bpopulate%5D%5Bimage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.text-image-block%5D%5Bpopulate%5D%5Bimages%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.before-after-block%5D%5Bpopulate%5D%5Bpairs%5D%5Bpopulate%5D%5BbeforeImage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.before-after-block%5D%5Bpopulate%5D%5Bpairs%5D%5Bpopulate%5D%5BafterImage%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.video-block%5D%5Bpopulate%5D%5Bvideo%5D=true&populate%5BdossierBlocks%5D%5Bon%5D%5Bwatch-file.audio-block%5D%5Bpopulate%5D%5Baudio%5D=true',
+      buildDossierBlocksRequest('watch_1'),
       0
     )
     expect(strapiAuthGetMock).toHaveBeenNthCalledWith(
