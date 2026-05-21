@@ -40,6 +40,41 @@ const DEFAULT_LOCALE = 'fr';
 const hasMissingLocale = (value: unknown) =>
   value == null || value === '' || value === 'null';
 
+async function ensureUploadAutoOrientation(strapi: Core.Strapi) {
+  try {
+    const store = strapi.store({
+      type: 'plugin',
+      name: 'upload',
+      key: 'settings',
+    });
+
+    const currentSettings =
+      ((await store.get({})) as
+        | {
+            sizeOptimization?: boolean;
+            responsiveDimensions?: boolean;
+            autoOrientation?: boolean;
+            aiMetadata?: boolean;
+          }
+        | null) ?? {};
+
+    if (currentSettings.autoOrientation === true) {
+      return;
+    }
+
+    await store.set({
+      value: {
+        ...currentSettings,
+        autoOrientation: true,
+      },
+    });
+
+    strapi.log.info('[bootstrap] Enabled upload auto-orientation for images');
+  } catch (error) {
+    strapi.log.error('[bootstrap] Failed to enable upload auto-orientation:', error);
+  }
+}
+
 async function cleanupBrokenBlogCategoryLinks(strapi: Core.Strapi) {
   try {
     const db = strapi.db.connection;
@@ -301,6 +336,7 @@ export default {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
+    await ensureUploadAutoOrientation(strapi);
     await cleanupBrokenBlogCategoryLinks(strapi);
     await ensureWatchFileEditLayoutOrder(strapi);
     await ensureProductEditLayoutHasRelatedArticles(strapi);
