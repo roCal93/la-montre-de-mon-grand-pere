@@ -29,6 +29,13 @@ export default ({ env }) => {
 						folder: env('CLOUDINARY_FOLDER'),
 						resource_type: 'auto',
 						access_mode: 'public',
+						transformation: [{ angle: 'exif' }],
+					},
+					uploadStream: {
+						folder: env('CLOUDINARY_FOLDER'),
+						resource_type: 'auto',
+						access_mode: 'public',
+						transformation: [{ angle: 'exif' }],
 					},
 					delete: {},
 				},
