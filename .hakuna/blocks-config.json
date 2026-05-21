@@ -1,16 +1,17 @@
 {
-  "selectedBlocks": [
-    "TextBlock",
-    "ImageBlock",
-    "BackgroundBlock",
-    "ButtonBlock",
-    "HeroBlockSimpleText",
-    "TextImageBlock",
-    "ContactFormBlock",
-    "ProductListBlock"
-  ],
+  "starterVersion": "2.0.0",
+  "blockLibraryVersion": "1.0.0",
+  "selectedBlocks": {
+    "TextBlock": "1.4.0",
+    "ImageBlock": "1.2.0",
+    "BackgroundBlock": "1.0.0",
+    "ButtonBlock": "1.1.0",
+    "HeroBlockSimpleText": "1.1.0",
+    "TextImageBlock": "1.4.0",
+    "ContactFormBlock": "1.2.0",
+    "ProductListBlock": "1.1.0"
+  },
   "preset": "ecommerce",
-  "starterProfile": "ecommerce",
-  "autoSync": true,
+  "createdAt": "2026-05-19T12:18:47Z",
   "lastSync": "2026-03-17T08:37:30.117Z"
 }

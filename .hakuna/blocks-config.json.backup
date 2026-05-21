@@ -1,0 +1,16 @@
+{
+  "selectedBlocks": [
+    "TextBlock",
+    "ImageBlock",
+    "BackgroundBlock",
+    "ButtonBlock",
+    "HeroBlockSimpleText",
+    "TextImageBlock",
+    "ContactFormBlock",
+    "ProductListBlock"
+  ],
+  "preset": "ecommerce",
+  "starterProfile": "ecommerce",
+  "autoSync": true,
+  "lastSync": "2026-03-17T08:37:30.117Z"
+}
