@@ -711,9 +711,6 @@ const styles = StyleSheet.create({
   dossierColumn: {
     flex: 1,
   },
-  dossierImageWithCaption: {
-    width: '100%',
-  },
   dossierImageFrame: {
     borderWidth: 1,
     borderColor: '#d5dbe2',
@@ -1317,7 +1314,6 @@ function renderPdfImageWithCaption(
     View,
     {
       key,
-      style: styles.dossierImageWithCaption,
       wrap: false,
       minPresenceAhead: caption ? 12 : 0,
     },
