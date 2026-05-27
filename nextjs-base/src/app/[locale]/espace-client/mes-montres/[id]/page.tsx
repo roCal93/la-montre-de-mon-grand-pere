@@ -398,7 +398,7 @@ function buildIdentificationRows(watchFile: WatchFile) {
     [
       'Verre',
       normalizeText(watchFile.verre) ?? '—',
-      'Étanchéité annoncée',
+      'Étanchéité',
       normalizeText(watchFile.etancheiteAnnoncee) ?? '—',
     ],
   ] as const

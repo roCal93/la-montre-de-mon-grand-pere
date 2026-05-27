@@ -79,7 +79,7 @@ export default {
     },
     "etancheiteAnnoncee": {
       "type": "string",
-      "displayName": "Étanchéité annoncée"
+      "displayName": "Étanchéité"
     },
     "marketingShortDescription": {
       "type": "text",

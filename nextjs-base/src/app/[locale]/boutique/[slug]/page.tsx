@@ -361,7 +361,7 @@ function buildProductTechnicalSpecs(
       val: watchFile?.verre?.trim() || null,
     },
     {
-      key: locale === 'fr' ? 'Étanchéité annoncée' : 'Water resistance',
+      key: locale === 'fr' ? 'Étanchéité' : 'Water resistance',
       val:
         watchFile?.controleQualiteMesures?.etancheitePublique?.trim() ||
         watchFile?.etancheiteAnnoncee?.trim() ||

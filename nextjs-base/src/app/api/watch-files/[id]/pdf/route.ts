@@ -1892,7 +1892,7 @@ function renderPoint3IdentificationPage(
     [
       'Verre',
       asText(watchFile.verre, '-'),
-      'Étanchéité annoncée',
+      'Étanchéité',
       asText(watchFile.etancheiteAnnoncee, '-'),
     ],
   ] as const
