@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { signOut } from 'next-auth/react'
 import { useState } from 'react'
+import { performLogout } from '@/components/espace-client/logout'
 
 const BASE_NAV_ITEMS = [
   { href: '/espace-client/tableau-de-bord', label: 'Tableau de bord' },
@@ -145,11 +145,7 @@ export function EspaceClientSidebar({
             </Link>
             <button
               onClick={async () => {
-                await fetch('/api/auth/reset-session', {
-                  method: 'POST',
-                  credentials: 'same-origin',
-                }).catch(() => undefined)
-                await signOut({ callbackUrl: `/${locale}` })
+                await performLogout({ locale })
               }}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-lg font-medium text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-white"
             >

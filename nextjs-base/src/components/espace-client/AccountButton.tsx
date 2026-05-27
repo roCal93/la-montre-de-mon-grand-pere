@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
+import { performLogout } from '@/components/espace-client/logout'
 
 const menuItems = [
   { href: '/espace-client/commandes', label: 'Mes commandes' },
@@ -137,11 +138,7 @@ export function AccountButton() {
           <div className="border-t border-stone-100 dark:border-stone-700 py-1">
             <button
               onClick={async () => {
-                await fetch('/api/auth/reset-session', {
-                  method: 'POST',
-                  credentials: 'same-origin',
-                }).catch(() => undefined)
-                await signOut({ callbackUrl: `/${locale}` })
+                await performLogout({ locale })
               }}
               className="w-full text-left px-4 py-2.5 text-sm text-stone-400 dark:text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-white transition-colors"
             >
