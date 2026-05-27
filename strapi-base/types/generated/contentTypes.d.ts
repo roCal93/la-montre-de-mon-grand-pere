@@ -1365,6 +1365,7 @@ export interface ApiWatchFileWatchFile extends Struct.CollectionTypeSchema {
     dossierBlocks: Schema.Attribute.DynamicZone<
       [
         'watch-file.rich-text-block',
+        'watch-file.historical-context-block',
         'watch-file.image-block',
         'watch-file.text-image-block',
         'watch-file.before-after-block',

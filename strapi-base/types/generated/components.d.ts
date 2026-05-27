@@ -541,14 +541,26 @@ export interface WatchFileAudioBlock extends Struct.ComponentSchema {
 export interface WatchFileBeforeAfterBlock extends Struct.ComponentSchema {
   collectionName: 'components_watch_file_before_after_blocks';
   info: {
-    description: 'Comparaison avant apr\u00E8s dans le dossier de restauration';
+    description: 'Comparaison avant apr\u00E8s dans le dossier de restauration (plusieurs paires possibles)';
     displayName: 'Dossier Before / After';
+  };
+  attributes: {
+    content: Schema.Attribute.Blocks;
+    pairs: Schema.Attribute.Component<'watch-file.before-after-pair', true>;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface WatchFileBeforeAfterPair extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_before_after_pairs';
+  info: {
+    description: "Paire d'images avant / apr\u00E8s pour le dossier de restauration";
+    displayName: 'Dossier Before / After Pair';
   };
   attributes: {
     afterImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
     beforeImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
-    content: Schema.Attribute.Blocks;
-    title: Schema.Attribute.String;
+    label: Schema.Attribute.String;
   };
 }
 
@@ -619,6 +631,20 @@ export interface WatchFileEtatGeneralGlobal extends Struct.ComponentSchema {
       'watch-file.indicateur-etat-general',
       false
     >;
+  };
+}
+
+export interface WatchFileHistoricalContextBlock
+  extends Struct.ComponentSchema {
+  collectionName: 'components_watch_file_historical_context_blocks';
+  info: {
+    description: 'Section contexte historique pour le dossier de restauration';
+    displayName: 'Contexte historique';
+  };
+  attributes: {
+    content: Schema.Attribute.Blocks & Schema.Attribute.Required;
+    period: Schema.Attribute.String;
+    title: Schema.Attribute.String;
   };
 }
 
@@ -851,9 +877,11 @@ declare module '@strapi/strapi' {
       'shop.shipping-address': ShopShippingAddress;
       'watch-file.audio-block': WatchFileAudioBlock;
       'watch-file.before-after-block': WatchFileBeforeAfterBlock;
+      'watch-file.before-after-pair': WatchFileBeforeAfterPair;
       'watch-file.controle-qualite-mesures': WatchFileControleQualiteMesures;
       'watch-file.etat-general': WatchFileEtatGeneral;
       'watch-file.etat-general-global': WatchFileEtatGeneralGlobal;
+      'watch-file.historical-context-block': WatchFileHistoricalContextBlock;
       'watch-file.image-block': WatchFileImageBlock;
       'watch-file.indicateur-etat-general': WatchFileIndicateurEtatGeneral;
       'watch-file.ligne-composant-observation': WatchFileLigneComposantObservation;

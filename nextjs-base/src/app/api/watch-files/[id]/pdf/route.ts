@@ -711,6 +711,9 @@ const styles = StyleSheet.create({
   dossierColumn: {
     flex: 1,
   },
+  dossierImageWithCaption: {
+    width: '100%',
+  },
   dossierImageFrame: {
     borderWidth: 1,
     borderColor: '#d5dbe2',
@@ -1119,25 +1122,78 @@ async function normalizeWatchFileForPdf(
 }
 
 function getDossierBlockWeight(block: WatchFileDossierBlock) {
-  if (
-    block.__component === 'watch-file.image-block' ||
-    block.__component === 'watch-file.text-image-block' ||
-    block.__component === 'watch-file.before-after-block'
-  ) {
-    return 2
+  const titleLength = block.title?.trim().length ?? 0
+  const titleWeight = titleLength > 0 ? 1 : 0
+
+  if (block.__component === 'watch-file.rich-text-block') {
+    const textLength = extractPlainTextFromStrapiBlocks(block.content).length
+    return titleWeight + Math.max(1, Math.ceil(textLength / 900))
   }
 
-  return 1
+  if (block.__component === 'watch-file.historical-context-block') {
+    const textLength = extractPlainTextFromStrapiBlocks(block.content).length
+    const periodWeight = block.period?.trim() ? 1 : 0
+    return titleWeight + periodWeight + Math.max(1, Math.ceil(textLength / 900))
+  }
+
+  if (block.__component === 'watch-file.image-block') {
+    return titleWeight + (block.image?.url ? 2 : 1)
+  }
+
+  if (block.__component === 'watch-file.text-image-block') {
+    const textLength = extractPlainTextFromStrapiBlocks(block.content).length
+    const imageCount = (block.images ?? []).filter((image) =>
+      Boolean(image?.url)
+    ).length
+    return (
+      titleWeight +
+      Math.max(textLength > 0 ? 1 : 0, Math.ceil(textLength / 1100)) +
+      Math.max(1, Math.ceil(imageCount / 2))
+    )
+  }
+
+  if (block.__component === 'watch-file.before-after-block') {
+    const textLength = extractPlainTextFromStrapiBlocks(block.content).length
+    const pairCount = (block.pairs ?? []).filter(
+      (pair) => pair.beforeImage?.url && pair.afterImage?.url
+    ).length
+    return (
+      titleWeight +
+      Math.max(textLength > 0 ? 1 : 0, Math.ceil(textLength / 1100)) +
+      pairCount * 2
+    )
+  }
+
+  if (block.__component === 'watch-file.video-block') {
+    const textLength = extractPlainTextFromStrapiBlocks(block.content).length
+    return (
+      titleWeight +
+      Math.max(1, Math.ceil(textLength / 900)) +
+      (block.video?.url ? 1 : 0)
+    )
+  }
+
+  if (block.__component === 'watch-file.audio-block') {
+    const textLength = extractPlainTextFromStrapiBlocks(block.content).length
+    return (
+      titleWeight +
+      Math.max(1, Math.ceil(textLength / 900)) +
+      (block.audio?.url ? 1 : 0)
+    )
+  }
+
+  return titleWeight + 1
 }
 
 function groupDossierBlocks(blocks: WatchFileDossierBlock[]) {
+  const maxPageWeight = 4
   const pages: WatchFileDossierBlock[][] = []
   let currentPage: WatchFileDossierBlock[] = []
   let currentWeight = 0
 
   for (const block of blocks) {
     const weight = getDossierBlockWeight(block)
-    if (currentPage.length > 0 && currentWeight + weight > 3) {
+    if (currentPage.length > 0 && currentWeight + weight > maxPageWeight) {
       pages.push(currentPage)
       currentPage = []
       currentWeight = 0
@@ -1252,6 +1308,33 @@ function renderPdfImageBlockContent(
   )
 }
 
+function renderPdfImageWithCaption(
+  imageUrl: string,
+  caption: string | null,
+  key?: string
+) {
+  return createElement(
+    View,
+    {
+      key,
+      style: styles.dossierImageWithCaption,
+      wrap: false,
+      minPresenceAhead: caption ? 12 : 0,
+    },
+    createElement(
+      View,
+      { style: styles.dossierImageFrame },
+      createElement(Image, {
+        src: imageUrl,
+        style: styles.dossierImage,
+      })
+    ),
+    caption
+      ? createElement(Text, { style: styles.dossierImageCaption }, caption)
+      : null
+  )
+}
+
 function renderPdfTextImageBlockContent(
   block: WatchFileTextImageDossierBlock,
   title: string
@@ -1295,21 +1378,11 @@ function renderPdfTextImageBlockContent(
                 style: styles.dossierColumn,
                 wrap: false,
               },
-              createElement(
-                View,
-                { style: styles.dossierImageFrame },
-                createElement(Image, {
-                  src: image.url,
-                  style: styles.dossierImage,
-                })
-              ),
-              image.caption
-                ? createElement(
-                    Text,
-                    { style: styles.dossierImageCaption },
-                    image.caption
-                  )
-                : null
+              renderPdfImageWithCaption(
+                image.url,
+                image.caption,
+                `${image.url}-${imageIndex}-content`
+              )
             )
           )
         )
@@ -1433,28 +1506,20 @@ function renderPdfBeforeAfterBlockContent(
           createElement(
             View,
             { style: styles.dossierColumn },
-            createElement(
-              View,
-              { style: styles.dossierImageFrame },
-              createElement(Image, {
-                src: pair.beforeUrl,
-                style: styles.dossierImage,
-              })
-            ),
-            createElement(Text, { style: styles.dossierImageCaption }, 'Avant')
+            renderPdfImageWithCaption(
+              pair.beforeUrl,
+              'Avant',
+              `${pair.beforeUrl}-${index}-before`
+            )
           ),
           createElement(
             View,
             { style: styles.dossierColumn },
-            createElement(
-              View,
-              { style: styles.dossierImageFrame },
-              createElement(Image, {
-                src: pair.afterUrl,
-                style: styles.dossierImage,
-              })
-            ),
-            createElement(Text, { style: styles.dossierImageCaption }, 'Après')
+            renderPdfImageWithCaption(
+              pair.afterUrl,
+              'Après',
+              `${pair.afterUrl}-${index}-after`
+            )
           )
         )
       )

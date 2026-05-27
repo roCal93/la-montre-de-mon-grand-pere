@@ -21,11 +21,44 @@ vi.mock('@react-pdf/renderer', () => ({
   Page: 'Page',
   Text: 'Text',
   View: 'View',
+  Image: 'Image',
   StyleSheet: { create: (v: unknown) => v },
   renderToBuffer: renderToBufferMock,
 }))
 
 import { GET } from './route'
+
+function countPagesByHeading(documentElement: any, heading: string) {
+  const renderedDocument = documentElement.type(documentElement.props)
+  const pages = Array.isArray(renderedDocument.props.children)
+    ? renderedDocument.props.children
+    : [renderedDocument.props.children]
+
+  return pages.filter((page: any) => {
+    const children = Array.isArray(page.props.children)
+      ? page.props.children
+      : [page.props.children]
+
+    return children.some((child: any) => child?.props?.children === heading)
+  }).length
+}
+
+function collectElementsByType(node: any, type: string, results: any[] = []) {
+  if (!node || typeof node !== 'object') return results
+
+  if (node.type === type) {
+    results.push(node)
+  }
+
+  const children = node.props?.children
+  const childNodes = Array.isArray(children) ? children : [children]
+
+  for (const child of childNodes) {
+    collectElementsByType(child, type, results)
+  }
+
+  return results
+}
 
 describe('GET /api/watch-files/[id]/pdf', () => {
   beforeEach(() => {
@@ -148,5 +181,145 @@ describe('GET /api/watch-files/[id]/pdf', () => {
       'populate%5BvalidationAtelier%5D%5Bpopulate%5D%5B0%5D=signature'
     )
     expect(renderToBufferMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('spreads oversized dossier blocks across multiple dossier pages', async () => {
+    getStrapiSessionJwtMock.mockResolvedValue('jwt')
+    getCurrentStrapiUserMock.mockResolvedValue({ id: 1 })
+
+    const longParagraph = 'Intervention detaillee '.repeat(180)
+    const richTextBlock = {
+      type: 'paragraph',
+      children: [{ type: 'text', text: longParagraph }],
+    }
+
+    const payload = {
+      data: {
+        documentId: 'watch_oversized',
+        reference: 'MGP9999',
+        customer: { id: 1 },
+        dateReception: '2026-04-14',
+        dateMiseEnVente: '2026-04-24',
+        publicBeforeImage: [],
+        publicAfterImage: [],
+        product: { name: 'Europ Union' },
+        dossierBlocks: [
+          {
+            __component: 'watch-file.rich-text-block',
+            id: 1,
+            title: 'Bloc 1',
+            content: [richTextBlock],
+          },
+          {
+            __component: 'watch-file.rich-text-block',
+            id: 2,
+            title: 'Bloc 2',
+            content: [richTextBlock],
+          },
+          {
+            __component: 'watch-file.rich-text-block',
+            id: 3,
+            title: 'Bloc 3',
+            content: [richTextBlock],
+          },
+        ],
+      },
+    }
+
+    vi.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
+
+    const res = await GET({} as NextRequest, {
+      params: Promise.resolve({ id: 'watch_oversized' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(renderToBufferMock).toHaveBeenCalledTimes(1)
+
+    const documentElement = renderToBufferMock.mock.calls[0]?.[0]
+    expect(
+      countPagesByHeading(documentElement, '7. DOSSIER COMPLÉMENTAIRE')
+    ).toBe(3)
+  })
+
+  it('wraps dossier image captions with their image container', async () => {
+    getStrapiSessionJwtMock.mockResolvedValue('jwt')
+    getCurrentStrapiUserMock.mockResolvedValue({ id: 1 })
+
+    const payload = {
+      data: {
+        documentId: 'watch_captioned_image',
+        reference: 'MGP1000',
+        customer: { id: 1 },
+        dateReception: '2026-04-14',
+        dateMiseEnVente: '2026-04-24',
+        publicBeforeImage: [],
+        publicAfterImage: [],
+        product: { name: 'Europ Union' },
+        dossierBlocks: [
+          {
+            __component: 'watch-file.text-image-block',
+            id: 1,
+            title: 'Bloc image',
+            imagePosition: 'right',
+            content: [],
+            images: [
+              {
+                url: '/dossier-image.jpg',
+                caption: 'Legende test',
+              },
+            ],
+          },
+        ],
+      },
+    }
+
+    vi.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
+
+    const res = await GET({} as NextRequest, {
+      params: Promise.resolve({ id: 'watch_captioned_image' }),
+    })
+
+    expect(res.status).toBe(200)
+
+    const documentElement = renderToBufferMock.mock.calls[0]?.[0]
+    const renderedDocument = documentElement.type(documentElement.props)
+    const views = collectElementsByType(renderedDocument, 'View')
+    const imageWithCaptionView = views.find((view) => {
+      const children = Array.isArray(view.props?.children)
+        ? view.props.children
+        : [view.props?.children]
+
+      return (
+        view.props?.wrap === false &&
+        view.props?.minPresenceAhead === 12 &&
+        children.some(
+          (child: any) =>
+            child?.type === 'Text' && child?.props?.children === 'Legende test'
+        ) &&
+        children.some((child: any) => {
+          const grandChildren = Array.isArray(child?.props?.children)
+            ? child.props.children
+            : [child?.props?.children]
+
+          return grandChildren.some(
+            (grandChild: any) => grandChild?.type === 'Image'
+          )
+        })
+      )
+    })
+
+    expect(imageWithCaptionView).toBeTruthy()
   })
 })
