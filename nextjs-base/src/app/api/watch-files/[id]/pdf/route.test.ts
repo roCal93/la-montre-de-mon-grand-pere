@@ -322,4 +322,71 @@ describe('GET /api/watch-files/[id]/pdf', () => {
 
     expect(imageWithCaptionView).toBeTruthy()
   })
+
+  it('keeps each before-after pair on the same page container', async () => {
+    getStrapiSessionJwtMock.mockResolvedValue('jwt')
+    getCurrentStrapiUserMock.mockResolvedValue({ id: 1 })
+
+    const payload = {
+      data: {
+        documentId: 'watch_before_after_pair',
+        reference: 'MGP1001',
+        customer: { id: 1 },
+        dateReception: '2026-04-14',
+        dateMiseEnVente: '2026-04-24',
+        publicBeforeImage: [],
+        publicAfterImage: [],
+        product: { name: 'Europ Union' },
+        dossierBlocks: [
+          {
+            __component: 'watch-file.before-after-block',
+            id: 1,
+            title: 'Bloc avant apres',
+            content: [],
+            pairs: [
+              {
+                label: 'Aiguilles',
+                beforeImage: { url: '/before-aiguilles.jpg' },
+                afterImage: { url: '/after-aiguilles.jpg' },
+              },
+            ],
+          },
+        ],
+      },
+    }
+
+    vi.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
+
+    const res = await GET({} as NextRequest, {
+      params: Promise.resolve({ id: 'watch_before_after_pair' }),
+    })
+
+    expect(res.status).toBe(200)
+
+    const documentElement = renderToBufferMock.mock.calls[0]?.[0]
+    const renderedDocument = documentElement.type(documentElement.props)
+    const views = collectElementsByType(renderedDocument, 'View')
+    const pairContainer = views.find((view) => {
+      const children = Array.isArray(view.props?.children)
+        ? view.props.children
+        : [view.props?.children]
+
+      return (
+        view.props?.wrap === false &&
+        view.props?.minPresenceAhead === 24 &&
+        children.some(
+          (child: any) =>
+            child?.type === 'Text' && child?.props?.children === 'Aiguilles'
+        )
+      )
+    })
+
+    expect(pairContainer).toBeTruthy()
+  })
 })

@@ -1468,7 +1468,7 @@ function renderPdfBeforeAfterBlockContent(
 
   return createElement(
     View,
-    { style: styles.dossierBlockSection, wrap: false },
+    { style: styles.dossierBlockSection },
     createElement(Text, { style: styles.dossierBlockTitle }, title),
     text
       ? createElement(
@@ -1482,6 +1482,8 @@ function renderPdfBeforeAfterBlockContent(
         View,
         {
           key: `${pair.beforeUrl}-${pair.afterUrl}-${index}`,
+          wrap: false,
+          minPresenceAhead: 24,
           style:
             index === 0
               ? text
@@ -1498,7 +1500,7 @@ function renderPdfBeforeAfterBlockContent(
           : null,
         createElement(
           View,
-          { style: styles.dossierColumns },
+          { style: styles.dossierColumns, wrap: false },
           createElement(
             View,
             { style: styles.dossierColumn },
