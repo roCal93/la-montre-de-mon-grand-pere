@@ -18,7 +18,7 @@ interface Props {
   locale?: string
 }
 
-const MIN_COMPARISON_RATIO = 3 / 4
+const MIN_COMPARISON_RATIO = 4 / 5
 const MAX_COMPARISON_RATIO = 16 / 9
 
 function getImageRatio(width?: number, height?: number) {
