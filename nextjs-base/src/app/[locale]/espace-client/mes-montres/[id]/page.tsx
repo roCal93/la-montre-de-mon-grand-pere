@@ -452,7 +452,7 @@ async function renderWatchFileDetailPage({
   const dossierQuery = new URLSearchParams()
   appendWatchFileDossierBlocksPopulate(dossierQuery)
 
-  const [{ data, error }, dossierResponse] = await Promise.all([
+  const [{ data, error, status }, dossierResponse] = await Promise.all([
     fetchWatchFile<StrapiSingle<WatchFile>>(
       `/watch-files/${id}?${query.toString()}`,
       0
@@ -464,7 +464,14 @@ async function renderWatchFileDetailPage({
   ])
 
   const watchFile = data?.data
-  if (!watchFile || error) notFound()
+  if (!watchFile || error) {
+    if (isPublicView) {
+      console.error(
+        `[dossier public] watch-file ${id} introuvable. status=${status} error=${error}`
+      )
+    }
+    notFound()
+  }
 
   if (
     !isPublicView &&
