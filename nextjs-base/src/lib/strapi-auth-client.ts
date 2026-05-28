@@ -26,9 +26,14 @@ async function parseStrapiResponse<T>(res: Response) {
   }
 
   if (!res.ok) {
+    const errObj = (parsed as Record<string, unknown> | null)?.error
     const errMsg =
-      (parsed as Record<string, unknown> | null)?.error?.toString() ??
-      `Erreur Strapi ${res.status}`
+      typeof errObj === 'string'
+        ? errObj
+        : errObj != null && typeof errObj === 'object'
+          ? ((errObj as Record<string, unknown>).message?.toString() ??
+            JSON.stringify(errObj))
+          : `Erreur Strapi ${res.status}`
     return { data: null, error: errMsg, status: res.status }
   }
 
