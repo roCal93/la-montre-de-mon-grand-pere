@@ -155,15 +155,17 @@ export default async function ProductListBlock({
                   <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-neutral-300 group-hover:shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
                     <div className="relative aspect-square w-full overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                       {imgUrl && (
-                        <Image
-                          src={imgUrl}
-                          alt={img?.alternativeText ?? product.name}
-                          fill
-                          className={`object-cover transition-transform duration-500 group-hover:scale-[1.03] ${
-                            isSoldOut ? 'opacity-60' : ''
-                          }`}
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        />
+                        <div className="absolute inset-4 sm:inset-5">
+                          <Image
+                            src={imgUrl}
+                            alt={img?.alternativeText ?? product.name}
+                            fill
+                            className={`object-contain transition-transform duration-500 group-hover:scale-[1.03] ${
+                              isSoldOut ? 'opacity-60' : ''
+                            }`}
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          />
+                        </div>
                       )}
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/[0.03] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                       {isSoldOut && (

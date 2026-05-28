@@ -336,16 +336,35 @@ const TextImageBlock = ({
           className="block w-full cursor-zoom-in"
           aria-label="Ouvrir l'image en grand"
         >
-          <Image
-            src={currentImageSrc || '/placeholder.jpg'}
-            alt={currentImage.alternativeText || `Image ${activeIndex + 1}`}
-            width={roundedImage ? 800 : currentImage.width || 800}
-            height={roundedImage ? 800 : currentImage.height || 600}
-            className={`${roundedImage ? 'h-full w-full rounded-full object-cover dark:invert' : 'h-auto w-full rounded-2xl border border-neutral-200 object-cover dark:invert'}`}
-            sizes="(max-width: 768px) 100vw, 50vw"
-            priority={priority && activeIndex === 0}
-            loading={priority && activeIndex === 0 ? undefined : 'lazy'}
-          />
+          {roundedImage ? (
+            <Image
+              src={currentImageSrc || '/placeholder.jpg'}
+              alt={currentImage.alternativeText || `Image ${activeIndex + 1}`}
+              width={800}
+              height={800}
+              className="h-full w-full rounded-full object-cover dark:invert"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority={priority && activeIndex === 0}
+              loading={priority && activeIndex === 0 ? undefined : 'lazy'}
+            />
+          ) : (
+            <div
+              className="relative w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800"
+              style={{
+                aspectRatio: `${currentImage.width || 4} / ${currentImage.height || 3}`,
+              }}
+            >
+              <Image
+                src={currentImageSrc || '/placeholder.jpg'}
+                alt={currentImage.alternativeText || `Image ${activeIndex + 1}`}
+                fill
+                className="object-contain dark:invert"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority={priority && activeIndex === 0}
+                loading={priority && activeIndex === 0 ? undefined : 'lazy'}
+              />
+            </div>
+          )}
         </button>
 
         {gallery.length > 1 ? (
