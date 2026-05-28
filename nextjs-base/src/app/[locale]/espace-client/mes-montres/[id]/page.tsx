@@ -539,10 +539,14 @@ async function renderWatchFileDetailPage({
     <div>
       <div className="mb-4 flex items-center gap-3">
         <Link
-          href={`/${locale}/espace-client/mes-montres`}
+          href={
+            isPublicView
+              ? `/${locale}/boutique/${watchFile.product?.slug ?? ''}`
+              : `/${locale}/espace-client/mes-montres`
+          }
           className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-600 transition-colors hover:text-black dark:text-neutral-300 dark:hover:text-white"
         >
-          ← Mes montres
+          {isPublicView ? '← Retour à la fiche produit' : '← Mes montres'}
         </Link>
       </div>
 
