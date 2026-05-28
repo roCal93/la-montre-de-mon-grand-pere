@@ -1,8 +1,7 @@
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
-import { redirect } from 'next/navigation'
 import { notFound } from 'next/navigation'
-import { strapiAuthGet } from '@/lib/strapi-auth-client'
+import { strapiAuthGet, strapiServiceGet } from '@/lib/strapi-auth-client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cleanImageUrl } from '@/lib/strapi'
@@ -411,8 +410,7 @@ export default async function WatchFileDetailPage({
 }) {
   const { locale, id } = await params
   const strapiUser = await getCurrentStrapiUser()
-
-  if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
+  const fetchWatchFile = strapiUser ? strapiAuthGet : strapiServiceGet
 
   const query = new URLSearchParams()
   query.set('populate[publicBadges]', 'true')
@@ -444,11 +442,11 @@ export default async function WatchFileDetailPage({
   appendWatchFileDossierBlocksPopulate(dossierQuery)
 
   const [{ data, error }, dossierResponse] = await Promise.all([
-    strapiAuthGet<StrapiSingle<WatchFile>>(
+    fetchWatchFile<StrapiSingle<WatchFile>>(
       `/watch-files/${id}?${query.toString()}`,
       0
     ),
-    strapiAuthGet<StrapiSingle<WatchFile>>(
+    fetchWatchFile<StrapiSingle<WatchFile>>(
       `/watch-files/${id}?${dossierQuery.toString()}`,
       0
     ),
@@ -456,8 +454,11 @@ export default async function WatchFileDetailPage({
 
   const watchFile = data?.data
   if (!watchFile || error) notFound()
-  if (watchFile.customer?.id !== strapiUser.id && !isAdminUser(strapiUser))
-    notFound()
+
+  const canDownloadPdf = Boolean(
+    (strapiUser && watchFile.customer?.id === strapiUser.id) ||
+    (strapiUser && isAdminUser(strapiUser))
+  )
 
   let rawDossierBlocks = dossierResponse.data?.data?.dossierBlocks ?? []
 
@@ -465,7 +466,7 @@ export default async function WatchFileDetailPage({
     const dossierFallbackQuery = new URLSearchParams()
     dossierFallbackQuery.set('populate[dossierBlocks]', 'true')
 
-    const { data: dossierFallbackData } = await strapiAuthGet<
+    const { data: dossierFallbackData } = await fetchWatchFile<
       StrapiSingle<WatchFile>
     >(`/watch-files/${id}?${dossierFallbackQuery.toString()}`, 0)
 
@@ -557,14 +558,16 @@ export default async function WatchFileDetailPage({
               </div>
             )}
 
-            <div className="mt-6 sm:mt-7">
-              <Link
-                href={`/api/watch-files/${watchFile.documentId}/pdf`}
-                className="inline-flex items-center justify-center self-start rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-3 text-[13px] font-[family-name:var(--font-geist-mono)] uppercase tracking-[0.08em] text-white shadow-sm shadow-black/10 transition-colors hover:bg-neutral-700 dark:border-neutral-200 dark:bg-neutral-100 dark:text-black dark:hover:bg-white"
-              >
-                Télécharger le dossier PDF
-              </Link>
-            </div>
+            {canDownloadPdf ? (
+              <div className="mt-6 sm:mt-7">
+                <Link
+                  href={`/api/watch-files/${watchFile.documentId}/pdf`}
+                  className="inline-flex items-center justify-center self-start rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-3 text-[13px] font-[family-name:var(--font-geist-mono)] uppercase tracking-[0.08em] text-white shadow-sm shadow-black/10 transition-colors hover:bg-neutral-700 dark:border-neutral-200 dark:bg-neutral-100 dark:text-black dark:hover:bg-white"
+                >
+                  Télécharger le dossier PDF
+                </Link>
+              </div>
+            ) : null}
           </div>
 
           {productHeroImageUrl ? (

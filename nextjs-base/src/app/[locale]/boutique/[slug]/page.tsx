@@ -613,6 +613,9 @@ export default async function ProductPage({ params }: Props) {
   )
 
   const shopPath = locale === 'fr' ? 'boutique' : 'shop'
+  const publicDossierHref = watchFile?.documentId
+    ? `/${locale}/dossier/${watchFile.documentId}`
+    : null
 
   const hasSpecs = resolvedTechnicalSpecs.length > 0
   const globalConditionRows = buildGlobalConditionRows(
@@ -710,29 +713,44 @@ export default async function ProductPage({ params }: Props) {
               )}
 
               {/* CTA */}
-              {isSoldOut ? (
-                <div className="w-full border border-neutral-200 bg-neutral-200 px-6 py-3 text-center font-[family-name:var(--font-geist-mono)] text-[13px] uppercase tracking-[0.1em] text-neutral-600">
-                  {locale === 'fr'
-                    ? 'Cette pièce a trouvé son propriétaire'
-                    : 'This product is sold'}
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <AddToCartButton
-                    product={{
-                      id: product.id,
-                      documentId: product.documentId,
-                      name,
-                      slug,
-                      price,
-                      imageUrl: firstImgUrl,
-                      description:
-                        resolvedShortDescription ?? resolvedDescription ?? null,
-                    }}
-                  />
-                  <WishlistButton productDocumentId={product.documentId} />
-                </div>
-              )}
+              <div className="flex flex-col gap-3">
+                {isSoldOut ? (
+                  <div className="w-full border border-neutral-200 bg-neutral-200 px-6 py-3 text-center font-[family-name:var(--font-geist-mono)] text-[13px] uppercase tracking-[0.1em] text-neutral-600">
+                    {locale === 'fr'
+                      ? 'Cette pièce a trouvé son propriétaire'
+                      : 'This product is sold'}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <AddToCartButton
+                      product={{
+                        id: product.id,
+                        documentId: product.documentId,
+                        name,
+                        slug,
+                        price,
+                        imageUrl: firstImgUrl,
+                        description:
+                          resolvedShortDescription ??
+                          resolvedDescription ??
+                          null,
+                      }}
+                    />
+                    <WishlistButton productDocumentId={product.documentId} />
+                  </div>
+                )}
+
+                {publicDossierHref ? (
+                  <Link
+                    href={publicDossierHref}
+                    className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 bg-white px-6 py-3 text-center font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.1em] text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                  >
+                    {locale === 'fr'
+                      ? 'Decouvrir le dossier de la montre'
+                      : 'Discover the watch dossier'}
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
