@@ -31,7 +31,6 @@ import {
   type WatchFileTextImageDossierBlock,
   type WatchFileAudioDossierBlock,
   type WatchFileVideoDossierBlock,
-  type WatchFileBlockMedia,
 } from '@/lib/watch-file-dossier-blocks'
 import QRCode from 'qrcode'
 import sharp from 'sharp'

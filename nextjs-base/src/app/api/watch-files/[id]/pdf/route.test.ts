@@ -1,6 +1,30 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
+type PdfTestNode = {
+  type?: unknown
+  props?: {
+    children?: unknown
+    wrap?: boolean
+    minPresenceAhead?: number
+  }
+}
+
+type PdfDocumentElement = {
+  type: (props: unknown) => PdfTestNode
+  props: unknown
+}
+
+function isPdfTestNode(value: unknown): value is PdfTestNode {
+  return typeof value === 'object' && value !== null
+}
+
+function toPdfTestNodes(value: unknown): PdfTestNode[] {
+  const values = Array.isArray(value) ? value : [value]
+
+  return values.filter(isPdfTestNode)
+}
+
 const {
   getCurrentStrapiUserMock,
   getStrapiSessionJwtMock,
@@ -28,30 +52,32 @@ vi.mock('@react-pdf/renderer', () => ({
 
 import { GET } from './route'
 
-function countPagesByHeading(documentElement: any, heading: string) {
+function countPagesByHeading(
+  documentElement: PdfDocumentElement,
+  heading: string
+) {
   const renderedDocument = documentElement.type(documentElement.props)
-  const pages = Array.isArray(renderedDocument.props.children)
-    ? renderedDocument.props.children
-    : [renderedDocument.props.children]
+  const pages = toPdfTestNodes(renderedDocument.props?.children)
 
-  return pages.filter((page: any) => {
-    const children = Array.isArray(page.props.children)
-      ? page.props.children
-      : [page.props.children]
+  return pages.filter((page) => {
+    const children = toPdfTestNodes(page.props?.children)
 
-    return children.some((child: any) => child?.props?.children === heading)
+    return children.some((child) => child.props?.children === heading)
   }).length
 }
 
-function collectElementsByType(node: any, type: string, results: any[] = []) {
-  if (!node || typeof node !== 'object') return results
+function collectElementsByType(
+  node: unknown,
+  type: string,
+  results: PdfTestNode[] = []
+) {
+  if (!isPdfTestNode(node)) return results
 
   if (node.type === type) {
     results.push(node)
   }
 
-  const children = node.props?.children
-  const childNodes = Array.isArray(children) ? children : [children]
+  const childNodes = toPdfTestNodes(node.props?.children)
 
   for (const child of childNodes) {
     collectElementsByType(child, type, results)
@@ -294,28 +320,24 @@ describe('GET /api/watch-files/[id]/pdf', () => {
     expect(res.status).toBe(200)
 
     const documentElement = renderToBufferMock.mock.calls[0]?.[0]
-    const renderedDocument = documentElement.type(documentElement.props)
+    const renderedDocument = (documentElement as PdfDocumentElement).type(
+      (documentElement as PdfDocumentElement).props
+    )
     const views = collectElementsByType(renderedDocument, 'View')
     const imageWithCaptionView = views.find((view) => {
-      const children = Array.isArray(view.props?.children)
-        ? view.props.children
-        : [view.props?.children]
+      const children = toPdfTestNodes(view.props?.children)
 
       return (
         view.props?.wrap === false &&
         view.props?.minPresenceAhead === 12 &&
         children.some(
-          (child: any) =>
+          (child) =>
             child?.type === 'Text' && child?.props?.children === 'Legende test'
         ) &&
-        children.some((child: any) => {
-          const grandChildren = Array.isArray(child?.props?.children)
-            ? child.props.children
-            : [child?.props?.children]
+        children.some((child) => {
+          const grandChildren = toPdfTestNodes(child.props?.children)
 
-          return grandChildren.some(
-            (grandChild: any) => grandChild?.type === 'Image'
-          )
+          return grandChildren.some((grandChild) => grandChild.type === 'Image')
         })
       )
     })
@@ -370,18 +392,18 @@ describe('GET /api/watch-files/[id]/pdf', () => {
     expect(res.status).toBe(200)
 
     const documentElement = renderToBufferMock.mock.calls[0]?.[0]
-    const renderedDocument = documentElement.type(documentElement.props)
+    const renderedDocument = (documentElement as PdfDocumentElement).type(
+      (documentElement as PdfDocumentElement).props
+    )
     const views = collectElementsByType(renderedDocument, 'View')
     const pairContainer = views.find((view) => {
-      const children = Array.isArray(view.props?.children)
-        ? view.props.children
-        : [view.props?.children]
+      const children = toPdfTestNodes(view.props?.children)
 
       return (
         view.props?.wrap === false &&
         view.props?.minPresenceAhead === 24 &&
         children.some(
-          (child: any) =>
+          (child) =>
             child?.type === 'Text' && child?.props?.children === 'Aiguilles'
         )
       )

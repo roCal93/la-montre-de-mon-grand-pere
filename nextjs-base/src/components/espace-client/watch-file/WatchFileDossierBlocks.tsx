@@ -475,8 +475,8 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
             <div
               className={
                 block.imagePosition === 'left'
-                  ? 'float-left mb-6 mr-8 w-full max-w-[20rem] lg:max-w-[24rem]'
-                  : 'float-right mb-6 ml-8 w-full max-w-[20rem] lg:max-w-[24rem]'
+                  ? 'float-left mb-6 mr-8 w-full max-w-[24rem] lg:max-w-[30rem]'
+                  : 'float-right mb-6 ml-8 w-full max-w-[24rem] lg:max-w-[30rem]'
               }
             >
               {imageContent}
