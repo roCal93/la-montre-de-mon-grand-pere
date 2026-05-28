@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { performLogout } from '@/components/espace-client/logout'
+import { logoutAction } from '@/actions/logout'
 
 const BASE_NAV_ITEMS = [
   { href: '/espace-client/tableau-de-bord', label: 'Tableau de bord' },
@@ -143,14 +143,14 @@ export function EspaceClientSidebar({
             >
               <span>Retour au site</span>
             </Link>
-            <button
-              onClick={async () => {
-                await performLogout({ locale })
-              }}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-lg font-medium text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-white"
-            >
-              <span>Déconnexion</span>
-            </button>
+            <form action={logoutAction.bind(null, locale)} className="w-full">
+              <button
+                type="submit"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-lg font-medium text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-white"
+              >
+                <span>Déconnexion</span>
+              </button>
+            </form>
           </div>
         </div>
       </aside>
