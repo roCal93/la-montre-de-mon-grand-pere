@@ -136,14 +136,15 @@ export function AccountButton() {
             ))}
           </ul>
           <div className="border-t border-stone-100 dark:border-stone-700 py-1">
-            <form action={logoutAction.bind(null, locale)}>
-              <button
-                type="submit"
-                className="w-full text-left px-4 py-2.5 text-sm text-stone-400 dark:text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-white transition-colors"
-              >
-                Déconnexion
-              </button>
-            </form>
+            <button
+              onClick={async () => {
+                await logoutAction()
+                window.location.assign(`/${locale}`)
+              }}
+              className="w-full text-left px-4 py-2.5 text-sm text-stone-400 dark:text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-white transition-colors"
+            >
+              Déconnexion
+            </button>
           </div>
         </div>
       </div>

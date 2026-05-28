@@ -143,14 +143,15 @@ export function EspaceClientSidebar({
             >
               <span>Retour au site</span>
             </Link>
-            <form action={logoutAction.bind(null, locale)} className="w-full">
-              <button
-                type="submit"
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-lg font-medium text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-white"
-              >
-                <span>Déconnexion</span>
-              </button>
-            </form>
+            <button
+              onClick={async () => {
+                await logoutAction()
+                window.location.assign(`/${locale}`)
+              }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-lg font-medium text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-white"
+            >
+              <span>Déconnexion</span>
+            </button>
           </div>
         </div>
       </aside>
