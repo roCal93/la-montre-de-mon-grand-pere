@@ -1,7 +1,7 @@
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
 import { notFound } from 'next/navigation'
-import { strapiAuthGet, strapiServiceGet } from '@/lib/strapi-auth-client'
+import { strapiAuthGet, strapiPublicGet } from '@/lib/strapi-auth-client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cleanImageUrl } from '@/lib/strapi'
@@ -410,7 +410,7 @@ export default async function WatchFileDetailPage({
 }) {
   const { locale, id } = await params
   const strapiUser = await getCurrentStrapiUser()
-  const fetchWatchFile = strapiUser ? strapiAuthGet : strapiServiceGet
+  const fetchWatchFile = strapiUser ? strapiAuthGet : strapiPublicGet
 
   const query = new URLSearchParams()
   query.set('populate[publicBadges]', 'true')

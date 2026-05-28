@@ -16,6 +16,25 @@ async function getStrapiJwt(): Promise<string | null> {
   return getStrapiSessionJwt()
 }
 
+async function parseStrapiResponse<T>(res: Response) {
+  const text = await res.text()
+  let parsed: T | null = null
+  try {
+    parsed = JSON.parse(text) as T
+  } catch {
+    // non-JSON response (e.g. 204 No Content)
+  }
+
+  if (!res.ok) {
+    const errMsg =
+      (parsed as Record<string, unknown> | null)?.error?.toString() ??
+      `Erreur Strapi ${res.status}`
+    return { data: null, error: errMsg, status: res.status }
+  }
+
+  return { data: parsed, error: null, status: res.status }
+}
+
 export async function strapiAuthFetch<T = unknown>(
   path: string,
   options: FetchOptions = {}
@@ -53,22 +72,39 @@ export async function strapiAuthFetch<T = unknown>(
     }
   }
 
-  const text = await res.text()
-  let parsed: T | null = null
+  return parseStrapiResponse<T>(res)
+}
+
+export async function strapiPublicGet<T = unknown>(
+  path: string,
+  revalidate?: number
+): Promise<{ data: T | null; error: string | null; status: number }> {
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  if (!strapiUrl) throw new Error('NEXT_PUBLIC_STRAPI_URL manquante')
+
+  let res: Response
+
   try {
-    parsed = JSON.parse(text) as T
-  } catch {
-    // non-JSON response (e.g. 204 No Content)
+    res = await fetch(`${strapiUrl}/api${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      ...(revalidate !== undefined ? { next: { revalidate } } : {}),
+    })
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : 'Échec de connexion à Strapi'
+
+    return {
+      data: null,
+      error: `Erreur réseau Strapi: ${message}`,
+      status: 503,
+    }
   }
 
-  if (!res.ok) {
-    const errMsg =
-      (parsed as Record<string, unknown> | null)?.error?.toString() ??
-      `Erreur Strapi ${res.status}`
-    return { data: null, error: errMsg, status: res.status }
-  }
-
-  return { data: parsed, error: null, status: res.status }
+  return parseStrapiResponse<T>(res)
 }
 
 /** Convenience: GET */
@@ -134,20 +170,5 @@ export async function strapiServiceGet<T = unknown>(
     }
   }
 
-  const text = await res.text()
-  let parsed: T | null = null
-  try {
-    parsed = JSON.parse(text) as T
-  } catch {
-    // non-JSON response (e.g. 204 No Content)
-  }
-
-  if (!res.ok) {
-    const errMsg =
-      (parsed as Record<string, unknown> | null)?.error?.toString() ??
-      `Erreur Strapi ${res.status}`
-    return { data: null, error: errMsg, status: res.status }
-  }
-
-  return { data: parsed, error: null, status: res.status }
+  return parseStrapiResponse<T>(res)
 }
