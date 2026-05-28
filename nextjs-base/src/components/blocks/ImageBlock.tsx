@@ -41,23 +41,17 @@ const ImageBlock = ({
     <figure
       className={`my-6 ${alignmentClasses[alignment]} ${sizeClasses[size]}`}
     >
-      <div
-        className="relative w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800"
-        style={{
-          aspectRatio: `${image.width || 4} / ${image.height || 3}`,
-        }}
-      >
-        <Image
-          src={finalImageSrc}
-          alt={image.alternativeText || caption || 'Image'}
-          fill
-          className="object-contain dark:invert"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
-          quality={85}
-          priority={priority}
-          fetchPriority={priority ? 'high' : undefined}
-        />
-      </div>
+      <Image
+        src={finalImageSrc}
+        alt={image.alternativeText || caption || 'Image'}
+        width={image.width || 800}
+        height={image.height || 600}
+        className="h-auto w-full rounded-2xl border border-neutral-200 object-cover dark:invert"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+        quality={85}
+        priority={priority}
+        fetchPriority={priority ? 'high' : undefined}
+      />
       {caption && (
         <figcaption className="mt-3 text-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-500">
           {caption}

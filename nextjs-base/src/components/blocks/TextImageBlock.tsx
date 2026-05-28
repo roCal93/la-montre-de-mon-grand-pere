@@ -348,26 +348,16 @@ const TextImageBlock = ({
               loading={priority && activeIndex === 0 ? undefined : 'lazy'}
             />
           ) : (
-            <div
-              className="relative w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800"
-              style={{
-                aspectRatio: `${currentImage.width || 4} / ${currentImage.height || 3}`,
-              }}
-            >
-              <div className="absolute inset-4 sm:inset-5">
-                <Image
-                  src={currentImageSrc || '/placeholder.jpg'}
-                  alt={
-                    currentImage.alternativeText || `Image ${activeIndex + 1}`
-                  }
-                  fill
-                  className="object-contain dark:invert"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority={priority && activeIndex === 0}
-                  loading={priority && activeIndex === 0 ? undefined : 'lazy'}
-                />
-              </div>
-            </div>
+            <Image
+              src={currentImageSrc || '/placeholder.jpg'}
+              alt={currentImage.alternativeText || `Image ${activeIndex + 1}`}
+              width={currentImage.width || 800}
+              height={currentImage.height || 600}
+              className="h-auto w-full rounded-2xl border border-neutral-200 object-cover dark:invert"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority={priority && activeIndex === 0}
+              loading={priority && activeIndex === 0 ? undefined : 'lazy'}
+            />
           )}
         </button>
 

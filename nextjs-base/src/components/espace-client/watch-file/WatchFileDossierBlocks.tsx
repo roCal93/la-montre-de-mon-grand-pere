@@ -407,15 +407,17 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
           className="block h-full w-full cursor-zoom-in"
           aria-label="Ouvrir l'image en grand"
         >
-          <Image
-            src={activeImage.src}
-            alt={
-              activeImage.alternativeText ?? block.title ?? 'Image du dossier'
-            }
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 40vw"
-          />
+          <div className="absolute inset-4 sm:inset-5">
+            <Image
+              src={activeImage.src}
+              alt={
+                activeImage.alternativeText ?? block.title ?? 'Image du dossier'
+              }
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 40vw"
+            />
+          </div>
         </button>
 
         {gallery.length > 1 ? (
