@@ -15,7 +15,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.2.2",
+    "@hookform/resolvers": "^5.4.0",
     "@react-pdf/renderer": "^4.5.1",
     "@stripe/stripe-js": "^9.5.0",
     "framer-motion": "^12.40.0",
