@@ -10,8 +10,42 @@ interface Props {
     afterUrl: string
     beforeAlt?: string
     afterAlt?: string
+    beforeWidth?: number
+    beforeHeight?: number
+    afterWidth?: number
+    afterHeight?: number
   }>
   locale?: string
+}
+
+const MIN_COMPARISON_RATIO = 3 / 4
+const MAX_COMPARISON_RATIO = 16 / 9
+
+function getImageRatio(width?: number, height?: number) {
+  if (!width || !height || width <= 0 || height <= 0) {
+    return null
+  }
+
+  return width / height
+}
+
+function getComparisonAspectRatio(pair: Props['pairs'][number]) {
+  const ratios = [
+    getImageRatio(pair.beforeWidth, pair.beforeHeight),
+    getImageRatio(pair.afterWidth, pair.afterHeight),
+  ].filter((ratio): ratio is number => typeof ratio === 'number')
+
+  if (ratios.length === 0) {
+    return MAX_COMPARISON_RATIO
+  }
+
+  const averageRatio =
+    ratios.reduce((sum, ratio) => sum + ratio, 0) / ratios.length
+
+  return Math.min(
+    MAX_COMPARISON_RATIO,
+    Math.max(MIN_COMPARISON_RATIO, averageRatio)
+  )
 }
 
 export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
@@ -47,6 +81,7 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
 
   const beforeAlt = activePair.beforeAlt ?? 'Avant réparation'
   const afterAlt = activePair.afterAlt ?? 'Après réparation'
+  const comparisonAspectRatio = getComparisonAspectRatio(activePair)
 
   const setPos = (clientX: number, surface: HTMLDivElement) => {
     const rect = surface.getBoundingClientRect()
@@ -68,7 +103,7 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
     return (
       <div
         className={className}
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: 'none', aspectRatio: `${comparisonAspectRatio}` }}
         onPointerDown={(event) => {
           event.preventDefault()
           dragging.current = true
@@ -218,7 +253,7 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
       <div className="space-y-4">
         {renderComparisonSurface({
           className:
-            'relative aspect-[16/9] w-full select-none overflow-hidden border border-neutral-200 bg-neutral-100',
+            'relative w-full select-none overflow-hidden border border-neutral-200 bg-neutral-100',
           showZoomButton: true,
         })}
 

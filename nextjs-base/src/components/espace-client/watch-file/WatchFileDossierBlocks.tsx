@@ -293,6 +293,7 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
   const renderedContent = renderRichText(block.content)
   const hasRenderedContent = renderedContent.some(Boolean)
   const plainText = extractPlainTextFromStrapiBlocks(block.content)
+  const useCenteredDesktopLayout = plainText.trim().length <= 220
   const textContent = (
     <div className="space-y-4">
       {hasRenderedContent
@@ -470,21 +471,45 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
           )}
         </div>
 
-        <div className="hidden md:block">
-          {imageContent ? (
-            <div
-              className={
-                block.imagePosition === 'left'
-                  ? 'float-left mb-6 mr-8 w-full max-w-[24rem] lg:max-w-[30rem]'
-                  : 'float-right mb-6 ml-8 w-full max-w-[24rem] lg:max-w-[30rem]'
-              }
-            >
-              {imageContent}
-            </div>
-          ) : null}
-          {textContent}
-          <div className="clear-both" />
-        </div>
+        {useCenteredDesktopLayout ? (
+          <div className="hidden md:flex md:items-center md:gap-8">
+            {block.imagePosition === 'left' ? (
+              <>
+                {imageContent ? (
+                  <div className="w-full max-w-[24rem] shrink-0 lg:max-w-[30rem]">
+                    {imageContent}
+                  </div>
+                ) : null}
+                <div className="min-w-0 flex-1">{textContent}</div>
+              </>
+            ) : (
+              <>
+                <div className="min-w-0 flex-1">{textContent}</div>
+                {imageContent ? (
+                  <div className="w-full max-w-[24rem] shrink-0 lg:max-w-[30rem]">
+                    {imageContent}
+                  </div>
+                ) : null}
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="hidden md:block">
+            {imageContent ? (
+              <div
+                className={
+                  block.imagePosition === 'left'
+                    ? 'float-left mb-6 mr-8 w-full max-w-[24rem] lg:max-w-[30rem]'
+                    : 'float-right mb-6 ml-8 w-full max-w-[24rem] lg:max-w-[30rem]'
+                }
+              >
+                {imageContent}
+              </div>
+            ) : null}
+            {textContent}
+            <div className="clear-both" />
+          </div>
+        )}
         {modal}
       </>
     </SectionFrame>
@@ -504,6 +529,10 @@ function BeforeAfterBlock({
       afterUrl: cleanImageUrl(pair.afterImage?.url),
       beforeAlt: pair.beforeImage?.alternativeText ?? 'Avant réparation',
       afterAlt: pair.afterImage?.alternativeText ?? 'Après réparation',
+      beforeWidth: pair.beforeImage?.width ?? undefined,
+      beforeHeight: pair.beforeImage?.height ?? undefined,
+      afterWidth: pair.afterImage?.width ?? undefined,
+      afterHeight: pair.afterImage?.height ?? undefined,
       label: pair.label ?? undefined,
     }))
     .filter((p): p is typeof p & { beforeUrl: string; afterUrl: string } =>

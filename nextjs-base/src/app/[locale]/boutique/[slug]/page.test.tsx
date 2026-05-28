@@ -66,6 +66,10 @@ describe('buildBeforeAfterPairs', () => {
         afterUrl: 'http://localhost:1337/after-1.jpg',
         beforeAlt: 'before 1',
         afterAlt: 'after 1',
+        beforeWidth: undefined,
+        beforeHeight: undefined,
+        afterWidth: undefined,
+        afterHeight: undefined,
       },
     ])
   })
@@ -83,6 +87,10 @@ describe('buildBeforeAfterPairs', () => {
         afterUrl: 'http://localhost:1337/after.jpg',
         beforeAlt: undefined,
         afterAlt: undefined,
+        beforeWidth: undefined,
+        beforeHeight: undefined,
+        afterWidth: undefined,
+        afterHeight: undefined,
       },
     ])
 

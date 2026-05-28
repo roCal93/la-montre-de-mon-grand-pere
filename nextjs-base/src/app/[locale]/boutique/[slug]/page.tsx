@@ -13,6 +13,8 @@ interface StrapiImage {
   id: number
   url: string
   alternativeText: string | null
+  width?: number | null
+  height?: number | null
 }
 
 interface RelatedBlogArticle {
@@ -235,6 +237,10 @@ export function buildBeforeAfterPairs(
     afterUrl: buildProductImageUrl(afterImages[idx].url, strapiUrl),
     beforeAlt: before.alternativeText ?? undefined,
     afterAlt: afterImages[idx].alternativeText ?? undefined,
+    beforeWidth: before.width ?? undefined,
+    beforeHeight: before.height ?? undefined,
+    afterWidth: afterImages[idx].width ?? undefined,
+    afterHeight: afterImages[idx].height ?? undefined,
   }))
 }
 
