@@ -1046,48 +1046,41 @@ async function renderWatchFileDetailPage({
                   ],
                 }))}
               />
-              <div className="hidden md:block">
-                <DossierTableFrame minWidth="68rem">
-                  <div className="grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.12fr)_minmax(0,_0.14fr)_minmax(0,_0.16fr)_minmax(0,_0.12fr)_minmax(0,_0.18fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
-                    {[
-                      '6.1 Position',
-                      'Rate',
-                      'Amplitude',
-                      'Beat error',
-                      'Fréquence',
-                      'Résultat',
-                    ].map((label, index) => (
-                      <div
-                        key={label}
-                        className={`px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] ${index < 5 ? 'border-r border-neutral-300 dark:border-neutral-600' : ''}`}
-                      >
-                        {label}
-                      </div>
-                    ))}
-                  </div>
-                  {timingRows.map((row, index) => (
-                    <div
-                      key={`${row.position}-${index}`}
-                      className={`grid grid-cols-[minmax(0,_0.28fr)_minmax(0,_0.12fr)_minmax(0,_0.14fr)_minmax(0,_0.16fr)_minmax(0,_0.12fr)_minmax(0,_0.18fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
-                    >
+              <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-3">
+                {timingRows.map((row, index) => (
+                  <div
+                    key={`${row.position}-${index}`}
+                    className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-4 dark:border-neutral-700 dark:bg-neutral-800/40"
+                  >
+                    <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+                      6.1 Position
+                    </p>
+                    <p className="mt-2 text-[15px] font-medium text-neutral-900 dark:text-neutral-100">
+                      {normalizeText(row.position) ?? '—'}
+                    </p>
+                    <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
                       {[
-                        row.position,
-                        row.rate,
-                        row.amplitude,
-                        row.beatError,
-                        row.frequence,
-                        row.resultat,
-                      ].map((value, cellIndex) => (
+                        { label: 'Rate', value: row.rate },
+                        { label: 'Amplitude', value: row.amplitude },
+                        { label: 'Beat error', value: row.beatError },
+                        { label: 'Fréquence', value: row.frequence },
+                        { label: 'Résultat', value: row.resultat },
+                      ].map((item) => (
                         <div
-                          key={cellIndex}
-                          className={`px-3 py-2.5 text-sm text-neutral-700 dark:text-neutral-200 ${cellIndex < 5 ? 'border-r border-neutral-200 dark:border-neutral-700' : ''}`}
+                          key={item.label}
+                          className="min-w-0 border-t border-neutral-200 pt-3 dark:border-neutral-700"
                         >
-                          {normalizeText(value) ?? '—'}
+                          <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.08em] text-neutral-500 dark:text-neutral-400">
+                            {item.label}
+                          </p>
+                          <p className="mt-1 text-sm leading-[1.6] text-neutral-700 dark:text-neutral-200 break-words">
+                            {normalizeText(item.value) ?? '—'}
+                          </p>
                         </div>
                       ))}
                     </div>
-                  ))}
-                </DossierTableFrame>
+                  </div>
+                ))}
               </div>
             </>
           )}
@@ -1110,38 +1103,38 @@ async function renderWatchFileDetailPage({
                   ],
                 }))}
               />
-              <div className="hidden md:block">
-                <DossierTableFrame minWidth="44rem">
-                  <div className="grid grid-cols-[minmax(0,_0.34fr)_minmax(0,_0.26fr)_minmax(0,_0.4fr)] bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
-                    {['6.2 Test', 'Valeur / résultat', 'Observations'].map(
-                      (label, index) => (
-                        <div
-                          key={label}
-                          className={`px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] ${index < 2 ? 'border-r border-neutral-300 dark:border-neutral-600' : ''}`}
-                        >
-                          {label}
-                        </div>
-                      )
-                    )}
-                  </div>
-                  {waterResistanceRows.map((row, index) => (
-                    <div
-                      key={`${row.test}-${index}`}
-                      className={`grid grid-cols-[minmax(0,_0.34fr)_minmax(0,_0.26fr)_minmax(0,_0.4fr)] border-t border-neutral-200 dark:border-neutral-700 ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
-                    >
-                      {[row.test, row.valeurResultat, row.observations].map(
-                        (value, cellIndex) => (
-                          <div
-                            key={cellIndex}
-                            className={`px-3 py-2.5 text-sm text-neutral-700 dark:text-neutral-200 ${cellIndex < 2 ? 'border-r border-neutral-200 dark:border-neutral-700' : ''}`}
-                          >
-                            {normalizeText(value) ?? '—'}
-                          </div>
-                        )
-                      )}
+              <div className="hidden gap-4 md:grid md:grid-cols-2">
+                {waterResistanceRows.map((row, index) => (
+                  <div
+                    key={`${row.test}-${index}`}
+                    className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-4 dark:border-neutral-700 dark:bg-neutral-800/40"
+                  >
+                    <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+                      6.2 Test
+                    </p>
+                    <p className="mt-2 text-[15px] font-medium text-neutral-900 dark:text-neutral-100">
+                      {normalizeText(row.test) ?? '—'}
+                    </p>
+                    <div className="mt-4 space-y-3">
+                      <div className="border-t border-neutral-200 pt-3 dark:border-neutral-700">
+                        <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.08em] text-neutral-500 dark:text-neutral-400">
+                          Valeur / résultat
+                        </p>
+                        <p className="mt-1 text-sm leading-[1.6] text-neutral-700 dark:text-neutral-200 break-words">
+                          {normalizeText(row.valeurResultat) ?? '—'}
+                        </p>
+                      </div>
+                      <div className="border-t border-neutral-200 pt-3 dark:border-neutral-700">
+                        <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.08em] text-neutral-500 dark:text-neutral-400">
+                          Observations
+                        </p>
+                        <p className="mt-1 text-sm leading-[1.6] text-neutral-700 dark:text-neutral-200 break-words">
+                          {normalizeText(row.observations) ?? '—'}
+                        </p>
+                      </div>
                     </div>
-                  ))}
-                </DossierTableFrame>
+                  </div>
+                ))}
               </div>
             </div>
           )}
