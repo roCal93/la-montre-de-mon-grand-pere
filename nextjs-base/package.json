@@ -29,7 +29,7 @@
     "react-hook-form": "^7.76.0",
     "resend": "^6.12.3",
     "sharp": "^0.34.5",
-    "stripe": "^22.1.1",
+    "stripe": "^22.2.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
