@@ -18,7 +18,7 @@ interface Props {
   locale?: string
 }
 
-const MIN_COMPARISON_RATIO = 4 / 5
+const MIN_COMPARISON_RATIO = 9 / 10
 const MAX_COMPARISON_RATIO = 16 / 9
 
 function getImageRatio(width?: number, height?: number) {
@@ -46,6 +46,18 @@ function getComparisonAspectRatio(pair: Props['pairs'][number]) {
     MAX_COMPARISON_RATIO,
     Math.max(MIN_COMPARISON_RATIO, averageRatio)
   )
+}
+
+function getSurfaceMaxWidth(ratio: number) {
+  if (ratio < 1) {
+    return '36rem'
+  }
+
+  if (ratio < 1.2) {
+    return '44rem'
+  }
+
+  return '100%'
 }
 
 export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
@@ -82,6 +94,7 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
   const beforeAlt = activePair.beforeAlt ?? 'Avant réparation'
   const afterAlt = activePair.afterAlt ?? 'Après réparation'
   const comparisonAspectRatio = getComparisonAspectRatio(activePair)
+  const comparisonMaxWidth = getSurfaceMaxWidth(comparisonAspectRatio)
 
   const setPos = (clientX: number, surface: HTMLDivElement) => {
     const rect = surface.getBoundingClientRect()
@@ -96,14 +109,20 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
   const renderComparisonSurface = ({
     className,
     showZoomButton,
+    maxWidth,
   }: {
     className: string
     showZoomButton: boolean
+    maxWidth?: string
   }) => {
     return (
       <div
         className={className}
-        style={{ touchAction: 'none', aspectRatio: `${comparisonAspectRatio}` }}
+        style={{
+          touchAction: 'none',
+          aspectRatio: `${comparisonAspectRatio}`,
+          maxWidth,
+        }}
         onPointerDown={(event) => {
           event.preventDefault()
           dragging.current = true
@@ -221,7 +240,7 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
             }
           >
             <div
-              className="relative flex h-screen w-screen flex-col bg-black text-white"
+              className="relative flex h-screen w-screen items-center justify-center bg-black p-4 text-white sm:p-6"
               onClick={(event) => event.stopPropagation()}
             >
               <button
@@ -239,8 +258,9 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
 
               {renderComparisonSurface({
                 className:
-                  'relative h-full w-full select-none overflow-hidden bg-neutral-100',
+                  'relative w-full max-h-full select-none overflow-hidden bg-neutral-100',
                 showZoomButton: false,
+                maxWidth: `min(calc((100vh - 4rem) * ${comparisonAspectRatio}), ${comparisonMaxWidth})`,
               })}
             </div>
           </div>,
@@ -253,8 +273,9 @@ export default function BeforeAfterSlider({ pairs, locale = 'fr' }: Props) {
       <div className="space-y-4">
         {renderComparisonSurface({
           className:
-            'relative w-full select-none overflow-hidden border border-neutral-200 bg-neutral-100',
+            'relative mx-auto w-full select-none overflow-hidden border border-neutral-200 bg-neutral-100',
           showZoomButton: true,
+          maxWidth: comparisonMaxWidth,
         })}
 
         {pairs.length > 1 && (
