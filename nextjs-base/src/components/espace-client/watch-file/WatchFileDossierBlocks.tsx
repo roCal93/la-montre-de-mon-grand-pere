@@ -456,7 +456,7 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
   return (
     <SectionFrame title={block.title}>
       <>
-        <div className="grid gap-6 md:grid-cols-2 md:gap-8 md:items-center">
+        <div className="space-y-6 md:hidden">
           {block.imagePosition === 'left' ? (
             <>
               {imageContent}
@@ -468,6 +468,22 @@ function TextImageBlock({ block }: { block: WatchFileTextImageDossierBlock }) {
               {imageContent}
             </>
           )}
+        </div>
+
+        <div className="hidden md:block">
+          {imageContent ? (
+            <div
+              className={
+                block.imagePosition === 'left'
+                  ? 'float-left mb-6 mr-8 w-full max-w-[20rem] lg:max-w-[24rem]'
+                  : 'float-right mb-6 ml-8 w-full max-w-[20rem] lg:max-w-[24rem]'
+              }
+            >
+              {imageContent}
+            </div>
+          ) : null}
+          {textContent}
+          <div className="clear-both" />
         </div>
         {modal}
       </>
