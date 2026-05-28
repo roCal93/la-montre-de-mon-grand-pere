@@ -354,15 +354,19 @@ const TextImageBlock = ({
                 aspectRatio: `${currentImage.width || 4} / ${currentImage.height || 3}`,
               }}
             >
-              <Image
-                src={currentImageSrc || '/placeholder.jpg'}
-                alt={currentImage.alternativeText || `Image ${activeIndex + 1}`}
-                fill
-                className="object-contain dark:invert"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority={priority && activeIndex === 0}
-                loading={priority && activeIndex === 0 ? undefined : 'lazy'}
-              />
+              <div className="absolute inset-4 sm:inset-5">
+                <Image
+                  src={currentImageSrc || '/placeholder.jpg'}
+                  alt={
+                    currentImage.alternativeText || `Image ${activeIndex + 1}`
+                  }
+                  fill
+                  className="object-contain dark:invert"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority={priority && activeIndex === 0}
+                  loading={priority && activeIndex === 0 ? undefined : 'lazy'}
+                />
+              </div>
             </div>
           )}
         </button>
