@@ -690,7 +690,7 @@ async function renderWatchFileDetailPage({
             {identificationRows.map((row, index) => (
               <div
                 key={row[0]}
-                className={`grid grid-cols-[minmax(0,_0.24fr)_minmax(0,_0.26fr)_minmax(0,_0.24fr)_minmax(0,_0.26fr)] border-t border-neutral-200 dark:border-neutral-700 ${index === 0 ? 'border-t-0' : ''} ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
+                className={`grid grid-cols-[minmax(0,_0.22fr)_minmax(0,_0.25fr)_14px_minmax(0,_0.22fr)_minmax(0,_0.25fr)] border-t border-neutral-200 dark:border-neutral-700 ${index === 0 ? 'border-t-0' : ''} ${index % 2 === 0 ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-50 dark:bg-neutral-800/50'}`}
               >
                 <div className="border-r border-neutral-200 px-4 py-2 dark:border-neutral-700">
                   <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-300">
@@ -701,6 +701,9 @@ async function renderWatchFileDetailPage({
                   <p className="text-sm text-neutral-700 dark:text-neutral-200">
                     {row[1]}
                   </p>
+                </div>
+                <div className="bg-neutral-100 dark:bg-neutral-800">
+                  <div className="h-full border-l-2 border-r-2 border-neutral-300/80 dark:border-neutral-600/80" />
                 </div>
                 <div className="border-r border-neutral-200 px-4 py-2 dark:border-neutral-700">
                   <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 dark:text-neutral-300">
@@ -1161,7 +1164,7 @@ async function renderWatchFileDetailPage({
         </DossierSection>
       )}
 
-      {hasValidationAtelier && (
+      {!isPublicView && hasValidationAtelier && (
         <DossierSection index="8" title="Validation atelier">
           <DossierFactGrid
             items={[
