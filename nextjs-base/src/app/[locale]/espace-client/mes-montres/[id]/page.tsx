@@ -403,21 +403,27 @@ function buildIdentificationRows(watchFile: WatchFile) {
   ] as const
 }
 
-export default async function WatchFileDetailPage({
+async function renderWatchFileDetailPage({
   params,
+  accessMode,
 }: {
   params: Promise<{ locale: string; id: string }>
+  accessMode: 'private' | 'public'
 }) {
   const { locale, id } = await params
   const strapiUser = await getCurrentStrapiUser()
-  const fetchWatchFile = strapiUser ? strapiAuthGet : strapiPublicGet
+  const isPublicView = accessMode === 'public'
+
+  if (!isPublicView && !strapiUser) {
+    notFound()
+  }
+
+  const fetchWatchFile = isPublicView ? strapiPublicGet : strapiAuthGet
 
   const query = new URLSearchParams()
   query.set('populate[publicBadges]', 'true')
-  query.set('populate[order]', 'true')
   query.set('populate[product][populate][images][fields][0]', 'url')
   query.set('populate[product][populate][images][fields][1]', 'alternativeText')
-  query.set('populate[customer]', 'true')
   query.set('populate[etatGeneral][populate][0]', 'etatGeneralGlobal')
   query.set(
     'populate[etatGeneral][populate][1]',
@@ -435,6 +441,11 @@ export default async function WatchFileDetailPage({
   )
   query.set('populate[controleQualiteMesures][populate][1]', 'testEtancheite')
   query.set('populate[validationAtelier][populate][0]', 'signature')
+
+  if (!isPublicView) {
+    query.set('populate[order]', 'true')
+    query.set('populate[customer]', 'true')
+  }
 
   // dossierBlocks are fetched in a separate query so that a populate error
   // (e.g. during schema migration) never brings down the entire page.
@@ -455,8 +466,17 @@ export default async function WatchFileDetailPage({
   const watchFile = data?.data
   if (!watchFile || error) notFound()
 
+  if (
+    !isPublicView &&
+    strapiUser &&
+    !isAdminUser(strapiUser) &&
+    watchFile.customer?.id !== strapiUser.id
+  ) {
+    notFound()
+  }
+
   const canDownloadPdf = Boolean(
-    (strapiUser && watchFile.customer?.id === strapiUser.id) ||
+    (!isPublicView && strapiUser && watchFile.customer?.id === strapiUser.id) ||
     (strapiUser && isAdminUser(strapiUser))
   )
 
@@ -624,8 +644,8 @@ export default async function WatchFileDetailPage({
         />
       </DossierSection>
 
-      <DossierSection index="3" title="Identification de la montre">
-        <div className="grid gap-3 md:hidden sm:grid-cols-2">
+      <DossierSection index="3" title="Identification">
+        <div className="grid gap-4 md:hidden">
           {identificationRows
             .flatMap((row) => [
               {
@@ -1193,7 +1213,7 @@ export default async function WatchFileDetailPage({
       )}
 
       {/* Linked order */}
-      {watchFile.order && (
+      {!isPublicView && watchFile.order && (
         <DossierSection index="9" title="Commande associée">
           <Link
             href={`/${locale}/espace-client/commandes/${watchFile.order.documentId}`}
@@ -1205,4 +1225,20 @@ export default async function WatchFileDetailPage({
       )}
     </div>
   )
+}
+
+export default async function WatchFileDetailPage({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>
+}) {
+  return renderWatchFileDetailPage({ params, accessMode: 'private' })
+}
+
+export async function PublicWatchFileDetailPage({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>
+}) {
+  return renderWatchFileDetailPage({ params, accessMode: 'public' })
 }

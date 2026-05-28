@@ -1,1 +1,1 @@
-export { default } from '../../espace-client/mes-montres/[id]/page'
+export { PublicWatchFileDetailPage as default } from '../../espace-client/mes-montres/[id]/page'
