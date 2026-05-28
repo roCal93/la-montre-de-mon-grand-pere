@@ -69,16 +69,36 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
 
   async findOne(ctx) {
     const user = ctx.state.user as { id: number; email?: string } | null
-    if (!user) return ctx.unauthorized('Authentification requise')
 
     const adminEmail = process.env.ADMIN_EMAIL
     const isAdmin =
-      adminEmail && user.email?.toLowerCase() === adminEmail.toLowerCase()
+      adminEmail && user?.email?.toLowerCase() === adminEmail.toLowerCase()
 
     const { id } = ctx.params as { id: string }
     await this.validateQuery(ctx)
     const sanitizedQuery = await this.sanitizeQuery(ctx)
 
+    // Public (unauthenticated) access: allowed but sensitive relations are stripped.
+    if (!user) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const entry = await (strapi.documents(MODEL_UID) as any).findOne({
+        documentId: id,
+        populate: sanitizedQuery.populate,
+      })
+
+      if (!entry) return ctx.notFound('Dossier introuvable')
+
+      // Strip sensitive fields even if accidentally populated by the caller.
+      const PRIVATE_FIELDS = new Set(['customer', 'order'])
+      const publicEntry = Object.fromEntries(
+        Object.entries(entry as Record<string, unknown>).filter(
+          ([key]) => !PRIVATE_FIELDS.has(key)
+        )
+      )
+      return { data: publicEntry }
+    }
+
+    // Authenticated access: enforce ownership / admin check.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entry = await (strapi.documents(MODEL_UID) as any).findOne({
       documentId: id,
