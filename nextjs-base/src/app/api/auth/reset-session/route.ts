@@ -38,20 +38,22 @@ function supportsDomainAttribute(name: string) {
 }
 
 function getCookieDomains(hostname: string) {
-  // For www. subdomains, Auth.js sets cookies without a domain attribute
-  // (scoped to the exact www. host). A domain-scoped deletion would target a
-  // different cookie and — worse — would overwrite the correct no-domain
-  // deletion in the Set-Cookie response (NextResponse deduplicates by name).
-  if (
-    !hostname ||
-    hostname === 'localhost' ||
-    !hostname.includes('.') ||
-    hostname.startsWith('www.')
-  ) {
+  if (!hostname || hostname === 'localhost' || !hostname.includes('.')) {
     return [] as string[]
   }
 
+  if (hostname.startsWith('www.')) {
+    return [hostname.slice(4)]
+  }
+
   return [hostname]
+}
+
+function buildExpireHeader(name: string, domain?: string): string {
+  const secure =
+    name.startsWith('__Secure-') || name.startsWith('__Host-') ? '; Secure' : ''
+  const domainPart = domain ? `; Domain=${domain}` : ''
+  return `${name}=; Path=/; Max-Age=0${domainPart}${secure}; HttpOnly; SameSite=Lax`
 }
 
 export async function POST(request: NextRequest) {
@@ -67,17 +69,18 @@ export async function POST(request: NextRequest) {
   }
 
   for (const name of authCookieNames) {
-    response.cookies.set(buildExpireOptions(name))
+    // No-domain deletion (covers cookies set by Auth.js on www. hosts)
+    response.headers.append('Set-Cookie', buildExpireHeader(name))
 
     if (!supportsDomainAttribute(name)) {
       continue
     }
 
+    // Domain-scoped deletion (covers cookies set on the apex domain)
+    // Uses headers.append instead of cookies.set so both Set-Cookie headers
+    // are emitted — cookies.set deduplicates by name and would drop the first.
     for (const domain of cookieDomains) {
-      response.cookies.set({
-        ...buildExpireOptions(name),
-        domain,
-      })
+      response.headers.append('Set-Cookie', buildExpireHeader(name, domain))
     }
   }
 
