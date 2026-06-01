@@ -38,12 +38,17 @@ function supportsDomainAttribute(name: string) {
 }
 
 function getCookieDomains(hostname: string) {
-  if (!hostname || hostname === 'localhost' || !hostname.includes('.')) {
+  // For www. subdomains, Auth.js sets cookies without a domain attribute
+  // (scoped to the exact www. host). A domain-scoped deletion would target a
+  // different cookie and — worse — would overwrite the correct no-domain
+  // deletion in the Set-Cookie response (NextResponse deduplicates by name).
+  if (
+    !hostname ||
+    hostname === 'localhost' ||
+    !hostname.includes('.') ||
+    hostname.startsWith('www.')
+  ) {
     return [] as string[]
-  }
-
-  if (hostname.startsWith('www.')) {
-    return [hostname.slice(4)]
   }
 
   return [hostname]
