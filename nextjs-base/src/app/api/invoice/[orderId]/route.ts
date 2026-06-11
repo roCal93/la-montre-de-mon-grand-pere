@@ -313,13 +313,14 @@ export async function GET(
     return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
 
+  const PDF_TIMEOUT_MS = 25_000
+  const PDF_TIMEOUT_ERROR = `PDF generation timed out after ${PDF_TIMEOUT_MS}ms`
+
   try {
     const pdfDocument = createElement(InvoiceDocument, {
       order,
     }) as unknown as ReactElement<DocumentProps>
 
-    const PDF_TIMEOUT_MS = 25_000
-    const PDF_TIMEOUT_ERROR = `PDF generation timed out after ${PDF_TIMEOUT_MS}ms`
     const buffer: Buffer = await Promise.race([
       renderToBuffer(pdfDocument),
       new Promise<never>((_, reject) =>
