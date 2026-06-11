@@ -294,11 +294,14 @@ export async function POST(request: NextRequest) {
     })
 
     // Email de confirmation automatique à l'expéditeur (multilingue)
-    await sendEmail({
-      from: `${process.env.COMPANY_NAME || 'Contact'} <${getDefaultFromEmail()}>`,
-      to: sanitizedEmail,
-      subject: template.subject,
-      html: `
+    // Best-effort: the request still succeeds if this secondary email fails,
+    // but we explicitly await it so the runtime does not drop it after responding.
+    try {
+      await sendEmail({
+        from: `${process.env.COMPANY_NAME || 'Contact'} <${getDefaultFromEmail()}>`,
+        to: sanitizedEmail,
+        subject: template.subject,
+        html: `
         <!DOCTYPE html>
         <html lang="${validLocale}">
           <head>
@@ -352,7 +355,13 @@ export async function POST(request: NextRequest) {
           </body>
         </html>
       `,
-    })
+      })
+    } catch (err: unknown) {
+      console.warn(
+        '[contact] User confirmation email failed (non-blocking):',
+        err
+      )
+    }
 
     return NextResponse.json(
       { message: 'Message envoyé avec succès !', id: messageId },

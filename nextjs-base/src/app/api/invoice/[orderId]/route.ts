@@ -123,7 +123,11 @@ function InvoiceDocument({ order }: { order: Order }) {
       createElement(Text, null, shippingFullName || 'Client')
     )
     shippingAddressLines.push(
-      createElement(Text, null, asText(shippingAddress.address1, 'Adresse non fournie'))
+      createElement(
+        Text,
+        null,
+        asText(shippingAddress.address1, 'Adresse non fournie')
+      )
     )
     if (shippingAddress.address2) {
       shippingAddressLines.push(
@@ -178,7 +182,11 @@ function InvoiceDocument({ order }: { order: Order }) {
         createElement(
           View,
           { style: styles.row },
-          createElement(Text, null, `Client : ${asText(order.customerName, 'Client')}`),
+          createElement(
+            Text,
+            null,
+            `Client : ${asText(order.customerName, 'Client')}`
+          ),
           createElement(Text, null, asText(order.customerEmail, '-'))
         )
       ),
@@ -201,7 +209,9 @@ function InvoiceDocument({ order }: { order: Order }) {
             createElement(
               Text,
               { style: styles.bold },
-              formatPrice((Number(item.unitPrice) || 0) * (Number(item.quantity) || 0))
+              formatPrice(
+                (Number(item.unitPrice) || 0) * (Number(item.quantity) || 0)
+              )
             )
           )
         )
@@ -307,7 +317,15 @@ export async function GET(
     const pdfDocument = createElement(InvoiceDocument, {
       order,
     }) as unknown as ReactElement<DocumentProps>
-    const buffer: Buffer = await renderToBuffer(pdfDocument)
+
+    const PDF_TIMEOUT_MS = 25_000
+    const PDF_TIMEOUT_ERROR = `PDF generation timed out after ${PDF_TIMEOUT_MS}ms`
+    const buffer: Buffer = await Promise.race([
+      renderToBuffer(pdfDocument),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(PDF_TIMEOUT_ERROR)), PDF_TIMEOUT_MS)
+      ),
+    ])
 
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
@@ -321,6 +339,14 @@ export async function GET(
       orderId: order.documentId,
       error,
     })
+
+    if (error instanceof Error && error.message === PDF_TIMEOUT_ERROR) {
+      return NextResponse.json(
+        { error: 'La génération de la facture a expiré. Réessayez.' },
+        { status: 504 }
+      )
+    }
+
     return NextResponse.json(
       { error: 'Erreur de generation de facture' },
       { status: 500 }
