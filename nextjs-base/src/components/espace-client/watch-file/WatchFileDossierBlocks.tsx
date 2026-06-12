@@ -578,6 +578,25 @@ function MediaText({ blocks }: { blocks?: StrapiBlock[] | null }) {
   return null
 }
 
+function inferVideoMimeType(url?: string, mime?: string | null) {
+  if (typeof mime === 'string' && mime.trim().length > 0) {
+    return mime
+  }
+
+  if (!url) return undefined
+
+  const pathname = url.split('?')[0]?.toLowerCase() ?? ''
+
+  if (pathname.endsWith('.mov')) return 'video/quicktime'
+  if (pathname.endsWith('.mp4')) return 'video/mp4'
+  if (pathname.endsWith('.webm')) return 'video/webm'
+  if (pathname.endsWith('.ogv') || pathname.endsWith('.ogg')) {
+    return 'video/ogg'
+  }
+
+  return undefined
+}
+
 function VideoBlock({
   block,
   anchorId,
@@ -586,6 +605,7 @@ function VideoBlock({
   anchorId: string
 }) {
   const videoUrl = cleanImageUrl(block.video?.url)
+  const videoMimeType = inferVideoMimeType(videoUrl, block.video?.mime)
 
   if (!videoUrl) return null
 
@@ -595,14 +615,22 @@ function VideoBlock({
         <MediaText blocks={block.content} />
         <div className="overflow-hidden rounded-[1.5rem] border border-neutral-300 bg-neutral-950 shadow-sm shadow-black/10 dark:border-neutral-600">
           <video
-            src={videoUrl}
             controls
             preload="metadata"
             playsInline
             className="block aspect-video w-full bg-black"
           >
-            <source src={videoUrl} />
-            Votre navigateur ne peut pas lire cette vidéo.
+            <source src={videoUrl} type={videoMimeType} />
+            Votre navigateur ne peut pas lire cette vidéo. Vous pouvez la{' '}
+            <a
+              href={videoUrl}
+              className="underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              telecharger ici
+            </a>
+            .
           </video>
         </div>
       </div>
