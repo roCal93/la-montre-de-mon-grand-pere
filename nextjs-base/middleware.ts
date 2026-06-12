@@ -35,6 +35,8 @@ function buildCsp(nonce: string): string {
     "default-src 'self'",
     // Cloudinary images + Stripe fraud detection pixel
     `img-src 'self' data: https://res.cloudinary.com https://q.stripe.com ${strapiOrigin}`,
+    // Cloudinary-hosted media files for watch-file audio/video blocks.
+    `media-src 'self' blob: data: https://res.cloudinary.com ${strapiOrigin}`,
     // Nonce replaces 'unsafe-inline'; unsafe-eval only kept in dev for Fast Refresh
     // Stripe.js must load from its CDN for PCI compliance
     `script-src 'self' 'nonce-${nonce}' https://js.stripe.com${isProd ? '' : " 'unsafe-eval'"}`,

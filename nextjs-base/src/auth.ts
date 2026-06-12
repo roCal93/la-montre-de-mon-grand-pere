@@ -117,7 +117,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: '/fr/espace-client/connexion',
   },
 
-  session: { strategy: 'jwt' },
+  session: {
+    strategy: 'jwt',
+    // Limit session lifetime so a compromised or stale session
+    // (e.g. after a Strapi password change) expires within hours, not 30 days.
+    maxAge: 8 * 60 * 60, // 8 hours
+    updateAge: 60 * 60, // Re-issue JWT every hour of activity
+  },
   trustHost: true,
   secret: process.env.AUTH_SECRET,
 })

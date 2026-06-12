@@ -3,6 +3,52 @@ import { getStripe } from '@/lib/stripe'
 import { toCents } from '@/lib/currency'
 import type { CartItem } from '@/types/cart'
 
+interface StrapiProductPrice {
+  documentId: string
+  price: number
+  name: string
+  active: boolean
+}
+
+/**
+ * Fetch the authoritative prices from Strapi for the given documentIds.
+ * This prevents clients from sending manipulated prices.
+ */
+async function fetchProductPricesFromStrapi(
+  documentIds: string[]
+): Promise<Map<string, StrapiProductPrice>> {
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  const token = process.env.STRAPI_API_TOKEN
+  if (!strapiUrl || !token || documentIds.length === 0) {
+    return new Map()
+  }
+
+  const url = new URL(`${strapiUrl}/api/products`)
+  documentIds.forEach((id, i) => {
+    url.searchParams.set(`filters[documentId][$in][${i}]`, id)
+  })
+  url.searchParams.set('fields[0]', 'documentId')
+  url.searchParams.set('fields[1]', 'price')
+  url.searchParams.set('fields[2]', 'name')
+  url.searchParams.set('fields[3]', 'active')
+  url.searchParams.set('pagination[pageSize]', String(documentIds.length))
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) return new Map()
+
+  const json = (await res.json()) as {
+    data?: StrapiProductPrice[]
+  }
+  const map = new Map<string, StrapiProductPrice>()
+  for (const product of json.data ?? []) {
+    map.set(product.documentId, product)
+  }
+  return map
+}
+
 /** Strip HTML tags to get plain text (Stripe doesn't accept HTML in description) */
 function stripHtml(html: string): string {
   return html
@@ -36,6 +82,36 @@ export async function POST(request: NextRequest) {
       new Map(items.map((item) => [item.id, item])).values()
     ).map((item) => ({ ...item, quantity: 1 }))
 
+    // Re-fetch authoritative prices from Strapi — never trust client-provided prices.
+    const documentIds = uniqueItems
+      .map((i) => i.documentId)
+      .filter((id): id is string => Boolean(id))
+    const strapiPrices = await fetchProductPricesFromStrapi(documentIds)
+
+    if (strapiPrices.size === 0) {
+      return NextResponse.json(
+        { error: 'Impossible de vérifier les prix des produits' },
+        { status: 502 }
+      )
+    }
+
+    // Reject if any item is not found in Strapi or is no longer active
+    for (const item of uniqueItems) {
+      const strapiProduct = strapiPrices.get(item.documentId)
+      if (!strapiProduct) {
+        return NextResponse.json(
+          { error: `Produit introuvable : ${item.name}` },
+          { status: 400 }
+        )
+      }
+      if (!strapiProduct.active) {
+        return NextResponse.json(
+          { error: `Ce produit n'est plus disponible : ${item.name}` },
+          { status: 400 }
+        )
+      }
+    }
+
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
     if (!siteUrl) {
       return NextResponse.json(
@@ -44,24 +120,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const lineItems = uniqueItems.map((item) => ({
-      price_data: {
-        currency: 'eur',
-        unit_amount: toCents(item.price),
-        product_data: {
-          name: item.name,
-          ...(item.description
-            ? { description: stripHtml(item.description).slice(0, 500) }
-            : {}),
-          images: toPublicImageUrl(item.imageUrl),
-          metadata: {
-            strapiId: String(item.id),
-            slug: item.slug,
+    const lineItems = uniqueItems.map((item) => {
+      // Use the server-side price from Strapi, never the client-supplied one
+      const verifiedPrice = strapiPrices.get(item.documentId)!.price
+      return {
+        price_data: {
+          currency: 'eur',
+          unit_amount: toCents(verifiedPrice),
+          product_data: {
+            name: item.name,
+            ...(item.description
+              ? { description: stripHtml(item.description).slice(0, 500) }
+              : {}),
+            images: toPublicImageUrl(item.imageUrl),
+            metadata: {
+              strapiId: String(item.id),
+              slug: item.slug,
+            },
           },
         },
-      },
-      quantity: 1,
-    }))
+        quantity: 1,
+      }
+    })
 
     const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
@@ -81,7 +161,8 @@ export async function POST(request: NextRequest) {
             documentId: i.documentId,
             name: i.name,
             slug: i.slug,
-            price: i.price,
+            // Always use the server-verified price in metadata
+            price: strapiPrices.get(i.documentId)!.price,
             quantity: 1,
           }))
         ),

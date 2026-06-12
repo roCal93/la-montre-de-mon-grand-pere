@@ -74,16 +74,34 @@ export async function POST(req: NextRequest) {
   if (adminEmail) {
     const { sendEmail, isEmailConfigured } = await import('@/lib/email-client')
     if (isEmailConfigured()) {
+      const esc = (s: string) =>
+        s.replace(
+          /[&<>"'/]/g,
+          (c) =>
+            ({
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              '"': '&quot;',
+              "'": '&#039;',
+              '/': '&#x2F;',
+            })[c] ?? c
+        )
+      const safeType = esc(parsed.data.type)
+      const safeName = esc(session.user.name ?? '')
+      const safeEmail = esc(session.user.email ?? '')
+      const safeWatch = esc(watchTitle)
+      const safeDesc = esc(parsed.data.description).replace(/\n/g, '<br>')
       await sendEmail({
         to: adminEmail,
         subject: `[Demande de service] ${parsed.data.type} — ${session.user.email}`,
         html: `
           <p><strong>Nouvelle demande de service</strong></p>
-          <p>Type : <strong>${parsed.data.type}</strong></p>
-          <p>Client : ${session.user.name} (${session.user.email})</p>
-          <p>Montre : ${watchTitle}</p>
+          <p>Type : <strong>${safeType}</strong></p>
+          <p>Client : ${safeName} (${safeEmail})</p>
+          <p>Montre : ${safeWatch}</p>
           <p>Description :</p>
-          <blockquote>${parsed.data.description.replace(/\n/g, '<br>')}</blockquote>
+          <blockquote>${safeDesc}</blockquote>
           <p><a href="${process.env.NEXT_PUBLIC_STRAPI_URL}/admin">Voir dans l'admin Strapi</a></p>
         `,
       }).catch(() => {})
