@@ -160,23 +160,9 @@ describe('POST /api/webhooks/stripe', () => {
     const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
       new Response(
         JSON.stringify({
-          data: null,
-          error: {
-            status: 400,
-            name: 'ValidationError',
-            message: 'Validation error',
-            details: {
-              errors: [
-                {
-                  path: ['stripeSessionId'],
-                  message: 'This attribute must be unique',
-                  name: 'ValidationError',
-                },
-              ],
-            },
-          },
+          data: [{ documentId: 'order_existing_1' }],
         }),
-        { status: 400 }
+        { status: 200 }
       )
     )
 
@@ -194,7 +180,7 @@ describe('POST /api/webhooks/stripe', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(fetchSpy).toHaveBeenCalledWith(
       expect.stringContaining('/api/orders'),
-      expect.objectContaining({ method: 'POST' })
+      expect.objectContaining({ cache: 'no-store' })
     )
     expect(revalidatePathMock).not.toHaveBeenCalled()
     expect(revalidateTagMock).not.toHaveBeenCalled()
@@ -230,9 +216,13 @@ describe('POST /api/webhooks/stripe', () => {
 
     const fetchSpy = vi
       .spyOn(global, 'fetch')
-      // Order creation fails -> should enter catch
+      // Pre-check for existing order: none found.
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: [] }), { status: 200 })
+      )
+      // Order creation fails -> should enter catch.
       .mockResolvedValueOnce(new Response('boom', { status: 500 }))
-      // Error persistence should be attempted
+      // Error persistence should be attempted.
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ data: { id: 1 } }), { status: 200 })
       )
@@ -248,9 +238,9 @@ describe('POST /api/webhooks/stripe', () => {
 
     const res = await POST(req)
     expect(res.status).toBe(500)
-    expect(fetchSpy).toHaveBeenCalledTimes(2)
+    expect(fetchSpy).toHaveBeenCalledTimes(3)
     expect(fetchSpy).toHaveBeenNthCalledWith(
-      2,
+      3,
       expect.stringContaining('/api/webhook-errors'),
       expect.objectContaining({ method: 'POST' })
     )
