@@ -2,6 +2,7 @@ export default ({ env }) => {
 	// Configuration conditionnelle : Cloudinary en production, local en dev
 	const hasCloudinary = env('CLOUDINARY_URL') || 
 		(env('CLOUDINARY_NAME') && env('CLOUDINARY_KEY') && env('CLOUDINARY_SECRET'));
+	const cloudinaryFolder = env('CLOUDINARY_FOLDER', 'la-montre-de-mon-grand-pere');
 	
 	const config: any = {
 		// Configuration i18n obligatoire
@@ -26,12 +27,7 @@ export default ({ env }) => {
 				},
 				actionOptions: {
 					upload: {
-						folder: env('CLOUDINARY_FOLDER'),
-						resource_type: 'auto',
-						access_mode: 'public',
-					},
-					uploadStream: {
-						folder: env('CLOUDINARY_FOLDER'),
+						folder: cloudinaryFolder,
 						resource_type: 'auto',
 						access_mode: 'public',
 					},
