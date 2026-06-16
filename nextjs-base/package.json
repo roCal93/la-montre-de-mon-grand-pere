@@ -50,7 +50,7 @@
     "strapi-to-typescript": "^2.0.15",
     "tailwindcss": "^4",
     "typescript": "^6",
-    "vite": "7.3.2",
+    "vite": "7.3.5",
     "vitest": "^4.1.8"
   },
   "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
@@ -59,7 +59,7 @@
       "postcss": "8.5.12",
       "svix": "1.92.2",
       "esbuild": ">=0.28.1",
-      "vite": "7.3.2",
+      "vite": "7.3.5",
       "undici": ">=7.24.0",
       "flatted": ">=3.4.0",
       "picomatch": ">=4.0.4"
