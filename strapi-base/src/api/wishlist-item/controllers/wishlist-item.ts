@@ -40,7 +40,11 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entries = await (strapi.documents(MODEL_UID) as any).findMany({
       filters: { $or: customerFilters },
-      populate: ['product', 'product.images'],
+      populate: {
+        product: {
+          populate: { images: true },
+        },
+      },
     })
 
     strapi.log.info(
@@ -85,7 +89,11 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
         customer: user.id,
         product: productDocumentId,
       },
-      populate: ['product', 'product.images'],
+      populate: {
+        product: {
+          populate: { images: true },
+        },
+      },
     })
 
     strapi.log.info(

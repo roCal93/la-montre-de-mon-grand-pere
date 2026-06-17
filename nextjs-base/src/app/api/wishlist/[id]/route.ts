@@ -17,29 +17,18 @@ export async function DELETE(
 
   const { id } = await params
 
-  // Ownership check: fetch the item first and verify it belongs to the current user.
-  // Strapi returns 403 if the JWT user doesn't own the item, which also covers this,
-  // but an explicit fetch makes the intent clear and avoids relying on Strapi role config.
-  const checkRes = await fetch(`${STRAPI_URL}/api/wishlist-items/${id}`, {
-    headers: { Authorization: `Bearer ${strapiJwt}` },
-    cache: 'no-store',
-  })
-  if (!checkRes.ok) {
-    return NextResponse.json(
-      { error: 'Item introuvable ou accès refusé' },
-      { status: checkRes.status === 403 ? 403 : 404 }
-    )
-  }
-
+  // Ownership check is enforced server-side inside the custom Strapi delete controller.
+  // A direct DELETE is sufficient; no pre-GET needed (that route is not publicly accessible).
   const res = await fetch(`${STRAPI_URL}/api/wishlist-items/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${strapiJwt}` },
   })
 
   if (!res.ok) {
+    const status = res.status === 403 ? 403 : res.status === 404 ? 404 : 500
     return NextResponse.json(
       { error: 'Suppression échouée' },
-      { status: res.status }
+      { status }
     )
   }
 
