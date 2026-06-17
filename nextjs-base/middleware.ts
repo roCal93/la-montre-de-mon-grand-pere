@@ -39,7 +39,7 @@ function buildCsp(nonce: string): string {
     `media-src 'self' blob: data: https://res.cloudinary.com ${strapiOrigin}`,
     // Nonce replaces 'unsafe-inline'; unsafe-eval only kept in dev for Fast Refresh
     // Stripe.js must load from its CDN for PCI compliance
-    `script-src 'self' 'nonce-${nonce}' https://js.stripe.com${isProd ? '' : " 'unsafe-eval'"}`,
+    `script-src 'self' 'nonce-${nonce}' https://js.stripe.com https://vercel.live${isProd ? '' : " 'unsafe-eval'"}`,
     // Some UI libs/components rely on inline style attributes at runtime.
     // Keep style-src-attr and add unsafe-inline fallback for broader browser support.
     "style-src 'self' 'unsafe-inline'",

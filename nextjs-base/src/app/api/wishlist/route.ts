@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
+const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN
 
 async function parseJsonSafe(res: Response): Promise<unknown> {
   const text = await res.text()
@@ -31,7 +32,9 @@ async function resolveProductId(
   url.searchParams.set('pagination[pageSize]', '1')
 
   const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${jwt}` },
+    headers: {
+      Authorization: `Bearer ${STRAPI_API_TOKEN || jwt}`,
+    },
     cache: 'no-store',
   })
 
