@@ -8,14 +8,38 @@ import { factories } from '@strapi/strapi'
 type UID = 'api::wishlist-item.wishlist-item'
 const MODEL_UID: UID = 'api::wishlist-item.wishlist-item'
 
+type AuthUser = {
+  id?: number
+  documentId?: string
+} | null
+
+function buildCustomerFilters(user: AuthUser) {
+  const filters: Array<Record<string, unknown>> = []
+
+  if (typeof user?.id === 'number') {
+    filters.push({ customer: { id: { $eq: user.id } } })
+  }
+
+  if (typeof user?.documentId === 'string' && user.documentId.trim()) {
+    filters.push({ customer: { documentId: { $eq: user.documentId } } })
+  }
+
+  return filters
+}
+
 export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
   async find(ctx) {
-    const user = ctx.state.user as { id: number } | null
+    const user = ctx.state.user as AuthUser
     if (!user) return ctx.unauthorized('Authentification requise')
+
+    const customerFilters = buildCustomerFilters(user)
+    if (customerFilters.length === 0) {
+      return ctx.unauthorized('Authentification requise')
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entries = await (strapi.documents(MODEL_UID) as any).findMany({
-      filters: { customer: { id: { $eq: user.id } } },
+      filters: { $or: customerFilters },
       populate: {
         product: {
           populate: ['images'],
@@ -27,8 +51,13 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
   },
 
   async create(ctx) {
-    const user = ctx.state.user as { id: number } | null
+    const user = ctx.state.user as AuthUser
     if (!user) return ctx.unauthorized('Authentification requise')
+
+    const customerFilters = buildCustomerFilters(user)
+    if (customerFilters.length === 0) {
+      return ctx.unauthorized('Authentification requise')
+    }
 
     const body = ctx.request.body as { data?: { product?: string | number } }
     const productId = body?.data?.product
@@ -39,7 +68,7 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     const svc = strapi.documents(MODEL_UID) as any
     const existing = await svc.findMany({
       filters: {
-        customer: { id: { $eq: user.id } },
+        $or: customerFilters,
         product: { id: { $eq: productId } },
       },
     })
@@ -49,7 +78,10 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     }
 
     const entry = await svc.create({
-      data: { customer: user.id, product: productId },
+      data: {
+        customer: user.documentId ?? user.id,
+        product: productId,
+      },
       populate: { product: { populate: ['images'] } },
     })
 
@@ -58,7 +90,7 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
   },
 
   async delete(ctx) {
-    const user = ctx.state.user as { id: number } | null
+    const user = ctx.state.user as AuthUser
     if (!user) return ctx.unauthorized('Authentification requise')
 
     const { id } = ctx.params as { id: string }
@@ -72,8 +104,21 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
 
     if (!entry) return ctx.notFound('Favori introuvable')
 
-    const customerId = (entry.customer as { id: number } | null)?.id
-    if (customerId !== user.id) return ctx.forbidden('Accès refusé')
+    const entryCustomer = (entry.customer as
+      | { id?: number; documentId?: string }
+      | null)
+      ? entry.customer
+      : null
+    const ownerMatchesById =
+      typeof entryCustomer?.id === 'number' && entryCustomer.id === user.id
+    const ownerMatchesByDocumentId =
+      typeof entryCustomer?.documentId === 'string' &&
+      typeof user.documentId === 'string' &&
+      entryCustomer.documentId === user.documentId
+
+    if (!ownerMatchesById && !ownerMatchesByDocumentId) {
+      return ctx.forbidden('Accès refusé')
+    }
 
     await svc.delete({ documentId: id })
 

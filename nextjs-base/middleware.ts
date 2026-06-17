@@ -51,7 +51,7 @@ function buildCsp(nonce: string): string {
     "base-uri 'self'",
     "form-action 'self'",
     // Stripe 3DS / card element iframes
-    `frame-src 'self' https://js.stripe.com https://hooks.stripe.com`,
+    `frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://vercel.live`,
     `frame-ancestors ${frameAncestorParts.join(' ')}`,
     'upgrade-insecure-requests',
   ]
