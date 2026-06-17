@@ -43,6 +43,10 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
       populate: ['product', 'product.images'],
     })
 
+    strapi.log.info(
+      `[wishlist] find — user.id=${user?.id} count=${entries?.length ?? 0}`
+    )
+
     return { data: entries, meta: {} }
   },
 
@@ -56,30 +60,37 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     }
 
     const body = ctx.request.body as { data?: { product?: string | number } }
-    const productId = body?.data?.product
-    if (!productId) return ctx.badRequest('product requis')
+    const productDocumentId = body?.data?.product
+    if (!productDocumentId) return ctx.badRequest('product requis')
 
-    // Check if already in wishlist
+    // Check if already in wishlist (by product documentId)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const svc = strapi.documents(MODEL_UID) as any
     const existing = await svc.findMany({
       filters: {
         $or: customerFilters,
-        product: { id: { $eq: productId } },
+        product: { documentId: { $eq: productDocumentId } },
       },
     })
 
     if (existing.length > 0) {
+      strapi.log.info(
+        `[wishlist] Already in favorites — user.id=${user?.id} product=${productDocumentId}`
+      )
       return { data: existing[0] }
     }
 
     const entry = await svc.create({
       data: {
         customer: user.id,
-        product: productId,
+        product: productDocumentId,
       },
       populate: ['product', 'product.images'],
     })
+
+    strapi.log.info(
+      `[wishlist] Created — user.id=${user?.id} product=${productDocumentId} entry.documentId=${entry?.documentId}`
+    )
 
     ctx.status = 201
     return { data: entry }
