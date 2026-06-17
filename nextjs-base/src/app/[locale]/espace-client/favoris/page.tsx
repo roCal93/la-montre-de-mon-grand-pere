@@ -18,11 +18,92 @@ interface Product {
 
 interface WishlistItem {
   documentId: string
-  product?: Product
+  product?:
+    | Product
+    | {
+        data?:
+          | Product
+          | {
+              documentId?: string
+              attributes?: {
+                name?: string
+                slug?: string
+                price?: number
+                active?: boolean
+                images?: {
+                  data?: Array<{
+                    url?: string
+                    alternativeText?: string
+                    attributes?: {
+                      url?: string
+                      alternativeText?: string
+                    }
+                  }>
+                }
+              }
+            }
+      }
 }
 
 interface StrapiList<T> {
   data: T[]
+}
+
+function normalizeProduct(raw: WishlistItem['product']): Product | null {
+  if (!raw || typeof raw !== 'object') return null
+
+  // Strapi v5 flat relation
+  if ('slug' in raw && typeof raw.slug === 'string') {
+    return raw as Product
+  }
+
+  // Strapi relation wrapper (v4 or mixed payloads)
+  const wrapped = (raw as { data?: unknown }).data
+  if (!wrapped || typeof wrapped !== 'object') return null
+
+  if (
+    'slug' in wrapped &&
+    typeof (wrapped as { slug?: unknown }).slug === 'string'
+  ) {
+    return wrapped as Product
+  }
+
+  const withAttributes = wrapped as {
+    documentId?: string
+    attributes?: {
+      name?: string
+      slug?: string
+      price?: number
+      active?: boolean
+      images?: {
+        data?: Array<{
+          url?: string
+          alternativeText?: string
+          attributes?: {
+            url?: string
+            alternativeText?: string
+          }
+        }>
+      }
+    }
+  }
+
+  const attrs = withAttributes.attributes
+  if (!attrs?.slug) return null
+
+  return {
+    documentId: withAttributes.documentId ?? '',
+    name: attrs.name ?? '',
+    slug: attrs.slug,
+    price: attrs.price ?? 0,
+    active: attrs.active ?? true,
+    images: (attrs.images?.data ?? [])
+      .map((img) => ({
+        url: img.url ?? img.attributes?.url ?? '',
+        alternativeText: img.alternativeText ?? img.attributes?.alternativeText,
+      }))
+      .filter((img) => Boolean(img.url)),
+  }
 }
 
 export default async function FavorisPage({
@@ -41,6 +122,14 @@ export default async function FavorisPage({
   )
 
   const items = data?.data ?? []
+  const visibleItems = items
+    .map((item) => ({
+      item,
+      product: normalizeProduct(item.product),
+    }))
+    .filter((entry): entry is { item: WishlistItem; product: Product } =>
+      Boolean(entry.product?.slug)
+    )
 
   return (
     <div>
@@ -51,11 +140,11 @@ export default async function FavorisPage({
         Mes favoris
       </h1>
       <p className="mt-1 text-sm text-neutral-500 mb-8">
-        {items.length} montre{items.length !== 1 ? 's' : ''} sauvegardée
-        {items.length !== 1 ? 's' : ''}
+        {visibleItems.length} montre{visibleItems.length !== 1 ? 's' : ''}{' '}
+        sauvegardée{visibleItems.length !== 1 ? 's' : ''}
       </p>
 
-      {items.length === 0 ? (
+      {visibleItems.length === 0 ? (
         <div className="border border-dashed border-neutral-200 bg-white py-16 px-6 text-center dark:border-neutral-700 dark:bg-neutral-900">
           <p className="text-neutral-500 text-sm dark:text-neutral-400">
             Aucun favori pour le moment.
@@ -69,9 +158,7 @@ export default async function FavorisPage({
         </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => {
-            const product = item.product
-            if (!product) return null
+          {visibleItems.map(({ item, product }) => {
             const imgUrl = cleanImageUrl(product.images?.[0]?.url)
 
             return (
