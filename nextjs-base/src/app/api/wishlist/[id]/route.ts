@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
+const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN
 
 /** DELETE /api/wishlist/[id] — remove a wishlist item */
 export async function DELETE(
@@ -10,9 +10,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  const strapiJwt = await getStrapiSessionJwt()
-  if (!session || !strapiJwt) {
+  const customerId = session?.user?.id
+  if (!session || !customerId) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  }
+
+  if (!STRAPI_API_TOKEN) {
+    return NextResponse.json(
+      { error: 'STRAPI_API_TOKEN manquant' },
+      { status: 500 }
+    )
   }
 
   const { id } = await params
@@ -21,15 +28,15 @@ export async function DELETE(
   // A direct DELETE is sufficient; no pre-GET needed (that route is not publicly accessible).
   const res = await fetch(`${STRAPI_URL}/api/wishlist-items/${id}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${strapiJwt}` },
+    headers: {
+      Authorization: `Bearer ${STRAPI_API_TOKEN}`,
+      'x-hakuna-customer-id': customerId,
+    },
   })
 
   if (!res.ok) {
     const status = res.status === 403 ? 403 : res.status === 404 ? 404 : 500
-    return NextResponse.json(
-      { error: 'Suppression échouée' },
-      { status }
-    )
+    return NextResponse.json({ error: 'Suppression échouée' }, { status })
   }
 
   return new NextResponse(null, { status: 204 })

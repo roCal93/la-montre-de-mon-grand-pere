@@ -1,3 +1,4 @@
+import { auth } from '@/auth'
 import { EspaceClientSidebar } from '@/components/espace-client/EspaceClientSidebar'
 import { Layout } from '@/components/layout'
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
@@ -23,21 +24,26 @@ export async function generateMetadata({
 export default async function EspaceClientLayout({ children, params }: Props) {
   const { locale } = await params
   const strapiUser = await getCurrentStrapiUser()
+  const session = await auth()
+  const displayEmail = strapiUser?.email ?? session?.user?.email ?? null
 
-  if (!strapiUser) {
+  if (!displayEmail) {
     return <Layout locale={locale}>{children}</Layout>
   }
 
   return (
     <div className="flex min-h-screen bg-white dark:bg-neutral-950">
-      <EspaceClientSidebar locale={locale} isAdmin={isAdminUser(strapiUser)} />
+      <EspaceClientSidebar
+        locale={locale}
+        isAdmin={strapiUser ? isAdminUser(strapiUser) : false}
+      />
 
       <main className="flex-1 min-w-0 px-4 py-8 md:px-8 md:py-10">
         <div className="mb-6 font-[family-name:var(--font-geist-mono)] text-[15px] uppercase tracking-[0.12em] text-neutral-400 dark:text-neutral-500">
           <span className="flex flex-col md:flex-row md:gap-1">
             <span>Connecté :</span>
             <span className="text-neutral-600 dark:text-neutral-300 normal-case">
-              {strapiUser.email}
+              {displayEmail}
             </span>
           </span>
         </div>

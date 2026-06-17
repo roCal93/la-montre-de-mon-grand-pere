@@ -24,6 +24,7 @@ function getCookieValue(cookieHeader: string | null, name: string) {
 declare module 'next-auth' {
   interface Session {
     user: NonNullable<DefaultSession['user']> & {
+      id: string
       email: string
       name: string
     }
@@ -123,6 +124,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // (e.g. after a Strapi password change) expires within hours, not 30 days.
     maxAge: 8 * 60 * 60, // 8 hours
     updateAge: 60 * 60, // Re-issue JWT every hour of activity
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user?.id) {
+        token.sub = user.id
+      }
+
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub
+      }
+
+      return session
+    },
   },
   trustHost: true,
   secret: process.env.AUTH_SECRET,

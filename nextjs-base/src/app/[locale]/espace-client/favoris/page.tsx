@@ -1,6 +1,5 @@
-import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
+import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
-import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cleanImageUrl } from '@/lib/strapi'
@@ -112,14 +111,32 @@ export default async function FavorisPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const strapiUser = await getCurrentStrapiUser()
+  const session = await auth()
 
-  if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
+  if (!session?.user?.id) redirect(`/${locale}/espace-client/connexion`)
 
-  const { data } = await strapiAuthGet<StrapiList<WishlistItem>>(
-    '/wishlist-items?populate[product][populate]=images',
-    0
-  )
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  const strapiApiToken = process.env.STRAPI_API_TOKEN
+
+  const data =
+    strapiUrl && strapiApiToken
+      ? ((await fetch(
+          `${strapiUrl}/api/wishlist-items?populate[product][populate]=images`,
+          {
+            headers: {
+              Authorization: `Bearer ${strapiApiToken}`,
+              'x-hakuna-customer-id': session.user.id,
+            },
+            cache: 'no-store',
+          }
+        )
+          .then(async (response) =>
+            response.ok
+              ? ((await response.json()) as StrapiList<WishlistItem>)
+              : null
+          )
+          .catch(() => null)) as StrapiList<WishlistItem> | null)
+      : null
 
   const items = data?.data ?? []
   const visibleItems = items
