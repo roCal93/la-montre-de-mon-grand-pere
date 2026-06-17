@@ -22,12 +22,21 @@ function getCookieValue(cookieHeader: string | null, name: string) {
 }
 
 declare module 'next-auth' {
+  interface User {
+    strapiJwt?: string
+  }
   interface Session {
     user: NonNullable<DefaultSession['user']> & {
       id: string
       email: string
       name: string
     }
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    strapiJwt?: string
   }
 }
 
@@ -82,6 +91,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               id: String(strapiUser.id),
               email: strapiUser.email,
               name: strapiUser.username,
+              strapiJwt: existingStrapiJwt,
             }
           }
 
@@ -108,6 +118,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: String(result.user.id),
           email: result.user.email,
           name: result.user.username,
+          strapiJwt: result.jwt,
         }
       },
     }),
@@ -129,6 +140,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user?.id) {
         token.sub = user.id
+      }
+      if (user?.strapiJwt) {
+        token.strapiJwt = user.strapiJwt
       }
 
       return token
