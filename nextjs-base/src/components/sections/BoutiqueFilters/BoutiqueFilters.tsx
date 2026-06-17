@@ -16,7 +16,6 @@ interface CurrentParams {
   prixMin?: string
   prixMax?: string
   tri?: string
-  etat?: string
 }
 
 interface BoutiqueFiltersProps {
@@ -26,20 +25,6 @@ interface BoutiqueFiltersProps {
   currentParams: CurrentParams
   categories: Category[]
 }
-
-const CONDITIONS_FR = [
-  { value: 'tous', label: 'Tous' },
-  { value: 'excellent', label: 'Excellent' },
-  { value: 'tres-bon', label: 'Très bon' },
-  { value: 'bon', label: 'Bon' },
-]
-
-const CONDITIONS_EN = [
-  { value: 'tous', label: 'All' },
-  { value: 'excellent', label: 'Excellent' },
-  { value: 'tres-bon', label: 'Very good' },
-  { value: 'bon', label: 'Good' },
-]
 
 const TRI_FR = [
   { value: 'plus-recent', label: 'Plus récent' },
@@ -65,16 +50,14 @@ export function BoutiqueFilters({
   const maxRef = useRef<HTMLInputElement>(null)
 
   const isFr = locale === 'fr'
-  const conditions = isFr ? CONDITIONS_FR : CONDITIONS_EN
   const triOptions = isFr ? TRI_FR : TRI_EN
 
-  const { q, prixMin, prixMax, tri, etat } = currentParams
+  const { q, prixMin, prixMax, tri } = currentParams
   const baseFilterQs = [
     q ? `q=${encodeURIComponent(q)}` : '',
     prixMin ? `prixMin=${prixMin}` : '',
     prixMax ? `prixMax=${prixMax}` : '',
     tri ? `tri=${tri}` : '',
-    etat ? `etat=${etat}` : '',
   ]
     .filter(Boolean)
     .join('&')
@@ -119,8 +102,7 @@ export function BoutiqueFilters({
   const hasActiveFilters = !!(
     currentParams.prixMin ||
     currentParams.prixMax ||
-    (currentParams.tri && currentParams.tri !== 'plus-recent') ||
-    (currentParams.etat && currentParams.etat !== 'tous')
+    (currentParams.tri && currentParams.tri !== 'plus-recent')
   )
 
   const hasAnyActive = hasActiveFilters || !!currentParams.categorie
@@ -210,38 +192,6 @@ export function BoutiqueFilters({
                 d="m4 6 4 4 4-4"
               />
             </svg>
-          </div>
-        </div>
-
-        {/* État */}
-        <div className="flex flex-col gap-2">
-          <p
-            className={`${mono} text-neutral-900 font-semibold dark:text-white`}
-          >
-            {isFr ? 'État' : 'Condition'}
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {conditions.map((cond) => {
-              const isActive = (currentParams.etat ?? 'tous') === cond.value
-              return (
-                <button
-                  key={cond.value}
-                  type="button"
-                  onClick={() =>
-                    navigate({
-                      etat: cond.value === 'tous' ? undefined : cond.value,
-                    })
-                  }
-                  className={`border px-[10px] py-[4px] ${mono} font-medium transition-colors ${
-                    isActive
-                      ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black'
-                      : 'border-neutral-300 text-neutral-700 hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white'
-                  }`}
-                >
-                  {cond.label}
-                </button>
-              )
-            })}
           </div>
         </div>
 

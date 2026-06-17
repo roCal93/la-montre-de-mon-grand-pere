@@ -59,7 +59,6 @@ type BoutiqueFilters = {
   prixMin?: string
   prixMax?: string
   tri?: string
-  etat?: string
   page?: string
 }
 
@@ -130,38 +129,11 @@ interface Props {
     prixMin?: string
     prixMax?: string
     tri?: string
-    etat?: string
     page?: string
   }>
 }
 
 const PAGE_SIZE = 12
-
-function getConditionBucket(
-  etatGeneral:
-    | NonNullable<StrapiProduct['watchFile']>['etatGeneral']
-    | null
-    | undefined
-): string {
-  const summary = etatGeneral?.etatGeneralGlobal
-  if (!summary) return 'a-restaurer'
-
-  const values = [
-    summary.boitier?.pourcentage,
-    summary.cadran?.pourcentage,
-    summary.mouvement?.pourcentage,
-    summary.bracelet?.pourcentage,
-  ].filter((value): value is number => typeof value === 'number')
-
-  if (values.length === 0) return 'a-restaurer'
-
-  const avg = values.reduce((sum, value) => sum + value, 0) / values.length
-
-  if (avg >= 80) return 'excellent'
-  if (avg >= 60) return 'tres-bon'
-  if (avg >= 40) return 'bon'
-  return 'a-restaurer'
-}
 
 export const normalizeContainerWidth = (
   width: unknown
@@ -228,15 +200,7 @@ export function buildBoutiqueListing(
     return true
   })
 
-  const conditionFiltered =
-    filters.etat && filters.etat !== 'tous'
-      ? priceFiltered.filter(
-          (product) =>
-            getConditionBucket(product.watchFile?.etatGeneral) === filters.etat
-        )
-      : priceFiltered
-
-  const sorted = [...conditionFiltered].sort((a, b) => {
+  const sorted = [...priceFiltered].sort((a, b) => {
     if (filters.tri === 'prix-asc') return a.price - b.price
     if (filters.tri === 'prix-desc') return b.price - a.price
     return 0
@@ -296,7 +260,7 @@ const fetchShopLandingPage = async ({
 
 export default async function BoutiquePage({ params, searchParams }: Props) {
   const { locale } = await params
-  const { categorie, q, prixMin, prixMax, tri, etat, page } = await searchParams
+  const { categorie, q, prixMin, prixMax, tri, page } = await searchParams
 
   const shopPage = await fetchShopLandingPage({
     locale,
@@ -321,7 +285,6 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
     prixMin,
     prixMax,
     tri,
-    etat,
     page,
   })
 
@@ -330,7 +293,6 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
     prixMin ? `prixMin=${prixMin}` : '',
     prixMax ? `prixMax=${prixMax}` : '',
     tri ? `tri=${tri}` : '',
-    etat ? `etat=${etat}` : '',
     categorie ? `categorie=${categorie}` : '',
   ]
     .filter(Boolean)
@@ -391,7 +353,6 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
               <input type="hidden" name="prixMax" value={prixMax} />
             ) : null}
             {tri ? <input type="hidden" name="tri" value={tri} /> : null}
-            {etat ? <input type="hidden" name="etat" value={etat} /> : null}
             <input
               type="search"
               name="q"
@@ -417,7 +378,7 @@ export default async function BoutiquePage({ params, searchParams }: Props) {
           locale={locale}
           catalogueMin={catalogueMin}
           catalogueMax={catalogueMax}
-          currentParams={{ categorie, q, prixMin, prixMax, tri, etat }}
+          currentParams={{ categorie, q, prixMin, prixMax, tri }}
           categories={categories}
         />
 

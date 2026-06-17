@@ -87,11 +87,10 @@ describe('normalizeContainerWidth', () => {
 })
 
 describe('buildBoutiqueListing', () => {
-  it('filters by category, query, condition and sort order', () => {
+  it('filters by category, query and sort order', () => {
     const listing = buildBoutiqueListing(products as never, {
       categorie: 'vintage',
       q: 'cartier',
-      etat: 'excellent',
       tri: 'prix-desc',
     })
 
