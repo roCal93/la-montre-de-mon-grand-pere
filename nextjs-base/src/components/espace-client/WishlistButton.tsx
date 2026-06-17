@@ -9,7 +9,41 @@ interface WishlistButtonProps {
   className?: string
 }
 
-type WishlistItem = { documentId: string }
+type WishlistItem = {
+  documentId: string
+  product?:
+    | { documentId?: string }
+    | {
+        data?:
+          | { documentId?: string }
+          | { attributes?: { documentId?: string } }
+      }
+}
+
+function getWishlistProductDocumentId(item: WishlistItem): string | null {
+  const product = item.product
+  if (!product || typeof product !== 'object') return null
+
+  if ('documentId' in product && typeof product.documentId === 'string') {
+    return product.documentId
+  }
+
+  const wrapped = (product as { data?: unknown }).data
+  if (!wrapped || typeof wrapped !== 'object') return null
+
+  if (
+    'documentId' in wrapped &&
+    typeof (wrapped as { documentId?: unknown }).documentId === 'string'
+  ) {
+    return (wrapped as { documentId: string }).documentId
+  }
+
+  const attributes = (wrapped as { attributes?: { documentId?: string } })
+    .attributes
+  return typeof attributes?.documentId === 'string'
+    ? attributes.documentId
+    : null
+}
 
 export function WishlistButton({
   productDocumentId,
@@ -30,12 +64,9 @@ export function WishlistButton({
       .then((r) => r.json())
       .then((json: { data: WishlistItem[] }) => {
         const items = json?.data ?? []
-        // The server returns items with product.documentId populated
         const matched = items.find(
-          (i: WishlistItem & { product?: { documentId?: string } }) =>
-            (i as { product?: { documentId?: string } }).product?.documentId ===
-            productDocumentId
-        ) as (WishlistItem & { product?: { documentId?: string } }) | undefined
+          (item) => getWishlistProductDocumentId(item) === productDocumentId
+        )
         if (matched) {
           setIsFavorite(true)
           setWishlistItemId(matched.documentId)
@@ -61,6 +92,9 @@ export function WishlistButton({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ product: productDocumentId }),
         })
+        if (!res.ok) {
+          return
+        }
         const json = (await res.json()) as { data?: WishlistItem }
         if (json?.data?.documentId) {
           setIsFavorite(true)

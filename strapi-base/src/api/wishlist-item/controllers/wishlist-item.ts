@@ -75,7 +75,7 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
 
     const entry = await svc.create({
       data: {
-        customer: user.documentId ?? user.id,
+        customer: user.id,
         product: productId,
       },
       populate: ['product', 'product.images'],
