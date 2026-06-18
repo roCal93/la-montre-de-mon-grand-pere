@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
+const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN
 
 async function parseJsonSafe(res: Response): Promise<unknown> {
   const text = await res.text()
@@ -15,13 +15,6 @@ async function parseJsonSafe(res: Response): Promise<unknown> {
   }
 }
 
-async function getStrapiJwt(): Promise<string | null> {
-  const session = await auth()
-  if (!session) return null
-
-  return getStrapiSessionJwt()
-}
-
 /** GET /api/wishlist — list all wishlist items for the current user */
 export async function GET() {
   if (!STRAPI_URL) {
@@ -31,15 +24,16 @@ export async function GET() {
     )
   }
 
-  const strapiJwt = await getStrapiJwt()
-  if (!strapiJwt)
+  const session = await auth()
+  if (!session?.user?.id)
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
   const res = await fetch(
     `${STRAPI_URL}/api/wishlist-items?populate[product][populate]=images`,
     {
       headers: {
-        Authorization: `Bearer ${strapiJwt}`,
+        Authorization: `Bearer ${STRAPI_API_TOKEN}`,
+        'x-hakuna-customer-id': session.user.id,
       },
       cache: 'no-store',
     }
@@ -58,8 +52,8 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const strapiJwt = await getStrapiJwt()
-  if (!strapiJwt)
+  const session = await auth()
+  if (!session?.user?.id)
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
   const body = (await req.json().catch(() => null)) as {
@@ -73,7 +67,8 @@ export async function POST(req: NextRequest) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${strapiJwt}`,
+      Authorization: `Bearer ${STRAPI_API_TOKEN}`,
+      'x-hakuna-customer-id': session.user.id,
     },
     body: JSON.stringify({ data: { product: body.product } }),
   })

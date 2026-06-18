@@ -19,7 +19,9 @@ export function resolvePostLoginPath(locale: string, fromParam: string | null) {
   const dashboardPath = `/${locale}/espace-client/tableau-de-bord`
   const isSafeFromPath =
     !!fromParam &&
-    fromParam.startsWith(`/${locale}/espace-client/`) &&
+    fromParam.startsWith('/') &&
+    !fromParam.startsWith('//') &&
+    !fromParam.includes('://') &&
     !fromParam.endsWith('/connexion') &&
     !fromParam.endsWith('/inscription') &&
     !fromParam.endsWith('/mot-de-passe-oublie')

@@ -1,11 +1,35 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
-import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cleanImageUrl } from '@/lib/strapi'
 import { formatPrice } from '@/lib/currency'
 import { WishlistRemoveButton } from '@/components/espace-client/WishlistRemoveButton'
+
+async function fetchFavoris(
+  customerId: string
+): Promise<{ data: WishlistItem[] }> {
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  const apiToken = process.env.STRAPI_API_TOKEN
+  if (!strapiUrl) return { data: [] }
+  try {
+    const res = await fetch(
+      `${strapiUrl}/api/wishlist-items?populate[product][populate]=images`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          'x-hakuna-customer-id': customerId,
+        },
+        cache: 'no-store',
+      }
+    )
+    if (!res.ok) return { data: [] }
+    const json = (await res.json()) as { data?: WishlistItem[] }
+    return { data: json?.data ?? [] }
+  } catch {
+    return { data: [] }
+  }
+}
 
 interface Product {
   documentId: string
@@ -43,10 +67,6 @@ interface WishlistItem {
               }
             }
       }
-}
-
-interface StrapiList<T> {
-  data: T[]
 }
 
 function normalizeProduct(raw: WishlistItem['product']): Product | null {
@@ -116,12 +136,8 @@ export default async function FavorisPage({
 
   if (!session?.user?.id) redirect(`/${locale}/espace-client/connexion`)
 
-  const { data } = await strapiAuthGet<StrapiList<WishlistItem>>(
-    '/wishlist-items?populate[product][populate]=images',
-    0
-  )
+  const { data: items } = await fetchFavoris(session.user.id)
 
-  const items = data?.data ?? []
   const visibleItems = items
     .map((item) => ({
       item,

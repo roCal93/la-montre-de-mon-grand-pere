@@ -28,10 +28,19 @@ describe('resolvePostLoginPath', () => {
   })
 
   it('rejects paths outside the current locale espace-client area', () => {
+    // Other locale paths are now allowed (same site, just different locale)
     expect(resolvePostLoginPath('fr', '/en/espace-client/commandes')).toBe(
+      '/en/espace-client/commandes'
+    )
+    // Boutique paths are now allowed so users return to the watch they were viewing
+    expect(resolvePostLoginPath('fr', '/fr/boutique')).toBe('/fr/boutique')
+  })
+
+  it('rejects external and protocol-relative URLs', () => {
+    expect(resolvePostLoginPath('fr', 'https://evil.com')).toBe(
       '/fr/espace-client/tableau-de-bord'
     )
-    expect(resolvePostLoginPath('fr', '/fr/boutique')).toBe(
+    expect(resolvePostLoginPath('fr', '//evil.com/path')).toBe(
       '/fr/espace-client/tableau-de-bord'
     )
   })

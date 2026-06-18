@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
+const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN
 
 /** DELETE /api/wishlist/[id] — remove a wishlist item */
 export async function DELETE(
@@ -10,8 +10,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  const strapiJwt = await getStrapiSessionJwt()
-  if (!session || !strapiJwt) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
@@ -22,7 +21,8 @@ export async function DELETE(
   const res = await fetch(`${STRAPI_URL}/api/wishlist-items/${id}`, {
     method: 'DELETE',
     headers: {
-      Authorization: `Bearer ${strapiJwt}`,
+      Authorization: `Bearer ${STRAPI_API_TOKEN}`,
+      'x-hakuna-customer-id': session.user.id,
     },
   })
 

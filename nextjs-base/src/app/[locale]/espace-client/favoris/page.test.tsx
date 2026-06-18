@@ -1,25 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { getCurrentStrapiUserMock, redirectMock, strapiAuthGetMock } =
-  vi.hoisted(() => ({
-    getCurrentStrapiUserMock: vi.fn(),
-    redirectMock: vi.fn((url: string) => {
-      throw new Error(`REDIRECT:${url}`)
-    }),
-    strapiAuthGetMock: vi.fn(),
-  }))
+const { authMock, redirectMock, fetchMock } = vi.hoisted(() => ({
+  authMock: vi.fn(),
+  redirectMock: vi.fn((url: string) => {
+    throw new Error(`REDIRECT:${url}`)
+  }),
+  fetchMock: vi.fn(),
+}))
 
-vi.mock('@/lib/strapi-session-cookie', () => ({
-  getCurrentStrapiUser: getCurrentStrapiUserMock,
+vi.mock('@/auth', () => ({
+  auth: authMock,
 }))
 
 vi.mock('next/navigation', () => ({
   redirect: redirectMock,
 }))
 
-vi.mock('@/lib/strapi-auth-client', () => ({
-  strapiAuthGet: strapiAuthGetMock,
-}))
+vi.stubGlobal('fetch', fetchMock)
 
 vi.mock('@/lib/strapi', () => ({
   cleanImageUrl: (url: string | undefined) => url,
@@ -40,13 +37,15 @@ import FavorisPage from './page'
 
 describe('FavorisPage', () => {
   beforeEach(() => {
-    getCurrentStrapiUserMock.mockReset()
+    authMock.mockReset()
     redirectMock.mockClear()
-    strapiAuthGetMock.mockReset()
+    fetchMock.mockReset()
+    process.env.NEXT_PUBLIC_STRAPI_URL = 'http://localhost:1337'
+    process.env.STRAPI_API_TOKEN = 'test-token'
   })
 
   it('redirects unauthenticated users to login', async () => {
-    getCurrentStrapiUserMock.mockResolvedValue(null)
+    authMock.mockResolvedValue(null)
 
     await expect(
       FavorisPage({ params: Promise.resolve({ locale: 'fr' }) })
@@ -54,13 +53,12 @@ describe('FavorisPage', () => {
   })
 
   it('loads wishlist items for authenticated users', async () => {
-    getCurrentStrapiUserMock.mockResolvedValue({
-      id: 1,
-      email: 'client@example.com',
-      username: 'client',
+    authMock.mockResolvedValue({
+      user: { id: '1', email: 'client@example.com', name: 'client' },
     })
-    strapiAuthGetMock.mockResolvedValue({
-      data: {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
         data: [
           {
             documentId: 'wish_1',
@@ -74,16 +72,20 @@ describe('FavorisPage', () => {
             },
           },
         ],
-      },
+      }),
     })
 
     const result = await FavorisPage({
       params: Promise.resolve({ locale: 'fr' }),
     })
 
-    expect(strapiAuthGetMock).toHaveBeenCalledWith(
-      '/wishlist-items?populate[product][populate]=images',
-      0
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/wishlist-items'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'x-hakuna-customer-id': '1',
+        }),
+      })
     )
     expect(redirectMock).not.toHaveBeenCalled()
     expect(result).toBeTruthy()
