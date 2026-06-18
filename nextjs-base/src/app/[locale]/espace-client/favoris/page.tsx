@@ -10,23 +10,37 @@ import {
   getStrapiSessionJwt,
 } from '@/lib/strapi-session-cookie'
 
-async function fetchFavoris(
-  customerId: string
-): Promise<{ data: WishlistItem[] }> {
-  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
-  const apiToken = process.env.STRAPI_WRITE_API_TOKEN
-  if (!strapiUrl) return { data: [] }
+type ProductReference = {
+  id?: number
+  documentId?: string
+}
 
+async function getStrapiHeaders(
+  customerId: string
+): Promise<Record<string, string> | null> {
+  const apiToken = process.env.STRAPI_WRITE_API_TOKEN
   const strapiJwt = await getStrapiSessionJwt()
-  let headers: Record<string, string> | null = null
   if (strapiJwt) {
-    headers = { Authorization: `Bearer ${strapiJwt}` }
-  } else if (apiToken) {
-    headers = {
+    return { Authorization: `Bearer ${strapiJwt}` }
+  }
+
+  if (apiToken) {
+    return {
       Authorization: `Bearer ${apiToken}`,
       'x-hakuna-customer-id': customerId,
     }
   }
+
+  return null
+}
+
+async function fetchFavoris(
+  customerId: string
+): Promise<{ data: WishlistItem[] }> {
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  if (!strapiUrl) return { data: [] }
+
+  const headers = await getStrapiHeaders(customerId)
 
   if (!headers) return { data: [] }
 
@@ -43,6 +57,77 @@ async function fetchFavoris(
     return { data: json?.data ?? [] }
   } catch {
     return { data: [] }
+  }
+}
+
+function getWishlistProductReference(raw: WishlistItem['product']): ProductReference | null {
+  if (!raw || typeof raw !== 'object') return null
+
+  if ('documentId' in raw || 'id' in raw) {
+    const direct = raw as { documentId?: string; id?: number }
+    const ref: ProductReference = {
+      documentId: direct.documentId,
+      id: direct.id,
+    }
+    return ref.documentId || typeof ref.id === 'number' ? ref : null
+  }
+
+  const wrapped = (raw as { data?: unknown }).data
+  if (!wrapped || typeof wrapped !== 'object') return null
+
+  if ('documentId' in wrapped || 'id' in wrapped) {
+    const fromData = wrapped as { documentId?: string; id?: number }
+    const ref: ProductReference = {
+      documentId: fromData.documentId,
+      id: fromData.id,
+    }
+    return ref.documentId || typeof ref.id === 'number' ? ref : null
+  }
+
+  return null
+}
+
+async function fetchProductByReference(
+  ref: ProductReference,
+  customerId: string
+): Promise<Product | null> {
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  if (!strapiUrl) return null
+
+  const headers = await getStrapiHeaders(customerId)
+  if (!headers) return null
+
+  const imageFields =
+    'populate[images][fields][0]=url&populate[images][fields][1]=alternativeText'
+  const commonFields =
+    'fields[0]=documentId&fields[1]=name&fields[2]=slug&fields[3]=price&fields[4]=active'
+
+  let url: string | null = null
+  if (ref.documentId) {
+    url = `${strapiUrl}/api/products?filters[documentId][$eq]=${encodeURIComponent(ref.documentId)}&pagination[limit]=1&${commonFields}&${imageFields}`
+  } else if (typeof ref.id === 'number') {
+    url = `${strapiUrl}/api/products/${ref.id}?${commonFields}&${imageFields}`
+  }
+
+  if (!url) return null
+
+  try {
+    const res = await fetch(url, { headers, cache: 'no-store' })
+    if (!res.ok) return null
+
+    const json = (await res.json()) as
+      | { data?: Product[] }
+      | { data?: Product }
+      | null
+
+    const data = json?.data
+    if (Array.isArray(data)) {
+      return data[0] ?? null
+    }
+
+    return data ?? null
+  } catch {
+    return null
   }
 }
 
@@ -156,11 +241,24 @@ export default async function FavorisPage({
 
   const { data: items } = await fetchFavoris(customerId)
 
-  const visibleItems = items
-    .map((item) => ({
-      item,
-      product: normalizeProduct(item.product),
-    }))
+  const entriesWithHydration = await Promise.all(
+    items.map(async (item) => {
+      const normalized = normalizeProduct(item.product)
+      if (normalized?.slug) {
+        return { item, product: normalized }
+      }
+
+      const ref = getWishlistProductReference(item.product)
+      if (!ref) {
+        return { item, product: null }
+      }
+
+      const hydrated = await fetchProductByReference(ref, customerId)
+      return { item, product: hydrated }
+    })
+  )
+
+  const visibleItems = entriesWithHydration
     .filter((entry): entry is { item: WishlistItem; product: Product } =>
       Boolean(entry.product?.slug)
     )

@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { getCurrentStrapiUserMock } = vi.hoisted(() => ({
+const { getCurrentStrapiUserMock, authMock } = vi.hoisted(() => ({
   getCurrentStrapiUserMock: vi.fn(),
+  authMock: vi.fn(),
+}))
+
+vi.mock('@/auth', () => ({
+  auth: authMock,
 }))
 
 vi.mock('@/lib/strapi-session-cookie', () => ({
@@ -33,6 +38,8 @@ import EspaceClientLayout, { generateMetadata } from './layout'
 describe('EspaceClientLayout', () => {
   beforeEach(() => {
     getCurrentStrapiUserMock.mockReset()
+    authMock.mockReset()
+    authMock.mockResolvedValue(null)
   })
 
   it('returns public metadata in french and english', async () => {
