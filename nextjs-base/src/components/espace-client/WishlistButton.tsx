@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 
 interface WishlistButtonProps {
@@ -49,7 +48,6 @@ export function WishlistButton({
   productDocumentId,
   className = '',
 }: WishlistButtonProps) {
-  const { status } = useSession()
   const pathname = usePathname()
   const locale = pathname.split('/')[1] === 'en' ? 'en' : 'fr'
 
@@ -57,42 +55,74 @@ export function WishlistButton({
   const [wishlistItemId, setWishlistItemId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  useEffect(() => {
-    if (status !== 'authenticated') return
+  const normalizedProductDocumentId = productDocumentId?.trim() ?? ''
 
-    fetch('/api/wishlist')
-      .then((r) => r.json())
+  const redirectToLogin = () => {
+    window.location.href = `/${locale}/espace-client/connexion?from=${encodeURIComponent(pathname)}`
+  }
+
+  useEffect(() => {
+    if (!normalizedProductDocumentId) {
+      setIsFavorite(false)
+      setWishlistItemId(null)
+      return
+    }
+
+    fetch('/api/wishlist', { cache: 'no-store' })
+      .then(async (r) => {
+        if (!r.ok) return { data: [] as WishlistItem[] }
+        return (await r.json()) as { data: WishlistItem[] }
+      })
       .then((json: { data: WishlistItem[] }) => {
         const items = json?.data ?? []
         const matched = items.find(
-          (item) => getWishlistProductDocumentId(item) === productDocumentId
+          (item) =>
+            getWishlistProductDocumentId(item) === normalizedProductDocumentId
         )
         if (matched) {
           setIsFavorite(true)
           setWishlistItemId(matched.documentId)
+        } else {
+          setIsFavorite(false)
+          setWishlistItemId(null)
         }
       })
       .catch(() => {})
-  }, [status, productDocumentId])
+  }, [normalizedProductDocumentId])
 
   const toggle = () => {
-    if (status !== 'authenticated') {
-      window.location.href = `/${locale}/espace-client/connexion?from=${encodeURIComponent(pathname)}`
+    if (!normalizedProductDocumentId) {
+      console.warn('[wishlist] product documentId manquant')
       return
     }
 
     startTransition(async () => {
       if (isFavorite && wishlistItemId) {
-        await fetch(`/api/wishlist/${wishlistItemId}`, { method: 'DELETE' })
+        const res = await fetch(`/api/wishlist/${wishlistItemId}`, {
+          method: 'DELETE',
+        })
+        if (res.status === 401) {
+          redirectToLogin()
+          return
+        }
+        if (!res.ok) return
         setIsFavorite(false)
         setWishlistItemId(null)
       } else {
         const res = await fetch('/api/wishlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product: productDocumentId }),
+          body: JSON.stringify({ product: normalizedProductDocumentId }),
         })
+        if (res.status === 401) {
+          redirectToLogin()
+          return
+        }
         if (!res.ok) {
+          const errorPayload = await res
+            .json()
+            .catch(() => ({ error: 'Erreur inconnue' }))
+          console.warn('[wishlist] add failed', errorPayload)
           return
         }
         const json = (await res.json()) as { data?: WishlistItem }
@@ -107,7 +137,7 @@ export function WishlistButton({
   return (
     <button
       onClick={toggle}
-      disabled={isPending}
+      disabled={isPending || !normalizedProductDocumentId}
       aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
       title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
       className={[

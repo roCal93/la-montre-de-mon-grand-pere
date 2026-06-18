@@ -5,7 +5,10 @@ import Image from 'next/image'
 import { cleanImageUrl } from '@/lib/strapi'
 import { formatPrice } from '@/lib/currency'
 import { WishlistRemoveButton } from '@/components/espace-client/WishlistRemoveButton'
-import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
+import {
+  getCurrentStrapiUser,
+  getStrapiSessionJwt,
+} from '@/lib/strapi-session-cookie'
 
 async function fetchFavoris(
   customerId: string
@@ -145,10 +148,13 @@ export default async function FavorisPage({
 }) {
   const { locale } = await params
   const session = await auth()
+  const strapiUser = await getCurrentStrapiUser()
+  const customerId =
+    session?.user?.id ?? (strapiUser ? String(strapiUser.id) : null)
 
-  if (!session?.user?.id) redirect(`/${locale}/espace-client/connexion`)
+  if (!customerId) redirect(`/${locale}/espace-client/connexion`)
 
-  const { data: items } = await fetchFavoris(session.user.id)
+  const { data: items } = await fetchFavoris(customerId)
 
   const visibleItems = items
     .map((item) => ({

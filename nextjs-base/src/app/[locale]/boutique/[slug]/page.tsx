@@ -399,6 +399,7 @@ async function getProduct(
     url.searchParams.set('fields[2]', 'price')
     url.searchParams.set('fields[3]', 'compareAtPrice')
     url.searchParams.set('fields[4]', 'active')
+    url.searchParams.set('fields[5]', 'documentId')
 
     url.searchParams.set(
       'populate[watchFile][populate][publicBeforeImage][fields][0]',

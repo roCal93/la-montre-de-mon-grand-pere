@@ -1,14 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { authMock, redirectMock, fetchMock, getStrapiSessionJwtMock } =
-  vi.hoisted(() => ({
-    authMock: vi.fn(),
-    redirectMock: vi.fn((url: string) => {
-      throw new Error(`REDIRECT:${url}`)
-    }),
-    fetchMock: vi.fn(),
-    getStrapiSessionJwtMock: vi.fn(),
-  }))
+const {
+  authMock,
+  redirectMock,
+  fetchMock,
+  getStrapiSessionJwtMock,
+  getCurrentStrapiUserMock,
+} = vi.hoisted(() => ({
+  authMock: vi.fn(),
+  redirectMock: vi.fn((url: string) => {
+    throw new Error(`REDIRECT:${url}`)
+  }),
+  fetchMock: vi.fn(),
+  getStrapiSessionJwtMock: vi.fn(),
+  getCurrentStrapiUserMock: vi.fn(),
+}))
 
 vi.mock('@/auth', () => ({
   auth: authMock,
@@ -20,6 +26,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/strapi-session-cookie', () => ({
   getStrapiSessionJwt: getStrapiSessionJwtMock,
+  getCurrentStrapiUser: getCurrentStrapiUserMock,
 }))
 
 vi.stubGlobal('fetch', fetchMock)
@@ -48,6 +55,8 @@ describe('FavorisPage', () => {
     fetchMock.mockReset()
     getStrapiSessionJwtMock.mockReset()
     getStrapiSessionJwtMock.mockResolvedValue(null)
+    getCurrentStrapiUserMock.mockReset()
+    getCurrentStrapiUserMock.mockResolvedValue(null)
     process.env.NEXT_PUBLIC_STRAPI_URL = 'http://localhost:1337'
     process.env.STRAPI_WRITE_API_TOKEN = 'test-token'
   })
