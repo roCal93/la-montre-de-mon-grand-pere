@@ -7,6 +7,22 @@ import {
 } from '@/lib/strapi-login'
 import { STRAPI_SESSION_COOKIE } from '@/lib/strapi-session-cookie'
 
+function resolveAuthCookieDomain() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  if (!siteUrl) return undefined
+
+  try {
+    const hostname = new URL(siteUrl).hostname
+    if (!hostname || hostname === 'localhost' || !hostname.includes('.')) {
+      return undefined
+    }
+
+    return hostname.startsWith('www.') ? hostname.slice(4) : hostname
+  } catch {
+    return undefined
+  }
+}
+
 function getCookieValue(cookieHeader: string | null, name: string) {
   if (!cookieHeader) return null
 
@@ -135,6 +151,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // (e.g. after a Strapi password change) expires within hours, not 30 days.
     maxAge: 8 * 60 * 60, // 8 hours
     updateAge: 60 * 60, // Re-issue JWT every hour of activity
+  },
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-authjs.session-token'
+          : 'authjs.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        ...(resolveAuthCookieDomain()
+          ? { domain: resolveAuthCookieDomain() }
+          : {}),
+      },
+    },
   },
   callbacks: {
     async jwt({ token, user }) {
