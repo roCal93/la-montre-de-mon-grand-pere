@@ -100,13 +100,28 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     const customerFilter = buildCustomerFilter(customer)
     if (!customerFilter) return ctx.unauthorized('Authentification requise')
 
+    // Use strapi.db.query (Query Engine) instead of strapi.documents().findMany()
+    // because product is a localized content type (i18n.localized: true).
+    // strapi.documents().findMany() cannot resolve which locale to use when populating
+    // a localized relation from a non-localized parent → returns product: null.
+    // strapi.db.query() operates at DB level, bypassing locale resolution entirely.
+    const customerConditions: Array<Record<string, unknown>> = []
+    if (customer.id) customerConditions.push({ customer: { id: customer.id } })
+    if (customer.documentId) customerConditions.push({ customer: { documentId: customer.documentId } })
+
+    const customerWhere = customerConditions.length === 1
+      ? customerConditions[0]
+      : { $or: customerConditions }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const entries = await (strapi.documents(MODEL_UID) as any).findMany({
-      filters: customerFilter,
+    const entries = await (strapi.db.query(MODEL_UID) as any).findMany({
+      where: customerWhere,
       populate: {
         product: {
+          where: { publishedAt: { $notNull: true } },
           populate: { images: true },
         },
+        customer: true,
       },
     })
 
@@ -148,10 +163,24 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
       return { data: existing[0] }
     }
 
+    // Strapi v5 Documents API requires relations via { connect } syntax.
+    // Passing a plain string/number directly silently stores null for the relation.
+    const productRefStr = String(productRef).trim()
+    const productNumericId = Number.parseInt(productRefStr, 10)
+    const productConnect =
+      Number.isFinite(productNumericId) && String(productNumericId) === productRefStr
+        ? [{ id: productNumericId }]
+        : [{ documentId: productRefStr }]
+
+    const customerConnect =
+      customer.id
+        ? [{ id: customer.id }]
+        : [{ documentId: customer.documentId! }]
+
     const entry = await svc.create({
       data: {
-        customer: customer.id ?? customer.documentId,
-        product: String(productRef),
+        customer: { connect: customerConnect },
+        product: { connect: productConnect },
       },
       populate: {
         product: {
