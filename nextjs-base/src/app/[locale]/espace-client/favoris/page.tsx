@@ -26,17 +26,21 @@ type ProductReference = {
 async function getStrapiHeaders(
   customerId: string
 ): Promise<Record<string, string> | null> {
+  // Prefer Strapi JWT: uses the authenticated user's own token, no API token
+  // permission config needed in Strapi admin (Authenticated role is enough).
+  const strapiJwt = await getStrapiSessionJwt()
+  if (strapiJwt) {
+    return { Authorization: `Bearer ${strapiJwt}` }
+  }
+
+  // Fallback: server-to-server API token with customer identity header.
+  // Requires the API token to have find/create/delete permissions in Strapi admin.
   const apiToken = process.env.STRAPI_WRITE_API_TOKEN
   if (apiToken) {
     return {
       Authorization: `Bearer ${apiToken}`,
       'x-hakuna-customer-id': customerId,
     }
-  }
-
-  const strapiJwt = await getStrapiSessionJwt()
-  if (strapiJwt) {
-    return { Authorization: `Bearer ${strapiJwt}` }
   }
 
   return null
@@ -60,10 +64,18 @@ async function fetchFavoris(
         cache: 'no-store',
       }
     )
-    if (!res.ok) return { data: [] }
+    if (!res.ok) {
+      console.error(
+        '[favoris] Strapi wishlist-items error',
+        res.status,
+        await res.text().catch(() => '')
+      )
+      return { data: [] }
+    }
     const json = (await res.json()) as { data?: WishlistItem[] }
     return { data: json?.data ?? [] }
-  } catch {
+  } catch (err) {
+    console.error('[favoris] fetchFavoris exception', err)
     return { data: [] }
   }
 }

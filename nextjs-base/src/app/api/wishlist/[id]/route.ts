@@ -19,20 +19,20 @@ async function safeAuth() {
 async function buildStrapiHeaders(
   customerId: string
 ): Promise<Record<string, string> | null> {
+  // Prefer Strapi JWT: uses the authenticated user's own token, no API token
+  // permission config needed in Strapi admin (Authenticated role is enough).
+  const strapiJwt = await getStrapiSessionJwt()
+  if (strapiJwt) {
+    return { Authorization: `Bearer ${strapiJwt}` }
+  }
+
+  // Fallback: server-to-server API token with customer identity header.
+  // Requires the API token to have find/create/delete permissions in Strapi admin.
   if (STRAPI_API_TOKEN) {
-    const headers: Record<string, string> = {
+    return {
       Authorization: `Bearer ${STRAPI_API_TOKEN}`,
       'x-hakuna-customer-id': customerId,
     }
-    return headers
-  }
-
-  const strapiJwt = await getStrapiSessionJwt()
-  if (strapiJwt) {
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${strapiJwt}`,
-    }
-    return headers
   }
 
   return null
