@@ -19,16 +19,16 @@ async function getStrapiHeaders(
   customerId: string
 ): Promise<Record<string, string> | null> {
   const apiToken = process.env.STRAPI_WRITE_API_TOKEN
-  const strapiJwt = await getStrapiSessionJwt()
-  if (strapiJwt) {
-    return { Authorization: `Bearer ${strapiJwt}` }
-  }
-
   if (apiToken) {
     return {
       Authorization: `Bearer ${apiToken}`,
       'x-hakuna-customer-id': customerId,
     }
+  }
+
+  const strapiJwt = await getStrapiSessionJwt()
+  if (strapiJwt) {
+    return { Authorization: `Bearer ${strapiJwt}` }
   }
 
   return null

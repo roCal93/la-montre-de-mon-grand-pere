@@ -22,18 +22,18 @@ async function parseJsonSafe(res: Response): Promise<unknown> {
 async function buildStrapiHeaders(
   customerId: string
 ): Promise<Record<string, string> | null> {
-  const strapiJwt = await getStrapiSessionJwt()
-  if (strapiJwt) {
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${strapiJwt}`,
-    }
-    return headers
-  }
-
   if (STRAPI_API_TOKEN) {
     const headers: Record<string, string> = {
       Authorization: `Bearer ${STRAPI_API_TOKEN}`,
       'x-hakuna-customer-id': customerId,
+    }
+    return headers
+  }
+
+  const strapiJwt = await getStrapiSessionJwt()
+  if (strapiJwt) {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${strapiJwt}`,
     }
     return headers
   }
