@@ -10,6 +10,14 @@ import {
   getStrapiSessionJwt,
 } from '@/lib/strapi-session-cookie'
 
+async function safeAuth() {
+  try {
+    return await auth()
+  } catch {
+    return null
+  }
+}
+
 type ProductReference = {
   id?: number
   documentId?: string
@@ -254,7 +262,7 @@ export default async function FavorisPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const session = await auth()
+  const session = await safeAuth()
   const strapiUser = await getCurrentStrapiUser()
   const customerId =
     session?.user?.id ?? (strapiUser ? String(strapiUser.id) : null)

@@ -5,6 +5,14 @@ import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
 import type { Metadata } from 'next'
 
+async function safeAuth() {
+  try {
+    return await auth()
+  } catch {
+    return null
+  }
+}
+
 interface Props {
   children: React.ReactNode
   params: Promise<{ locale: string }>
@@ -24,7 +32,7 @@ export async function generateMetadata({
 export default async function EspaceClientLayout({ children, params }: Props) {
   const { locale } = await params
   const strapiUser = await getCurrentStrapiUser()
-  const session = await auth()
+  const session = await safeAuth()
   const displayEmail = strapiUser?.email ?? session?.user?.email ?? null
 
   if (!displayEmail) {
