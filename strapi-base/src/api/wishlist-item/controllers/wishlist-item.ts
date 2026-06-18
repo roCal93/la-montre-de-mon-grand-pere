@@ -17,6 +17,26 @@ function getCustomerIdentity(ctx: {
   state: { user?: { id?: number | string; documentId?: string } | null }
   request: { header: Record<string, string | string[] | undefined> }
 }): CustomerIdentity | null {
+  const headerValue = ctx.request.header['x-hakuna-customer-id']
+  const normalizedHeader = Array.isArray(headerValue)
+    ? headerValue[0]
+    : headerValue
+  const parsedHeaderId = Number.parseInt(normalizedHeader ?? '', 10)
+  if (Number.isFinite(parsedHeaderId) && parsedHeaderId > 0) {
+    return { id: parsedHeaderId }
+  }
+
+  const documentHeader = ctx.request.header['x-hakuna-customer-document-id']
+  const normalizedDocumentHeader = Array.isArray(documentHeader)
+    ? documentHeader[0]
+    : documentHeader
+  if (
+    typeof normalizedDocumentHeader === 'string' &&
+    normalizedDocumentHeader.trim()
+  ) {
+    return { documentId: normalizedDocumentHeader.trim() }
+  }
+
   const userId = ctx.state.user?.id
   if (typeof userId === 'number' && userId > 0) {
     return {
@@ -36,23 +56,6 @@ function getCustomerIdentity(ctx: {
     }
 
     return { documentId: normalized }
-  }
-
-  const headerValue = ctx.request.header['x-hakuna-customer-id']
-  const normalizedHeader = Array.isArray(headerValue)
-    ? headerValue[0]
-    : headerValue
-  const parsed = Number.parseInt(normalizedHeader ?? '', 10)
-  if (Number.isFinite(parsed) && parsed > 0) {
-    return { id: parsed }
-  }
-
-  const documentHeader = ctx.request.header['x-hakuna-customer-document-id']
-  const normalizedDocumentHeader = Array.isArray(documentHeader)
-    ? documentHeader[0]
-    : documentHeader
-  if (typeof normalizedDocumentHeader === 'string' && normalizedDocumentHeader.trim()) {
-    return { documentId: normalizedDocumentHeader.trim() }
   }
 
   return null
