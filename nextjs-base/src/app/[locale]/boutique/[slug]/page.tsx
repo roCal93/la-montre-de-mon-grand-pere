@@ -737,7 +737,10 @@ export default async function ProductPage({ params }: Props) {
                           null,
                       }}
                     />
-                    <WishlistButton productDocumentId={product.documentId} />
+                    <WishlistButton
+                      productDocumentId={product.documentId}
+                      productId={product.id}
+                    />
                   </div>
                 )}
 

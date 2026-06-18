@@ -55,6 +55,35 @@ async function resolveCustomerId(): Promise<string | null> {
   return null
 }
 
+async function resolveProductReference(
+  product: string | undefined,
+  productId: number | undefined
+): Promise<string | null> {
+  const normalizedProduct = product?.trim()
+  if (normalizedProduct) return normalizedProduct
+
+  if (!Number.isFinite(productId) || !STRAPI_URL) return null
+
+  const token = STRAPI_API_TOKEN
+  const res = await fetch(
+    `${STRAPI_URL}/api/products/${productId}?fields[0]=documentId`,
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      cache: 'no-store',
+    }
+  )
+
+  if (!res.ok) return null
+
+  const json = (await parseJsonSafe(res)) as {
+    data?: { documentId?: string } | null
+  } | null
+  const documentId = json?.data?.documentId
+  return typeof documentId === 'string' && documentId.trim()
+    ? documentId.trim()
+    : null
+}
+
 /** GET /api/wishlist — list all wishlist items for the current user */
 export async function GET() {
   if (!STRAPI_URL) {
@@ -111,8 +140,14 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json().catch(() => null)) as {
     product?: string
+    productId?: number
   } | null
-  if (!body?.product) {
+
+  const productRef = await resolveProductReference(
+    body?.product,
+    body?.productId
+  )
+  if (!productRef) {
     return NextResponse.json({ error: 'product requis' }, { status: 400 })
   }
 
@@ -122,7 +157,7 @@ export async function POST(req: NextRequest) {
       'Content-Type': 'application/json',
       ...headers,
     },
-    body: JSON.stringify({ data: { product: body.product } }),
+    body: JSON.stringify({ data: { product: productRef } }),
   })
 
   const json = await parseJsonSafe(res)

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 
 interface WishlistButtonProps {
   productDocumentId: string
+  productId?: number
   className?: string
 }
 
@@ -46,6 +47,7 @@ function getWishlistProductDocumentId(item: WishlistItem): string | null {
 
 export function WishlistButton({
   productDocumentId,
+  productId,
   className = '',
 }: WishlistButtonProps) {
   const pathname = usePathname()
@@ -112,7 +114,10 @@ export function WishlistButton({
         const res = await fetch('/api/wishlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product: normalizedProductDocumentId }),
+          body: JSON.stringify({
+            product: normalizedProductDocumentId,
+            productId,
+          }),
         })
         if (res.status === 401) {
           redirectToLogin()
