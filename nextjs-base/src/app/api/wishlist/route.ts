@@ -84,6 +84,79 @@ async function resolveProductReference(
     : null
 }
 
+async function resolveProductCandidates(
+  product: string | undefined,
+  productId: number | undefined
+): Promise<Array<string | number>> {
+  const candidates: Array<string | number> = []
+  const pushCandidate = (value: string | number | null | undefined) => {
+    if (typeof value === 'string') {
+      const normalized = value.trim()
+      if (!normalized) return
+      if (!candidates.some((item) => String(item) === normalized)) {
+        candidates.push(normalized)
+      }
+      return
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      if (!candidates.some((item) => String(item) === String(value))) {
+        candidates.push(value)
+      }
+    }
+  }
+
+  const normalizedProduct = product?.trim()
+  pushCandidate(normalizedProduct)
+  pushCandidate(productId)
+
+  if (!STRAPI_URL) return candidates
+
+  // If we only have an id, resolve documentId.
+  if (
+    !normalizedProduct &&
+    typeof productId === 'number' &&
+    Number.isFinite(productId)
+  ) {
+    const token = STRAPI_API_TOKEN
+    const byIdRes = await fetch(
+      `${STRAPI_URL}/api/products/${productId}?fields[0]=documentId`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        cache: 'no-store',
+      }
+    ).catch(() => null)
+
+    if (byIdRes?.ok) {
+      const byIdJson = (await parseJsonSafe(byIdRes)) as {
+        data?: { documentId?: string } | null
+      } | null
+      pushCandidate(byIdJson?.data?.documentId)
+    }
+  }
+
+  // If we have a documentId-like value, resolve numeric id.
+  if (normalizedProduct && /[^0-9]/.test(normalizedProduct)) {
+    const token = STRAPI_API_TOKEN
+    const byDocumentIdRes = await fetch(
+      `${STRAPI_URL}/api/products?filters[documentId][$eq]=${encodeURIComponent(normalizedProduct)}&pagination[limit]=1&fields[0]=documentId`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        cache: 'no-store',
+      }
+    ).catch(() => null)
+
+    if (byDocumentIdRes?.ok) {
+      const byDocumentIdJson = (await parseJsonSafe(byDocumentIdRes)) as {
+        data?: Array<{ id?: number }>
+      } | null
+      pushCandidate(byDocumentIdJson?.data?.[0]?.id)
+    }
+  }
+
+  return candidates
+}
+
 /** GET /api/wishlist — list all wishlist items for the current user */
 export async function GET() {
   if (!STRAPI_URL) {
@@ -147,19 +220,40 @@ export async function POST(req: NextRequest) {
     body?.product,
     body?.productId
   )
-  if (!productRef) {
+  const productCandidates = await resolveProductCandidates(
+    productRef ?? body?.product,
+    body?.productId
+  )
+  if (productCandidates.length === 0) {
     return NextResponse.json({ error: 'product requis' }, { status: 400 })
   }
 
-  const res = await fetch(`${STRAPI_URL}/api/wishlist-items`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-    body: JSON.stringify({ data: { product: productRef } }),
-  })
+  let lastStatus = 400
+  let lastPayload: unknown = { error: 'product requis' }
 
-  const json = await parseJsonSafe(res)
-  return NextResponse.json(json, { status: res.ok ? 201 : res.status })
+  for (const candidate of productCandidates) {
+    const res = await fetch(`${STRAPI_URL}/api/wishlist-items`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: JSON.stringify({ data: { product: candidate } }),
+    })
+
+    const json = await parseJsonSafe(res)
+    if (res.ok) {
+      return NextResponse.json(json, { status: 201 })
+    }
+
+    // Keep trying if it's a product-reference validation issue.
+    if (res.status !== 400) {
+      return NextResponse.json(json, { status: res.status })
+    }
+
+    lastStatus = res.status
+    lastPayload = json
+  }
+
+  return NextResponse.json(lastPayload, { status: lastStatus })
 }

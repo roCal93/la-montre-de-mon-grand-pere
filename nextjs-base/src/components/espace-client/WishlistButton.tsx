@@ -58,17 +58,15 @@ export function WishlistButton({
   const [isPending, startTransition] = useTransition()
 
   const normalizedProductDocumentId = productDocumentId?.trim() ?? ''
+  const canUseWishlist = normalizedProductDocumentId.length > 0
+  const effectiveIsFavorite = canUseWishlist ? isFavorite : false
 
   const redirectToLogin = () => {
     window.location.href = `/${locale}/espace-client/connexion?from=${encodeURIComponent(pathname)}`
   }
 
   useEffect(() => {
-    if (!normalizedProductDocumentId) {
-      setIsFavorite(false)
-      setWishlistItemId(null)
-      return
-    }
+    if (!normalizedProductDocumentId) return
 
     fetch('/api/wishlist', { cache: 'no-store' })
       .then(async (r) => {
@@ -93,7 +91,7 @@ export function WishlistButton({
   }, [normalizedProductDocumentId])
 
   const toggle = () => {
-    if (!normalizedProductDocumentId) {
+    if (!canUseWishlist) {
       console.warn('[wishlist] product documentId manquant')
       return
     }
@@ -142,12 +140,16 @@ export function WishlistButton({
   return (
     <button
       onClick={toggle}
-      disabled={isPending || !normalizedProductDocumentId}
-      aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-      title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+      disabled={isPending || !canUseWishlist}
+      aria-label={
+        effectiveIsFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'
+      }
+      title={
+        effectiveIsFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'
+      }
       className={[
         'flex items-center justify-center transition-opacity disabled:opacity-50',
-        isFavorite
+        effectiveIsFavorite
           ? 'text-stone-900 dark:text-white'
           : 'text-stone-300 hover:text-stone-700 dark:text-neutral-500 dark:hover:text-neutral-200',
         className,
@@ -156,8 +158,8 @@ export function WishlistButton({
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        fill={isFavorite ? '#9ca3af' : 'none'}
-        stroke={isFavorite ? '#111827' : 'currentColor'}
+        fill={effectiveIsFavorite ? '#9ca3af' : 'none'}
+        stroke={effectiveIsFavorite ? '#111827' : 'currentColor'}
         strokeWidth={1.5}
         className="h-8 w-8"
       >

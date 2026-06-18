@@ -23,16 +23,6 @@ function isAuthCookieName(name: string) {
   return AUTH_COOKIE_NAMES.some((baseName) => name.startsWith(`${baseName}.`))
 }
 
-function buildExpireOptions(name: string) {
-  return {
-    name,
-    value: '',
-    path: '/',
-    maxAge: 0,
-    secure: name.startsWith('__Secure-') || name.startsWith('__Host-'),
-  }
-}
-
 function supportsDomainAttribute(name: string) {
   return !name.startsWith('__Host-')
 }
