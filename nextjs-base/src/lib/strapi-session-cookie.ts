@@ -24,6 +24,9 @@ async function getStrapiJwtFromNextAuthToken(): Promise<string | null> {
   const tokenValue =
     cookieStore.get('__Secure-authjs.session-token')?.value ??
     cookieStore.get('authjs.session-token')?.value
+  const tokenSalt = cookieStore.get('__Secure-authjs.session-token')?.value
+    ? '__Secure-authjs.session-token'
+    : 'authjs.session-token'
 
   if (!tokenValue) return null
 
@@ -31,12 +34,27 @@ async function getStrapiJwtFromNextAuthToken(): Promise<string | null> {
     const decoded = await decode({
       token: tokenValue,
       secret,
-      salt: '__Secure-authjs.session-token',
+      salt: tokenSalt,
     })
     const jwt = (decoded as Record<string, unknown>)?.strapiJwt
     return typeof jwt === 'string' ? jwt : null
   } catch {
-    return null
+    // Some environments rotate between secure and non-secure cookie names.
+    // Try the alternate salt before giving up.
+    try {
+      const decoded = await decode({
+        token: tokenValue,
+        secret,
+        salt:
+          tokenSalt === '__Secure-authjs.session-token'
+            ? 'authjs.session-token'
+            : '__Secure-authjs.session-token',
+      })
+      const jwt = (decoded as Record<string, unknown>)?.strapiJwt
+      return typeof jwt === 'string' ? jwt : null
+    } catch {
+      return null
+    }
   }
 }
 

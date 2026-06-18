@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { cleanImageUrl } from '@/lib/strapi'
 import { formatPrice } from '@/lib/currency'
 import { WishlistRemoveButton } from '@/components/espace-client/WishlistRemoveButton'
+import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 async function fetchFavoris(
   customerId: string
@@ -12,14 +13,25 @@ async function fetchFavoris(
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const apiToken = process.env.STRAPI_WRITE_API_TOKEN
   if (!strapiUrl) return { data: [] }
+
+  const strapiJwt = await getStrapiSessionJwt()
+  let headers: Record<string, string> | null = null
+  if (strapiJwt) {
+    headers = { Authorization: `Bearer ${strapiJwt}` }
+  } else if (apiToken) {
+    headers = {
+      Authorization: `Bearer ${apiToken}`,
+      'x-hakuna-customer-id': customerId,
+    }
+  }
+
+  if (!headers) return { data: [] }
+
   try {
     const res = await fetch(
       `${strapiUrl}/api/wishlist-items?populate[product][populate]=images`,
       {
-        headers: {
-          Authorization: `Bearer ${apiToken}`,
-          'x-hakuna-customer-id': customerId,
-        },
+        headers,
         cache: 'no-store',
       }
     )

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 const STRAPI_API_TOKEN = process.env.STRAPI_WRITE_API_TOKEN
@@ -15,6 +16,28 @@ async function parseJsonSafe(res: Response): Promise<unknown> {
   }
 }
 
+async function buildStrapiHeaders(
+  customerId: string
+): Promise<Record<string, string> | null> {
+  const strapiJwt = await getStrapiSessionJwt()
+  if (strapiJwt) {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${strapiJwt}`,
+    }
+    return headers
+  }
+
+  if (STRAPI_API_TOKEN) {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${STRAPI_API_TOKEN}`,
+      'x-hakuna-customer-id': customerId,
+    }
+    return headers
+  }
+
+  return null
+}
+
 /** GET /api/wishlist — list all wishlist items for the current user */
 export async function GET() {
   if (!STRAPI_URL) {
@@ -28,13 +51,18 @@ export async function GET() {
   if (!session?.user?.id)
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
+  const headers = await buildStrapiHeaders(session.user.id)
+  if (!headers) {
+    return NextResponse.json(
+      { error: 'STRAPI_WRITE_API_TOKEN manquant' },
+      { status: 500 }
+    )
+  }
+
   const res = await fetch(
     `${STRAPI_URL}/api/wishlist-items?populate[product][populate]=images`,
     {
-      headers: {
-        Authorization: `Bearer ${STRAPI_API_TOKEN}`,
-        'x-hakuna-customer-id': session.user.id,
-      },
+      headers,
       cache: 'no-store',
     }
   )
@@ -56,6 +84,14 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id)
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
+  const headers = await buildStrapiHeaders(session.user.id)
+  if (!headers) {
+    return NextResponse.json(
+      { error: 'STRAPI_WRITE_API_TOKEN manquant' },
+      { status: 500 }
+    )
+  }
+
   const body = (await req.json().catch(() => null)) as {
     product?: string
   } | null
@@ -67,8 +103,7 @@ export async function POST(req: NextRequest) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${STRAPI_API_TOKEN}`,
-      'x-hakuna-customer-id': session.user.id,
+      ...headers,
     },
     body: JSON.stringify({ data: { product: body.product } }),
   })

@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { authMock, redirectMock, fetchMock } = vi.hoisted(() => ({
-  authMock: vi.fn(),
-  redirectMock: vi.fn((url: string) => {
-    throw new Error(`REDIRECT:${url}`)
-  }),
-  fetchMock: vi.fn(),
-}))
+const { authMock, redirectMock, fetchMock, getStrapiSessionJwtMock } =
+  vi.hoisted(() => ({
+    authMock: vi.fn(),
+    redirectMock: vi.fn((url: string) => {
+      throw new Error(`REDIRECT:${url}`)
+    }),
+    fetchMock: vi.fn(),
+    getStrapiSessionJwtMock: vi.fn(),
+  }))
 
 vi.mock('@/auth', () => ({
   auth: authMock,
@@ -14,6 +16,10 @@ vi.mock('@/auth', () => ({
 
 vi.mock('next/navigation', () => ({
   redirect: redirectMock,
+}))
+
+vi.mock('@/lib/strapi-session-cookie', () => ({
+  getStrapiSessionJwt: getStrapiSessionJwtMock,
 }))
 
 vi.stubGlobal('fetch', fetchMock)
@@ -40,6 +46,8 @@ describe('FavorisPage', () => {
     authMock.mockReset()
     redirectMock.mockClear()
     fetchMock.mockReset()
+    getStrapiSessionJwtMock.mockReset()
+    getStrapiSessionJwtMock.mockResolvedValue(null)
     process.env.NEXT_PUBLIC_STRAPI_URL = 'http://localhost:1337'
     process.env.STRAPI_WRITE_API_TOKEN = 'test-token'
   })
