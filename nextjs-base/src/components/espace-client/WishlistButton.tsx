@@ -12,6 +12,8 @@ interface WishlistButtonProps {
 type WishlistItem = {
   documentId: string
   product?:
+    | string
+    | number
     | { id?: number; documentId?: string }
     | {
         data?:
@@ -22,7 +24,13 @@ type WishlistItem = {
 
 function getWishlistProductDocumentId(item: WishlistItem): string | null {
   const product = item.product
-  if (!product || typeof product !== 'object') return null
+  if (!product) return null
+
+  if (typeof product === 'string' && product.trim()) {
+    return product.trim()
+  }
+
+  if (typeof product !== 'object') return null
 
   if ('documentId' in product && typeof product.documentId === 'string') {
     return product.documentId
@@ -47,7 +55,13 @@ function getWishlistProductDocumentId(item: WishlistItem): string | null {
 
 function getWishlistProductId(item: WishlistItem): number | null {
   const product = item.product
-  if (!product || typeof product !== 'object') return null
+  if (!product) return null
+
+  if (typeof product === 'number' && Number.isFinite(product)) {
+    return product
+  }
+
+  if (typeof product !== 'object') return null
 
   if ('id' in product && typeof product.id === 'number') {
     return product.id
@@ -93,18 +107,16 @@ export function WishlistButton({
       })
       .then((json: { data: WishlistItem[] }) => {
         const items = json?.data ?? []
-        const matched = items.find(
-          (item) => {
-            const itemDocumentId = getWishlistProductDocumentId(item)
-            if (itemDocumentId === normalizedProductDocumentId) return true
+        const matched = items.find((item) => {
+          const itemDocumentId = getWishlistProductDocumentId(item)
+          if (itemDocumentId === normalizedProductDocumentId) return true
 
-            if (typeof productId === 'number') {
-              return getWishlistProductId(item) === productId
-            }
-
-            return false
+          if (typeof productId === 'number') {
+            return getWishlistProductId(item) === productId
           }
-        )
+
+          return false
+        })
         if (matched) {
           setIsFavorite(true)
           setWishlistItemId(matched.documentId)
@@ -114,7 +126,7 @@ export function WishlistButton({
         }
       })
       .catch(() => {})
-  }, [normalizedProductDocumentId])
+  }, [normalizedProductDocumentId, productId])
 
   const toggle = () => {
     if (!canUseWishlist) {

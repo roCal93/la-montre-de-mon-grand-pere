@@ -60,8 +60,28 @@ async function fetchFavoris(
   }
 }
 
-function getWishlistProductReference(raw: WishlistItem['product']): ProductReference | null {
-  if (!raw || typeof raw !== 'object') return null
+function getWishlistProductReference(
+  raw: WishlistItem['product']
+): ProductReference | null {
+  if (!raw) return null
+
+  if (typeof raw === 'string') {
+    const normalized = raw.trim()
+    if (!normalized) return null
+
+    const parsed = Number.parseInt(normalized, 10)
+    if (Number.isFinite(parsed) && String(parsed) === normalized) {
+      return { id: parsed }
+    }
+
+    return { documentId: normalized }
+  }
+
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    return { id: raw }
+  }
+
+  if (typeof raw !== 'object') return null
 
   if ('documentId' in raw || 'id' in raw) {
     const direct = raw as { documentId?: string; id?: number }
@@ -106,7 +126,7 @@ async function fetchProductByReference(
   if (ref.documentId) {
     url = `${strapiUrl}/api/products?filters[documentId][$eq]=${encodeURIComponent(ref.documentId)}&pagination[limit]=1&${commonFields}&${imageFields}`
   } else if (typeof ref.id === 'number') {
-    url = `${strapiUrl}/api/products/${ref.id}?${commonFields}&${imageFields}`
+    url = `${strapiUrl}/api/products?filters[id][$eq]=${ref.id}&pagination[limit]=1&${commonFields}&${imageFields}`
   }
 
   if (!url) return null
@@ -143,6 +163,8 @@ interface Product {
 interface WishlistItem {
   documentId: string
   product?:
+    | string
+    | number
     | Product
     | {
         data?:
@@ -258,10 +280,10 @@ export default async function FavorisPage({
     })
   )
 
-  const visibleItems = entriesWithHydration
-    .filter((entry): entry is { item: WishlistItem; product: Product } =>
+  const visibleItems = entriesWithHydration.filter(
+    (entry): entry is { item: WishlistItem; product: Product } =>
       Boolean(entry.product?.slug)
-    )
+  )
 
   return (
     <div>
