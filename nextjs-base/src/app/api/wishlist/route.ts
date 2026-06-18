@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
-const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN
+const STRAPI_API_TOKEN = process.env.STRAPI_WRITE_API_TOKEN
 
 async function parseJsonSafe(res: Response): Promise<unknown> {
   const text = await res.text()

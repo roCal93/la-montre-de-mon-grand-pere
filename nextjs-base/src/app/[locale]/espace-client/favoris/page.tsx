@@ -10,7 +10,7 @@ async function fetchFavoris(
   customerId: string
 ): Promise<{ data: WishlistItem[] }> {
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
-  const apiToken = process.env.STRAPI_API_TOKEN
+  const apiToken = process.env.STRAPI_WRITE_API_TOKEN
   if (!strapiUrl) return { data: [] }
   try {
     const res = await fetch(
