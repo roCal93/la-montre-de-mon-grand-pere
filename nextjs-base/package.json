@@ -60,9 +60,12 @@
       "svix": "1.92.2",
       "esbuild": ">=0.28.1",
       "vite": "7.3.5",
-      "undici": ">=7.24.0",
+      "undici": ">=8.5.0",
       "flatted": ">=3.4.0",
-      "picomatch": ">=4.0.4"
+      "picomatch": ">=4.0.4",
+      "js-yaml": ">=4.2.0",
+      "brace-expansion@>=4": "5.0.6",
+      "@babel/core": ">=7.29.6 <8.0.0"
     }
   }
 }
