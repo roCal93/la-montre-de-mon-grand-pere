@@ -24,13 +24,12 @@ export default {
     "status": {
       "type": "enumeration",
       "enum": [
-        "pending",
-        "paid",
-        "shipped",
-        "cancelled",
-        "refunded"
+        "commande_confirmee",
+        "en_preparation",
+        "commande_expediee",
+        "commande_terminee"
       ],
-      "default": "pending",
+      "default": "commande_confirmee",
       "required": true
     },
     "customerEmail": {

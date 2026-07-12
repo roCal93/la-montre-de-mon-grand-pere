@@ -22,8 +22,13 @@
     },
     "status": {
       "type": "enumeration",
-      "enum": ["pending", "paid", "shipped", "cancelled", "refunded"],
-      "default": "pending",
+      "enum": [
+        "commande_confirmee",
+        "en_preparation",
+        "commande_expediee",
+        "commande_terminee"
+      ],
+      "default": "commande_confirmee",
       "required": true
     },
     "customerEmail": {
