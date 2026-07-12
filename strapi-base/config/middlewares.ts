@@ -111,6 +111,10 @@ export default [
       },
     }),
   },
+  {
+    name: 'global::normalize-order-status',
+    config: {},
+  },
   'strapi::session',
   'strapi::favicon',
   'strapi::public',
