@@ -316,6 +316,38 @@ async function migrateWatchFileTextImageBlockMedia(strapi: Core.Strapi) {
   }
 }
 
+async function normalizeLegacyOrderStatuses(strapi: Core.Strapi) {
+  try {
+    const db = strapi.db.connection;
+
+    const STATUS_MIGRATIONS: Record<string, string> = {
+      pending: 'commande_confirmee',
+      paid: 'commande_confirmee',
+      shipped: 'commande_expediee',
+      cancelled: 'commande_terminee',
+      refunded: 'commande_terminee',
+    };
+
+    let totalUpdated = 0;
+
+    for (const [legacyStatus, nextStatus] of Object.entries(STATUS_MIGRATIONS)) {
+      const updated = await db('orders')
+        .where({ status: legacyStatus })
+        .update({ status: nextStatus });
+
+      totalUpdated += Number(updated ?? 0);
+    }
+
+    if (totalUpdated > 0) {
+      strapi.log.warn(
+        `[bootstrap] Normalized legacy order statuses on ${totalUpdated} row(s)`
+      );
+    }
+  } catch (error) {
+    strapi.log.error('[bootstrap] Failed to normalize legacy order statuses:', error);
+  }
+}
+
 export default {
   /**
    * An asynchronous register function that runs before
@@ -354,6 +386,7 @@ export default {
       DEFAULT_LOCALE
     );
     await normalizeLocalizedLocale(strapi, 'sections', 'section', DEFAULT_LOCALE);
+    await normalizeLegacyOrderStatuses(strapi);
     await migrateWatchFileTextImageBlockMedia(strapi);
   },
 };

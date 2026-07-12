@@ -91,10 +91,10 @@ const STATUS_TO_TIMELINE_STEP: Record<string, number> = {
 }
 
 const ORDER_TIMELINE_STEPS = [
-  'Commande confirmee',
-  'En preparation',
-  'Commande expediee',
-  'Commande terminee',
+  'Commande confirmée',
+  'En préparation',
+  'Commande expédiée',
+  'Commande terminée',
 ]
 
 export default async function CommandeDetailPage({
@@ -243,7 +243,7 @@ export default async function CommandeDetailPage({
                   </p>
                   {isCurrent && (
                     <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                      Etape actuelle
+                      Étape actuelle
                     </p>
                   )}
                 </div>
@@ -293,7 +293,7 @@ export default async function CommandeDetailPage({
 
                 {isCurrent && (
                   <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                    Etape actuelle
+                    Étape actuelle
                   </p>
                 )}
               </li>

@@ -45,9 +45,13 @@ const STATUS_LABELS: Record<string, string> = {
   waiting: 'En attente',
   in_progress: 'En cours',
   completed: 'Terminé',
+  commande_confirmee: 'Commande confirmée',
+  en_preparation: 'En préparation',
+  commande_expediee: 'Commande expédiée',
+  commande_terminee: 'Commande terminée',
   pending: 'En attente',
-  paid: 'Payé',
-  shipped: 'Expédié',
+  paid: 'Commande confirmée',
+  shipped: 'Commande expédiée',
   cancelled: 'Annulé',
   refunded: 'Remboursé',
 }
@@ -57,9 +61,17 @@ const STATUS_COLORS: Record<string, string> = {
   in_progress: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
   completed:
     'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  commande_confirmee:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300',
+  en_preparation:
+    'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300',
+  commande_expediee:
+    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  commande_terminee:
+    'bg-stone-100 text-stone-700 dark:bg-neutral-700 dark:text-neutral-300',
   pending:
     'bg-stone-100 text-stone-600 dark:bg-neutral-700 dark:text-neutral-300',
-  paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  paid: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300',
   shipped: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
   cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
   refunded:
