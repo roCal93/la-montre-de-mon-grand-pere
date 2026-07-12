@@ -72,6 +72,7 @@ async function sendResendEmail(payload: {
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.ORDER_EMAIL_FROM
+  const testRecipient = process.env.ORDER_EMAIL_TEST_RECIPIENT
 
   if (!apiKey || !from) {
     strapi.log.warn(
@@ -79,6 +80,19 @@ async function sendResendEmail(payload: {
     )
     return
   }
+
+  const usingResendOnboardingFrom = from
+    .toLowerCase()
+    .includes('onboarding@resend.dev')
+
+  if (usingResendOnboardingFrom && !testRecipient) {
+    strapi.log.warn(
+      '[order lifecycle] Email skipped: ORDER_EMAIL_TEST_RECIPIENT is required when ORDER_EMAIL_FROM uses onboarding@resend.dev'
+    )
+    return
+  }
+
+  const recipient = testRecipient || payload.to
 
   const response = await fetch(RESEND_API_URL, {
     method: 'POST',
@@ -88,7 +102,7 @@ async function sendResendEmail(payload: {
     },
     body: JSON.stringify({
       from,
-      to: [payload.to],
+      to: [recipient],
       subject: payload.subject,
       html: payload.html,
       text: payload.text,

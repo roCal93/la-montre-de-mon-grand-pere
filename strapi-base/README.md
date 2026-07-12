@@ -106,6 +106,9 @@ API_TOKEN_SALT=votre-salt
 # Provider used in lifecycle: Resend API
 RESEND_API_KEY=re_xxxxxxxxx
 ORDER_EMAIL_FROM=La Montre de Mon Grand-Pere <orders@votre-domaine.fr>
+# Optional but required if ORDER_EMAIL_FROM uses onboarding@resend.dev
+# Set to your own verified/test inbox in Resend
+ORDER_EMAIL_TEST_RECIPIENT=votre-email@exemple.com
 
 # Cloudinary - required for uploads in production (preferred)
 # CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
