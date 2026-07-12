@@ -24,6 +24,11 @@ export default {
     "status": {
       "type": "enumeration",
       "enum": [
+        "pending",
+        "paid",
+        "shipped",
+        "cancelled",
+        "refunded",
         "commande_confirmee",
         "en_preparation",
         "commande_expediee",
