@@ -102,6 +102,11 @@ JWT_SECRET=votre-secret
 # API Tokens (optionnel)
 API_TOKEN_SALT=votre-salt
 
+# Transactional emails (order confirmation + status updates)
+# Provider used in lifecycle: Resend API
+RESEND_API_KEY=re_xxxxxxxxx
+ORDER_EMAIL_FROM=La Montre de Mon Grand-Pere <orders@votre-domaine.fr>
+
 # Cloudinary - required for uploads in production (preferred)
 # CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
 # or (less recommended):

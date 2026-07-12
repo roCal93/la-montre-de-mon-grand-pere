@@ -7,7 +7,207 @@
 type WatchFileUID = 'api::watch-file.watch-file'
 const WATCH_FILE_UID: WatchFileUID = 'api::watch-file.watch-file'
 
+const RESEND_API_URL = 'https://api.resend.com/emails'
+
+const ORDER_STATUS_LABELS: Record<string, string> = {
+  commande_confirmee: 'Commande confirmee',
+  en_preparation: 'En preparation',
+  commande_expediee: 'Commande expediee',
+  commande_terminee: 'Commande terminee',
+}
+
+const toText = (value: unknown, fallback = ''): string => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed.length > 0 ? trimmed : fallback
+  }
+  if (typeof value === 'number') {
+    return String(value)
+  }
+  return fallback
+}
+
+const formatAmount = (amount: unknown, currency: unknown): string => {
+  const numericAmount =
+    typeof amount === 'number'
+      ? amount
+      : typeof amount === 'string'
+        ? Number.parseFloat(amount)
+        : NaN
+
+  if (!Number.isFinite(numericAmount)) {
+    return '-'
+  }
+
+  const currencyCode = toText(currency, 'EUR').toUpperCase()
+
+  try {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(numericAmount)
+  } catch {
+    return `${numericAmount.toFixed(2)} ${currencyCode}`
+  }
+}
+
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
+const statusLabel = (status: unknown): string => {
+  const key = toText(status)
+  return ORDER_STATUS_LABELS[key] ?? key
+}
+
+async function sendResendEmail(payload: {
+  to: string
+  subject: string
+  html: string
+  text: string
+}): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  const from = process.env.ORDER_EMAIL_FROM
+
+  if (!apiKey || !from) {
+    strapi.log.warn(
+      '[order lifecycle] Email skipped: RESEND_API_KEY or ORDER_EMAIL_FROM is missing'
+    )
+    return
+  }
+
+  const response = await fetch(RESEND_API_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: [payload.to],
+      subject: payload.subject,
+      html: payload.html,
+      text: payload.text,
+    }),
+  })
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => '')
+    throw new Error(`Resend send failed (${response.status}): ${text}`)
+  }
+}
+
+type OrderLineItem = {
+  productName?: string
+  quantity?: number
+  total?: number
+}
+
+type LifecycleOrder = {
+  documentId?: string
+  customerEmail?: string
+  customerName?: string
+  order_status?: string
+  total?: number
+  currency?: string
+  lineItems?: OrderLineItem[]
+}
+
+async function sendOrderConfirmationEmail(order: LifecycleOrder): Promise<void> {
+  const to = toText(order.customerEmail)
+  if (!to) return
+
+  const ref = toText(order.documentId, 'INCONNUE').slice(-8).toUpperCase()
+  const customerName = toText(order.customerName, 'Client')
+  const total = formatAmount(order.total, order.currency)
+  const status = statusLabel(order.order_status)
+  const items = Array.isArray(order.lineItems) ? order.lineItems : []
+
+  const linesHtml =
+    items.length > 0
+      ? `<ul>${items
+          .map((item) => {
+            const name = escapeHtml(toText(item.productName, 'Produit'))
+            const qty = typeof item.quantity === 'number' ? item.quantity : 1
+            return `<li>${name} x ${qty}</li>`
+          })
+          .join('')}</ul>`
+      : '<p>Details disponibles dans votre espace client.</p>'
+
+  const subject = `Commande confirmee #${ref}`
+  const html = `
+    <p>Bonjour ${escapeHtml(customerName)},</p>
+    <p>Votre commande a bien ete enregistree.</p>
+    <p><strong>Reference:</strong> #${escapeHtml(ref)}<br/>
+    <strong>Statut:</strong> ${escapeHtml(status)}<br/>
+    <strong>Total:</strong> ${escapeHtml(total)}</p>
+    <p><strong>Articles:</strong></p>
+    ${linesHtml}
+    <p>Merci pour votre confiance,<br/>La Montre de Mon Grand-Pere</p>
+  `
+  const text = `Bonjour ${customerName},\n\nVotre commande a bien ete enregistree.\nReference: #${ref}\nStatut: ${status}\nTotal: ${total}\n\nMerci pour votre confiance.\nLa Montre de Mon Grand-Pere`
+
+  await sendResendEmail({ to, subject, html, text })
+}
+
+async function sendOrderStatusChangedEmail(params: {
+  order: LifecycleOrder
+  previousStatus: string
+}): Promise<void> {
+  const to = toText(params.order.customerEmail)
+  if (!to) return
+
+  const ref = toText(params.order.documentId, 'INCONNUE').slice(-8).toUpperCase()
+  const customerName = toText(params.order.customerName, 'Client')
+  const prevLabel = statusLabel(params.previousStatus)
+  const nextLabel = statusLabel(params.order.order_status)
+
+  const subject = `Mise a jour commande #${ref}`
+  const html = `
+    <p>Bonjour ${escapeHtml(customerName)},</p>
+    <p>Le statut de votre commande <strong>#${escapeHtml(ref)}</strong> a ete mis a jour.</p>
+    <p><strong>Ancien statut:</strong> ${escapeHtml(prevLabel)}<br/>
+    <strong>Nouveau statut:</strong> ${escapeHtml(nextLabel)}</p>
+    <p>Merci,<br/>La Montre de Mon Grand-Pere</p>
+  `
+  const text = `Bonjour ${customerName},\n\nLe statut de votre commande #${ref} a ete mis a jour.\nAncien statut: ${prevLabel}\nNouveau statut: ${nextLabel}\n\nLa Montre de Mon Grand-Pere`
+
+  await sendResendEmail({ to, subject, html, text })
+}
+
 export default {
+  async beforeUpdate(event: {
+    params: {
+      where?: { documentId?: string }
+      data?: { order_status?: string }
+    }
+    state: Record<string, unknown>
+  }) {
+    try {
+      const nextStatus = event.params?.data?.order_status
+      const documentId = event.params?.where?.documentId
+
+      if (!nextStatus || !documentId) {
+        return
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const previousOrder = await (strapi.documents('api::order.order') as any).findOne({
+        documentId,
+        fields: ['order_status'],
+      })
+
+      event.state = event.state || {}
+      event.state.previousOrderStatus = previousOrder?.order_status
+    } catch (err) {
+      strapi.log.error('[order lifecycle] beforeUpdate error:', err)
+    }
+  },
+
   async afterCreate(event: {
     result: {
       documentId: string
@@ -26,9 +226,24 @@ export default {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const order = await (strapi.documents('api::order.order') as any).findOne({
         documentId: orderDocumentId,
+        fields: ['documentId', 'customerEmail', 'customerName', 'order_status', 'total', 'currency'],
         populate: ['lineItems', 'customer'],
       })
       const lineItems = (order?.lineItems ?? []) as Array<{ productId?: string }>
+
+      try {
+        await sendOrderConfirmationEmail({
+          documentId: order?.documentId,
+          customerEmail: order?.customerEmail,
+          customerName: order?.customerName,
+          order_status: order?.order_status,
+          total: order?.total,
+          currency: order?.currency,
+          lineItems: order?.lineItems,
+        })
+      } catch (emailErr) {
+        strapi.log.error('[order lifecycle] confirmation email error:', emailErr)
+      }
 
       if (!lineItems.length) return
 
@@ -91,6 +306,37 @@ export default {
     } catch (err) {
       // Never block order creation if watch-file assignment fails
       strapi.log.error('[order lifecycle] afterCreate error:', err)
+    }
+  },
+
+  async afterUpdate(event: {
+    result: {
+      documentId?: string
+      customerEmail?: string
+      customerName?: string
+      order_status?: string
+    }
+    state?: Record<string, unknown>
+  }) {
+    try {
+      const previousStatus = toText(event.state?.previousOrderStatus)
+      const nextStatus = toText(event.result?.order_status)
+
+      if (!previousStatus || !nextStatus || previousStatus === nextStatus) {
+        return
+      }
+
+      await sendOrderStatusChangedEmail({
+        order: {
+          documentId: event.result.documentId,
+          customerEmail: event.result.customerEmail,
+          customerName: event.result.customerName,
+          order_status: nextStatus,
+        },
+        previousStatus,
+      })
+    } catch (err) {
+      strapi.log.error('[order lifecycle] afterUpdate error:', err)
     }
   },
 }
