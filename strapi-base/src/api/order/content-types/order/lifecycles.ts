@@ -196,7 +196,7 @@ async function sendOrderStatusChangedEmail(params: {
 export default {
   async beforeUpdate(event: {
     params: {
-      where?: { documentId?: string }
+      where?: { documentId?: string; id?: number }
       data?: { order_status?: string }
     }
     state: Record<string, unknown>
@@ -204,19 +204,31 @@ export default {
     try {
       const nextStatus = event.params?.data?.order_status
       const documentId = event.params?.where?.documentId
+      const entityId = event.params?.where?.id
 
-      if (!nextStatus || !documentId) {
+      if (!nextStatus) {
         return
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const previousOrder = await (strapi.documents('api::order.order') as any).findOne({
-        documentId,
-        fields: ['order_status'],
-      })
+      let previousStatus: unknown
+
+      if (documentId) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const previousOrder = await (strapi.documents('api::order.order') as any).findOne({
+          documentId,
+          fields: ['order_status'],
+        })
+        previousStatus = previousOrder?.order_status
+      } else if (typeof entityId === 'number') {
+        const previousOrder = await strapi.db.query('api::order.order').findOne({
+          where: { id: entityId },
+          select: ['order_status'],
+        })
+        previousStatus = previousOrder?.order_status
+      }
 
       event.state = event.state || {}
-      event.state.previousOrderStatus = previousOrder?.order_status
+      event.state.previousOrderStatus = previousStatus
     } catch (err) {
       strapi.log.error('[order lifecycle] beforeUpdate error:', err)
     }
@@ -324,6 +336,9 @@ export default {
   },
 
   async afterUpdate(event: {
+    params?: {
+      data?: { order_status?: string }
+    }
     result: {
       documentId?: string
       customerEmail?: string
@@ -335,8 +350,14 @@ export default {
     try {
       const previousStatus = toText(event.state?.previousOrderStatus)
       const nextStatus = toText(event.result?.order_status)
+      const requestedStatus = toText(event.params?.data?.order_status)
 
-      if (!previousStatus || !nextStatus || previousStatus === nextStatus) {
+      // Ignore updates that do not touch order_status.
+      if (!requestedStatus) {
+        return
+      }
+
+      if (!nextStatus || previousStatus === nextStatus) {
         return
       }
 
@@ -347,7 +368,7 @@ export default {
           customerName: event.result.customerName,
           order_status: nextStatus,
         },
-        previousStatus,
+        previousStatus: previousStatus || 'inconnu',
       })
     } catch (err) {
       strapi.log.error('[order lifecycle] afterUpdate error:', err)
