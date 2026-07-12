@@ -159,5 +159,34 @@ templates/
 └── nextjs-base/      # Là
 ```
 
+### Associer manuellement une montre a un client
+En cas d'echec de liaison automatique (email Stripe different, compte cree apres achat, etc.), utilisez l'endpoint custom :
+
+`POST /api/watch-files/assign-customer`
+
+Corps JSON minimum :
+- Un selecteur de montre : `watchFileDocumentId` ou `productDocumentId`
+- Un selecteur client : `customerId` ou `customerDocumentId` ou `customerEmail`
+
+Options :
+- `orderDocumentId` pour lier la commande en meme temps
+- `force` (par defaut `true`) pour remplacer un client deja assigne
+
+Exemple :
+```json
+{
+    "watchFileDocumentId": "abc123...",
+    "customerEmail": "client@example.com",
+    "orderDocumentId": "ord456...",
+    "force": true
+}
+```
+
+Reponse :
+- `success: true` si l'association est faite
+- `reason: "user_not_found"` si le client n'existe pas
+- `reason: "watch_file_not_found"` si la montre est introuvable
+- `reason: "already_assigned"` si `force` vaut `false` et qu'un autre client est deja lie
+
 ⚠️ **Ne jamais modifier ce template directement**  
 Pour un nouveau projet : copiez le dossier complet dans `/projects/clients/`

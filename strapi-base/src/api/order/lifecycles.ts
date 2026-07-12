@@ -34,7 +34,7 @@ export default {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const order = await (strapi.documents('api::order.order') as any).findOne({
         documentId: orderDocumentId,
-        populate: ['lineItems'],
+        populate: ['lineItems', 'customer'],
       })
       strapi.log.info(
         `[order lifecycle] lineItems from DB: ${JSON.stringify(order?.lineItems)}`
@@ -57,6 +57,15 @@ export default {
           `[order lifecycle] No Strapi user for ${customerEmail} — watch-file not assigned`
         )
         return
+      }
+
+      // Ensure the order itself is linked to the buyer account (not just customerEmail).
+      if (!order?.customer) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (strapi.documents('api::order.order') as any).update({
+          documentId: orderDocumentId,
+          data: { customer: user.id },
+        })
       }
 
       // For each purchased product, find the linked watch-file and assign it to the buyer

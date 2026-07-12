@@ -50,12 +50,19 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     await this.validateQuery(ctx)
     const sanitizedQuery = await this.sanitizeQuery(ctx)
 
+    const ownerFilter = {
+      $or: [
+        { customer: { id: { $eq: user.id } } },
+        { product: { customer: { id: { $eq: user.id } } } },
+      ],
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entries = await (strapi.documents(MODEL_UID) as any).findMany({
       ...sanitizedQuery,
       ...(isAdmin && adminAll
         ? {}
-        : { filters: { customer: { id: { $eq: user.id } } } }),
+        : { filters: ownerFilter }),
       populate: mergePopulate(sanitizedQuery.populate, {
         publicBeforeImage: true,
         publicAfterImage: true,
@@ -102,55 +109,138 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entry = await (strapi.documents(MODEL_UID) as any).findOne({
       documentId: id,
-      populate: mergePopulate(sanitizedQuery.populate, { customer: true }),
+      populate: mergePopulate(sanitizedQuery.populate, {
+        customer: true,
+        product: true,
+      }),
     })
 
     if (!entry) return ctx.notFound('Dossier introuvable')
 
     const customerId = (entry.customer as { id: number } | null)?.id
-    if (customerId !== user.id && !isAdmin) return ctx.forbidden('Accès refusé')
+    const productCustomerId =
+      ((entry.product as { customer?: { id: number } | null } | null)?.customer
+        ?.id as number | undefined) ?? null
+    const isOwner = customerId === user.id || productCustomerId === user.id
+    if (!isOwner && !isAdmin) return ctx.forbidden('Accès refusé')
 
     return { data: entry }
   },
 
   /**
-   * Called by Next.js webhook after a successful Stripe checkout.
-   * Assigns the existing watch-file (linked to the purchased product)
-   * to the buyer's Strapi user account and links it to the created order.
+   * Called by Next.js webhook and usable as manual fallback.
+   * Assigns an existing watch-file to a Strapi user account and optionally links an order.
    *
-   * Body: { productDocumentId: string, customerEmail: string, orderDocumentId?: string }
+   * Body (minimum):
+   * - one watch-file selector: watchFileDocumentId OR productDocumentId
+   * - one customer selector: customerId OR customerDocumentId OR customerEmail
+   * Optional: orderDocumentId, force (default true)
    */
   async assignCustomer(ctx) {
-    const { productDocumentId, customerEmail, orderDocumentId } =
+    const {
+      watchFileDocumentId,
+      productDocumentId,
+      customerId,
+      customerDocumentId,
+      customerEmail,
+      orderDocumentId,
+      force,
+    } =
       ctx.request.body as {
+        watchFileDocumentId?: string
         productDocumentId?: string
+        customerId?: number | string
+        customerDocumentId?: string
         customerEmail?: string
         orderDocumentId?: string
+        force?: boolean
       }
 
-    if (!productDocumentId || !customerEmail) {
-      return ctx.badRequest('productDocumentId and customerEmail are required')
+    if (!watchFileDocumentId && !productDocumentId) {
+      return ctx.badRequest(
+        'watchFileDocumentId or productDocumentId is required'
+      )
     }
 
-    // Find the Strapi user by email
-    const users = await strapi
-      .query('plugin::users-permissions.user')
-      .findMany({ where: { email: customerEmail }, limit: 1, select: ['id'] })
-    const user = users[0]
+    if (!customerId && !customerDocumentId && !customerEmail) {
+      return ctx.badRequest(
+        'customerId, customerDocumentId or customerEmail is required'
+      )
+    }
+
+    const shouldForce = force !== false
+
+    // Find the Strapi user from one of the provided identifiers.
+    let users: Array<{ id: number; documentId?: string; email?: string }> = []
+    const parsedCustomerId =
+      typeof customerId === 'string' ? Number.parseInt(customerId, 10) : customerId
+
+    if (typeof parsedCustomerId === 'number' && Number.isInteger(parsedCustomerId)) {
+      users = await strapi
+        .query('plugin::users-permissions.user')
+        .findMany({ where: { id: parsedCustomerId }, limit: 1, select: ['id', 'documentId', 'email'] })
+    } else if (customerDocumentId) {
+      users = await strapi
+        .query('plugin::users-permissions.user')
+        .findMany({
+          where: { documentId: customerDocumentId },
+          limit: 1,
+          select: ['id', 'documentId', 'email'],
+        })
+    } else if (customerEmail) {
+      users = await strapi
+        .query('plugin::users-permissions.user')
+        .findMany({
+          where: { email: { $eqi: customerEmail } },
+          limit: 1,
+          select: ['id', 'documentId', 'email'],
+        })
+    }
+
+    const user = users[0] as
+      | { id: number; documentId?: string; email?: string }
+      | undefined
+
     if (!user) {
-      // Not an error — guest checkout or user not registered yet
+      // Not an error — user may not exist yet.
       return ctx.send({ success: false, reason: 'user_not_found' })
     }
 
-    // Find the watch-file linked to this product
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const watchFiles = await (strapi.documents(MODEL_UID) as any).findMany({
-      filters: { product: { documentId: { $eq: productDocumentId } } },
-      limit: 1,
-    })
-    const watchFile = watchFiles[0] as { documentId: string } | undefined
+    let watchFile:
+      | { documentId: string; customer?: { id: number } | null }
+      | undefined
+
+    if (watchFileDocumentId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      watchFile = await (strapi.documents(MODEL_UID) as any).findOne({
+        documentId: watchFileDocumentId,
+        populate: ['customer'],
+      })
+    } else {
+      // Find the watch-file linked to this product
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const watchFiles = await (strapi.documents(MODEL_UID) as any).findMany({
+        filters: { product: { documentId: { $eq: productDocumentId } } },
+        populate: ['customer'],
+        limit: 1,
+      })
+      watchFile = watchFiles[0] as
+        | { documentId: string; customer?: { id: number } | null }
+        | undefined
+    }
+
     if (!watchFile) {
       return ctx.send({ success: false, reason: 'watch_file_not_found' })
+    }
+
+    const currentCustomerId = watchFile.customer?.id
+    if (currentCustomerId && currentCustomerId !== user.id && !shouldForce) {
+      return ctx.send({
+        success: false,
+        reason: 'already_assigned',
+        watchFileDocumentId: watchFile.documentId,
+        currentCustomerId,
+      })
     }
 
     const updateData: Record<string, unknown> = { customer: user.id }
@@ -164,7 +254,15 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
       data: updateData,
     })
 
-    return ctx.send({ success: true, watchFileDocumentId: watchFile.documentId })
+    return ctx.send({
+      success: true,
+      watchFileDocumentId: watchFile.documentId,
+      customerId: user.id,
+      customerDocumentId: user.documentId ?? null,
+      customerEmail: user.email ?? null,
+      replacedExistingCustomer:
+        typeof currentCustomerId === 'number' && currentCustomerId !== user.id,
+    })
   },
 
   // create/update/delete are admin-only — no override needed, permissions enforced via Strapi roles

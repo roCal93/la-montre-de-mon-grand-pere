@@ -122,6 +122,7 @@ interface WatchFile {
     name: string
     slug: string
     images?: MediaFile[] | null
+    customer?: { id: number } | null
   }
   customer?: { id: number }
 }
@@ -445,6 +446,7 @@ async function renderWatchFileDetailPage({
   if (!isPublicView) {
     query.set('populate[order]', 'true')
     query.set('populate[customer]', 'true')
+    query.set('populate[product][populate][customer]', 'true')
   }
 
   // dossierBlocks are fetched in a separate query so that a populate error
@@ -473,17 +475,17 @@ async function renderWatchFileDetailPage({
     notFound()
   }
 
-  if (
-    !isPublicView &&
-    strapiUser &&
-    !isAdminUser(strapiUser) &&
-    watchFile.customer?.id !== strapiUser.id
-  ) {
+  const isOwnerByWatchFileCustomer = watchFile.customer?.id === strapiUser?.id
+  const isOwnerByProductCustomer =
+    watchFile.product?.customer?.id === strapiUser?.id
+  const isOwner = isOwnerByWatchFileCustomer || isOwnerByProductCustomer
+
+  if (!isPublicView && strapiUser && !isAdminUser(strapiUser) && !isOwner) {
     notFound()
   }
 
   const canDownloadPdf = Boolean(
-    (!isPublicView && strapiUser && watchFile.customer?.id === strapiUser.id) ||
+    (!isPublicView && strapiUser && isOwner) ||
     (strapiUser && isAdminUser(strapiUser))
   )
 
