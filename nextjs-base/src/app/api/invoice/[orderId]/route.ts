@@ -35,7 +35,7 @@ interface ShippingAddress {
 
 interface Order {
   documentId: string
-  status: string
+  order_status: string
   createdAt: string
   customerEmail: string
   customerName: string
@@ -171,7 +171,7 @@ function InvoiceDocument({ order }: { order: Order }) {
         createElement(
           Text,
           { style: styles.badge },
-          `Statut : ${asText(order.status, 'inconnu').toUpperCase()}`
+          `Statut : ${asText(order.order_status, 'inconnu').toUpperCase()}`
         ),
         createElement(
           View,

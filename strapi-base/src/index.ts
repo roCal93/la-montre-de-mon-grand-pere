@@ -332,8 +332,8 @@ async function normalizeLegacyOrderStatuses(strapi: Core.Strapi) {
 
     for (const [legacyStatus, nextStatus] of Object.entries(STATUS_MIGRATIONS)) {
       const updated = await db('orders')
-        .where({ status: legacyStatus })
-        .update({ status: nextStatus });
+        .where({ order_status: legacyStatus })
+        .update({ order_status: nextStatus });
 
       totalUpdated += Number(updated ?? 0);
     }

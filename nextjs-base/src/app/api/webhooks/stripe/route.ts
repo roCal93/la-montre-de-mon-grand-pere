@@ -174,7 +174,7 @@ async function createOrderInStrapi(
         typeof session.payment_intent === 'string'
           ? session.payment_intent
           : (session.payment_intent?.id ?? null),
-      status: 'commande_confirmee',
+      order_status: 'commande_confirmee',
       customerEmail: session.customer_details?.email ?? '',
       customerName: session.customer_details?.name ?? '',
       lineItems,

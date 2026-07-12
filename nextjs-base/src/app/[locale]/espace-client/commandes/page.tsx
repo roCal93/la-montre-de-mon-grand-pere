@@ -15,7 +15,7 @@ interface LineItem {
 
 interface Order {
   documentId: string
-  status: string
+  order_status: string
   createdAt: string
   total: number
   lineItems: LineItem[]
@@ -186,9 +186,9 @@ export default async function CommandesPage({
                   {/* Status + price */}
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium ${STATUS_COLORS[order.status] ?? 'bg-stone-100 text-stone-600'}`}
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium ${STATUS_COLORS[order.order_status] ?? 'bg-stone-100 text-stone-600'}`}
                     >
-                      {STATUS_LABELS[order.status] ?? order.status}
+                      {STATUS_LABELS[order.order_status] ?? order.order_status}
                     </span>
                     <p className="font-semibold text-lg text-neutral-900 dark:text-white">
                       {formatPrice(order.total)}

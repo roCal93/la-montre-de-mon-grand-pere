@@ -41,15 +41,15 @@ const mapOrderStatus = (value: unknown) => {
 }
 
 const normalizeBodyStatus = (body: Record<string, unknown>) => {
-  if (typeof body.status === 'string') {
-    body.status = mapOrderStatus(body.status)
+  if (typeof body.order_status === 'string') {
+    body.order_status = mapOrderStatus(body.order_status)
   }
 
   const data = body.data
   if (data && typeof data === 'object' && !Array.isArray(data)) {
     const typedData = data as Record<string, unknown>
-    if (typeof typedData.status === 'string') {
-      typedData.status = mapOrderStatus(typedData.status)
+    if (typeof typedData.order_status === 'string') {
+      typedData.order_status = mapOrderStatus(typedData.order_status)
     }
   }
 }

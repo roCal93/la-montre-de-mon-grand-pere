@@ -35,7 +35,7 @@ interface Product {
 }
 interface Order {
   documentId: string
-  status: string
+  order_status: string
   createdAt: string
   customerEmail: string
   customerName: string
@@ -156,7 +156,8 @@ export default async function CommandeDetailPage({
   }
 
   const currentTimelineStep =
-    STATUS_TO_TIMELINE_STEP[order.status] ?? STATUS_TO_TIMELINE_STEP.pending
+    STATUS_TO_TIMELINE_STEP[order.order_status] ??
+    STATUS_TO_TIMELINE_STEP.pending
 
   return (
     <div>
@@ -185,9 +186,9 @@ export default async function CommandeDetailPage({
           </p>
         </div>
         <span
-          className={`shrink-0 inline-flex rounded-full px-3 py-1 text-sm font-medium ${STATUS_COLORS[order.status] ?? 'bg-stone-100 text-stone-600'}`}
+          className={`shrink-0 inline-flex rounded-full px-3 py-1 text-sm font-medium ${STATUS_COLORS[order.order_status] ?? 'bg-stone-100 text-stone-600'}`}
         >
-          {STATUS_LABELS[order.status] ?? order.status}
+          {STATUS_LABELS[order.order_status] ?? order.order_status}
         </span>
       </div>
 

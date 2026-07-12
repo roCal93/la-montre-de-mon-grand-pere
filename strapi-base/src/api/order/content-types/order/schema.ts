@@ -21,7 +21,7 @@ export default {
       "type": "string",
       "private": true
     },
-    "status": {
+    "order_status": {
       "type": "enumeration",
       "enum": [
         "commande_confirmee",
