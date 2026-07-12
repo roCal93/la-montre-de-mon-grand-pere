@@ -244,15 +244,13 @@ export const Header = memo(
               )}
             </Link>
 
-            {!hideLanguageSwitcher && (
-              <div className="flex-none pr-6 flex items-center gap-2">
-                <AccountButton />
-                <CartButton />
-                <GifToggle />
-                <ThemeToggle />
-                <LanguageSwitcher />
-              </div>
-            )}
+            <div className="flex-none pr-6 flex items-center gap-2">
+              <AccountButton />
+              <CartButton />
+              <GifToggle />
+              <ThemeToggle />
+              {!hideLanguageSwitcher && <LanguageSwitcher />}
+            </div>
           </div>
 
           <nav
@@ -406,29 +404,27 @@ export const Header = memo(
             })}
           </nav>
         </div>
-        {!hideLanguageSwitcher && (
-          <div className="hidden min-[930px]:ml-auto min-[930px]:mr-6 min-[930px]:flex">
-            {session ? (
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex items-center gap-8">
-                  <CartButton />
-                  <GifToggle />
-                  <ThemeToggle />
-                  <LanguageSwitcher />
-                </div>
-                <AccountButton />
-              </div>
-            ) : (
-              <div className="flex items-center gap-4">
-                <AccountButton />
+        <div className="hidden min-[930px]:ml-auto min-[930px]:mr-6 min-[930px]:flex">
+          {session ? (
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex items-center gap-8">
                 <CartButton />
                 <GifToggle />
                 <ThemeToggle />
-                <LanguageSwitcher />
+                {!hideLanguageSwitcher && <LanguageSwitcher />}
               </div>
-            )}
-          </div>
-        )}
+              <AccountButton />
+            </div>
+          ) : (
+            <div className="flex items-center gap-4">
+              <AccountButton />
+              <CartButton />
+              <GifToggle />
+              <ThemeToggle />
+              {!hideLanguageSwitcher && <LanguageSwitcher />}
+            </div>
+          )}
+        </div>
         <div className="min-[930px]:hidden absolute right-6">
           <BurgerMenu
             links={links}

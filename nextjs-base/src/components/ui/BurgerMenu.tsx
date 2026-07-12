@@ -300,42 +300,42 @@ export const BurgerMenu = ({
                   </React.Fragment>
                 )
               })}
-              {!hideLanguageSwitcher && (
-                <div className="py-4 border-t border-gray-200 dark:border-gray-700 flex justify-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="flex items-center gap-5">
-                      <GifToggle />
-                      <ThemeToggle />
-                      <CartButton />
+              <div className="py-4 border-t border-gray-200 dark:border-gray-700 flex justify-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-5">
+                    <GifToggle />
+                    <ThemeToggle />
+                    <CartButton />
+                  </div>
+                  {isAuthenticated ? (
+                    <div>
+                      <AccountButton />
                     </div>
-                    {isAuthenticated ? (
-                      <div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className={getBurgerAccountOffsetClass(langOpen)}>
                         <AccountButton />
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-3">
-                        <div className={getBurgerAccountOffsetClass(langOpen)}>
-                          <AccountButton />
-                        </div>
+                      {!hideLanguageSwitcher && (
                         <LanguageSwitcher
                           side="right"
                           dropdownDirection="right"
                           centerOpenGroup
                           onOpenChange={(v) => setLangOpen(v)}
                         />
-                      </div>
-                    )}
-                    {isAuthenticated && (
-                      <LanguageSwitcher
-                        side="right"
-                        dropdownDirection="right"
-                        centerOpenGroup
-                        onOpenChange={(v) => setLangOpen(v)}
-                      />
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
+                  {isAuthenticated && !hideLanguageSwitcher && (
+                    <LanguageSwitcher
+                      side="right"
+                      dropdownDirection="right"
+                      centerOpenGroup
+                      onOpenChange={(v) => setLangOpen(v)}
+                    />
+                  )}
                 </div>
-              )}
+              </div>
             </nav>
           </div>
         </>
