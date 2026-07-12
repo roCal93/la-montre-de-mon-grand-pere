@@ -143,7 +143,6 @@ interface WatchFile {
     name: string
     slug?: string
     images?: MediaFile[] | null
-    customer?: { id: number } | null
   }
 }
 
@@ -3069,7 +3068,6 @@ export async function GET(
   queryParams.set('populate[order]', 'true')
   queryParams.set('populate[product][fields][0]', 'name')
   queryParams.set('populate[product][fields][1]', 'slug')
-  queryParams.set('populate[product][populate][customer]', 'true')
   queryParams.set('populate[product][populate][images][fields][0]', 'url')
   queryParams.set(
     'populate[product][populate][images][fields][1]',
@@ -3127,10 +3125,7 @@ export async function GET(
   if (!watchFile) {
     return NextResponse.json({ error: 'Dossier introuvable' }, { status: 404 })
   }
-  const isOwnerByWatchFileCustomer = watchFile.customer?.id === strapiUser.id
-  const isOwnerByProductCustomer =
-    watchFile.product?.customer?.id === strapiUser.id
-  const isOwner = isOwnerByWatchFileCustomer || isOwnerByProductCustomer
+  const isOwner = watchFile.customer?.id === strapiUser.id
 
   if (!isOwner && !isAdminUser(strapiUser)) {
     return NextResponse.json({ error: 'Acces refuse' }, { status: 403 })

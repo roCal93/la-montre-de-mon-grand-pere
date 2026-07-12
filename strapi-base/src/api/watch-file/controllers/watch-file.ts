@@ -50,19 +50,12 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     await this.validateQuery(ctx)
     const sanitizedQuery = await this.sanitizeQuery(ctx)
 
-    const ownerFilter = {
-      $or: [
-        { customer: { id: { $eq: user.id } } },
-        { product: { customer: { id: { $eq: user.id } } } },
-      ],
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entries = await (strapi.documents(MODEL_UID) as any).findMany({
       ...sanitizedQuery,
       ...(isAdmin && adminAll
         ? {}
-        : { filters: ownerFilter }),
+        : { filters: { customer: { id: { $eq: user.id } } } }),
       populate: mergePopulate(sanitizedQuery.populate, {
         publicBeforeImage: true,
         publicAfterImage: true,
@@ -118,11 +111,7 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     if (!entry) return ctx.notFound('Dossier introuvable')
 
     const customerId = (entry.customer as { id: number } | null)?.id
-    const productCustomerId =
-      ((entry.product as { customer?: { id: number } | null } | null)?.customer
-        ?.id as number | undefined) ?? null
-    const isOwner = customerId === user.id || productCustomerId === user.id
-    if (!isOwner && !isAdmin) return ctx.forbidden('Accès refusé')
+    if (customerId !== user.id && !isAdmin) return ctx.forbidden('Accès refusé')
 
     return { data: entry }
   },

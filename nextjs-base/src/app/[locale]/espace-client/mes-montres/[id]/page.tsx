@@ -122,7 +122,6 @@ interface WatchFile {
     name: string
     slug: string
     images?: MediaFile[] | null
-    customer?: { id: number } | null
   }
   customer?: { id: number }
 }
@@ -446,7 +445,6 @@ async function renderWatchFileDetailPage({
   if (!isPublicView) {
     query.set('populate[order]', 'true')
     query.set('populate[customer]', 'true')
-    query.set('populate[product][populate][customer]', 'true')
   }
 
   // dossierBlocks are fetched in a separate query so that a populate error
@@ -475,10 +473,7 @@ async function renderWatchFileDetailPage({
     notFound()
   }
 
-  const isOwnerByWatchFileCustomer = watchFile.customer?.id === strapiUser?.id
-  const isOwnerByProductCustomer =
-    watchFile.product?.customer?.id === strapiUser?.id
-  const isOwner = isOwnerByWatchFileCustomer || isOwnerByProductCustomer
+  const isOwner = watchFile.customer?.id === strapiUser?.id
 
   if (!isPublicView && strapiUser && !isAdminUser(strapiUser) && !isOwner) {
     notFound()

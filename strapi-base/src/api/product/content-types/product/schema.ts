@@ -69,11 +69,6 @@ export default {
       "target": "api::watch-file.watch-file",
       "mappedBy": "product"
     },
-    "customer": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "plugin::users-permissions.user"
-    },
     "stripePriceId": {
       "type": "string",
       "private": true
