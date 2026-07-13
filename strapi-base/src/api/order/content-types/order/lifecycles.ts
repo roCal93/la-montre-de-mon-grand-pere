@@ -27,6 +27,31 @@ const toText = (value: unknown, fallback = ''): string => {
   return fallback
 }
 
+const SENDER_PLAIN_EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/
+const SENDER_NAMED_EMAIL_RE = /^.+<\s*[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+\s*>$/
+
+const normalizeSenderFrom = (value: string): string => {
+  const compact = value.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim()
+
+  // Railway variables are sometimes pasted with wrapping quotes.
+  const unquoted = compact.replace(/^['\"]+|['\"]+$/g, '').trim()
+
+  if (SENDER_PLAIN_EMAIL_RE.test(unquoted) || SENDER_NAMED_EMAIL_RE.test(unquoted)) {
+    return unquoted
+  }
+
+  // Fallback: support malformed "Name email@example.com" and normalize to
+  // "Name <email@example.com>" (or plain email if no name is present).
+  const emailMatch = unquoted.match(/([^\s@<>]+@[^\s@<>]+\.[^\s@<>]+)/)
+  if (!emailMatch) {
+    return unquoted
+  }
+
+  const email = emailMatch[1]
+  const name = unquoted.replace(email, '').trim()
+  return name ? `${name} <${email}>` : email
+}
+
 const formatAmount = (amount: unknown, currency: unknown): string => {
   const numericAmount =
     typeof amount === 'number'
@@ -71,16 +96,24 @@ async function sendResendEmail(payload: {
   text: string
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.ORDER_EMAIL_FROM
+  const rawFrom = process.env.ORDER_EMAIL_FROM
   const testRecipient = process.env.ORDER_EMAIL_TEST_RECIPIENT
+  const from = rawFrom ? normalizeSenderFrom(rawFrom) : ''
 
   const missingEnv: string[] = []
   if (!apiKey) missingEnv.push('RESEND_API_KEY')
-  if (!from) missingEnv.push('ORDER_EMAIL_FROM')
+  if (!rawFrom) missingEnv.push('ORDER_EMAIL_FROM')
 
   if (missingEnv.length > 0) {
     strapi.log.warn(
       `[order lifecycle] Email skipped: missing environment variable(s): ${missingEnv.join(', ')}`
+    )
+    return
+  }
+
+  if (!SENDER_PLAIN_EMAIL_RE.test(from) && !SENDER_NAMED_EMAIL_RE.test(from)) {
+    strapi.log.warn(
+      '[order lifecycle] Email skipped: ORDER_EMAIL_FROM remains invalid after normalization. Expected "email@example.com" or "Name <email@example.com>"'
     )
     return
   }

@@ -40,18 +40,47 @@ const DEFAULT_LOCALE = 'fr';
 const hasMissingLocale = (value: unknown) =>
   value == null || value === '' || value === 'null';
 
+const SENDER_PLAIN_EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+const SENDER_NAMED_EMAIL_RE = /^.+<\s*[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+\s*>$/;
+
+function normalizeSenderFrom(value: string): string {
+  const compact = value.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const unquoted = compact.replace(/^['\"]+|['\"]+$/g, '').trim();
+
+  if (SENDER_PLAIN_EMAIL_RE.test(unquoted) || SENDER_NAMED_EMAIL_RE.test(unquoted)) {
+    return unquoted;
+  }
+
+  const emailMatch = unquoted.match(/([^\s@<>]+@[^\s@<>]+\.[^\s@<>]+)/);
+  if (!emailMatch) {
+    return unquoted;
+  }
+
+  const email = emailMatch[1];
+  const name = unquoted.replace(email, '').trim();
+  return name ? `${name} <${email}>` : email;
+}
+
 function warnOrderEmailConfiguration(strapi: Core.Strapi) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.ORDER_EMAIL_FROM;
+  const rawFrom = process.env.ORDER_EMAIL_FROM;
   const testRecipient = process.env.ORDER_EMAIL_TEST_RECIPIENT;
+  const from = rawFrom ? normalizeSenderFrom(rawFrom) : '';
 
   const missingEnv: string[] = [];
   if (!apiKey) missingEnv.push('RESEND_API_KEY');
-  if (!from) missingEnv.push('ORDER_EMAIL_FROM');
+  if (!rawFrom) missingEnv.push('ORDER_EMAIL_FROM');
 
   if (missingEnv.length > 0) {
     strapi.log.warn(
       `[bootstrap] Order emails disabled: missing environment variable(s): ${missingEnv.join(', ')}`
+    );
+    return;
+  }
+
+  if (!SENDER_PLAIN_EMAIL_RE.test(from) && !SENDER_NAMED_EMAIL_RE.test(from)) {
+    strapi.log.warn(
+      '[bootstrap] Order emails disabled: ORDER_EMAIL_FROM invalid format. Expected "email@example.com" or "Name <email@example.com>"'
     );
     return;
   }
