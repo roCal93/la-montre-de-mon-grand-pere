@@ -74,9 +74,13 @@ async function sendResendEmail(payload: {
   const from = process.env.ORDER_EMAIL_FROM
   const testRecipient = process.env.ORDER_EMAIL_TEST_RECIPIENT
 
-  if (!apiKey || !from) {
+  const missingEnv: string[] = []
+  if (!apiKey) missingEnv.push('RESEND_API_KEY')
+  if (!from) missingEnv.push('ORDER_EMAIL_FROM')
+
+  if (missingEnv.length > 0) {
     strapi.log.warn(
-      '[order lifecycle] Email skipped: RESEND_API_KEY or ORDER_EMAIL_FROM is missing'
+      `[order lifecycle] Email skipped: missing environment variable(s): ${missingEnv.join(', ')}`
     )
     return
   }

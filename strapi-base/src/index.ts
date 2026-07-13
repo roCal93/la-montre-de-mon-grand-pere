@@ -40,6 +40,29 @@ const DEFAULT_LOCALE = 'fr';
 const hasMissingLocale = (value: unknown) =>
   value == null || value === '' || value === 'null';
 
+function warnOrderEmailConfiguration(strapi: Core.Strapi) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.ORDER_EMAIL_FROM;
+  const testRecipient = process.env.ORDER_EMAIL_TEST_RECIPIENT;
+
+  const missingEnv: string[] = [];
+  if (!apiKey) missingEnv.push('RESEND_API_KEY');
+  if (!from) missingEnv.push('ORDER_EMAIL_FROM');
+
+  if (missingEnv.length > 0) {
+    strapi.log.warn(
+      `[bootstrap] Order emails disabled: missing environment variable(s): ${missingEnv.join(', ')}`
+    );
+    return;
+  }
+
+  if (from.toLowerCase().includes('onboarding@resend.dev') && !testRecipient) {
+    strapi.log.warn(
+      '[bootstrap] Order emails disabled: ORDER_EMAIL_TEST_RECIPIENT is required when ORDER_EMAIL_FROM uses onboarding@resend.dev'
+    );
+  }
+}
+
 async function ensureUploadAutoOrientation(strapi: Core.Strapi) {
   try {
     const store = strapi.store({
@@ -368,6 +391,7 @@ export default {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
+    warnOrderEmailConfiguration(strapi);
     await ensureUploadAutoOrientation(strapi);
     await cleanupBrokenBlogCategoryLinks(strapi);
     await ensureWatchFileEditLayoutOrder(strapi);
