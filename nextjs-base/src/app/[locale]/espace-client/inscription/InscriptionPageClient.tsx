@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,6 +25,20 @@ type FormData = z.infer<typeof schema>
 type RegistrationResponse = {
   ok: boolean
   error: string | null
+}
+
+export function resolvePostRegisterPath(locale: string, fromParam: string | null) {
+  const dashboardPath = `/${locale}/espace-client/tableau-de-bord`
+  const isSafeFromPath =
+    !!fromParam &&
+    fromParam.startsWith('/') &&
+    !fromParam.startsWith('//') &&
+    !fromParam.includes('://') &&
+    !fromParam.endsWith('/connexion') &&
+    !fromParam.endsWith('/inscription') &&
+    !fromParam.endsWith('/mot-de-passe-oublie')
+
+  return isSafeFromPath ? fromParam : dashboardPath
 }
 
 async function readRegistrationError(response: Response) {
@@ -72,7 +86,10 @@ export async function createAccount(
 
 export function InscriptionPageClient({ locale }: { locale: string }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
+
+  const redirectPath = resolvePostRegisterPath(locale, searchParams.get('from'))
 
   const {
     register,
@@ -105,9 +122,11 @@ export function InscriptionPageClient({ locale }: { locale: string }) {
 
     if (signInResult?.error) {
       setError('Compte créé ! Connectez-vous.')
-      router.push(`/${locale}/espace-client/connexion`)
+      router.push(
+        `/${locale}/espace-client/connexion?from=${encodeURIComponent(redirectPath)}`
+      )
     } else {
-      router.push(`/${locale}/espace-client/tableau-de-bord`)
+      router.push(redirectPath)
       router.refresh()
     }
   }
@@ -238,7 +257,7 @@ export function InscriptionPageClient({ locale }: { locale: string }) {
           <p className="mt-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
             Déjà un compte ?{' '}
             <Link
-              href={`/${locale}/espace-client/connexion`}
+              href={`/${locale}/espace-client/connexion?from=${encodeURIComponent(redirectPath)}`}
               className="font-semibold text-neutral-900 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-black dark:text-white dark:decoration-neutral-600 dark:hover:text-neutral-300"
             >
               Se connecter

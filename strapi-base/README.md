@@ -172,6 +172,9 @@ En cas d'echec de liaison automatique (email Stripe different, compte cree apres
 
 `POST /api/watch-files/assign-customer`
 
+Header requis :
+- `x-claim-assign-secret: <CLAIM_ASSIGN_SECRET>`
+
 Corps JSON minimum :
 - Un selecteur de montre : `watchFileDocumentId` ou `productDocumentId`
 - Un selecteur client : `customerId` ou `customerDocumentId` ou `customerEmail`

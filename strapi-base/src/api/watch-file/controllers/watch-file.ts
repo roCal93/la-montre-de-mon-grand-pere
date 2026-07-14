@@ -126,6 +126,29 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
    * Optional: orderDocumentId, force (default true)
    */
   async assignCustomer(ctx) {
+    const configuredAssignSecret = process.env.CLAIM_ASSIGN_SECRET
+    if (!configuredAssignSecret) {
+      strapi.log.error(
+        '[watch-file.assignCustomer] CLAIM_ASSIGN_SECRET missing'
+      )
+      return ctx.internalServerError('Configuration serveur manquante')
+    }
+
+    const providedAssignSecret = ctx.request.headers[
+      'x-claim-assign-secret'
+    ]
+    const assignSecretHeader = Array.isArray(providedAssignSecret)
+      ? providedAssignSecret[0]
+      : providedAssignSecret
+
+    if (
+      !assignSecretHeader ||
+      typeof assignSecretHeader !== 'string' ||
+      assignSecretHeader !== configuredAssignSecret
+    ) {
+      return ctx.unauthorized('Accès refusé')
+    }
+
     const {
       watchFileDocumentId,
       productDocumentId,

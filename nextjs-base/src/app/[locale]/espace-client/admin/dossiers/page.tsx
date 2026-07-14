@@ -1,6 +1,7 @@
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
+import { buildWatchClaimUrl } from '@/lib/watch-claim-url'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 
@@ -69,13 +70,17 @@ export default async function AdminDossiersPage({
             const primaryDate =
               wf.dateMiseEnVente ?? wf.dateReception ?? wf.createdAt
             const formattedDate = formatDate(primaryDate)
+            let claimUrl: string | null = null
+
+            try {
+              claimUrl = buildWatchClaimUrl(wf.documentId, locale)
+            } catch {
+              claimUrl = null
+            }
 
             return (
               <li key={wf.documentId}>
-                <Link
-                  href={`/${locale}/espace-client/mes-montres/${wf.documentId}`}
-                  className="group flex flex-col gap-3 border border-neutral-200 bg-white p-5 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
-                >
+                <div className="group flex flex-col gap-3 border border-neutral-200 bg-white p-5 shadow-sm hover:border-neutral-400 hover:shadow-md transition-all dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-neutral-900 truncate dark:text-white">
@@ -97,10 +102,31 @@ export default async function AdminDossiersPage({
                     <span>{formattedDate ?? ''}</span>
                   </div>
 
-                  <span className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-600 group-hover:text-black transition-colors mt-1 dark:text-neutral-400 dark:group-hover:text-white">
-                    Voir le dossier →
-                  </span>
-                </Link>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    <Link
+                      href={`/${locale}/espace-client/mes-montres/${wf.documentId}`}
+                      className="inline-flex items-center border border-neutral-400 px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-700 transition-colors hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-300 dark:hover:border-neutral-300 dark:hover:text-white"
+                    >
+                      Voir le dossier
+                    </Link>
+                    {claimUrl ? (
+                      <Link
+                        href={claimUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center border border-neutral-400 px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-700 transition-colors hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-300 dark:hover:border-neutral-300 dark:hover:text-white"
+                      >
+                        Ouvrir lien claim
+                      </Link>
+                    ) : null}
+                    <Link
+                      href={`/api/watch-claim/qr?watchFileDocumentId=${encodeURIComponent(wf.documentId)}&locale=${encodeURIComponent(locale)}`}
+                      className="inline-flex items-center border border-neutral-400 px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-700 transition-colors hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-300 dark:hover:border-neutral-300 dark:hover:text-white"
+                    >
+                      Télécharger QR
+                    </Link>
+                  </div>
+                </div>
               </li>
             )
           })}

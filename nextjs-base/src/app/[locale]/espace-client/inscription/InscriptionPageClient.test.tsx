@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { createAccount } from './InscriptionPageClient'
+import {
+  createAccount,
+  resolvePostRegisterPath,
+} from './InscriptionPageClient'
 
 describe('createAccount', () => {
   const payload = {
@@ -69,5 +72,34 @@ describe('createAccount', () => {
       ok: false,
       error: 'Erreur lors de la création du compte.',
     })
+  })
+})
+
+describe('resolvePostRegisterPath', () => {
+  it('falls back to dashboard when from is missing', () => {
+    expect(resolvePostRegisterPath('fr', null)).toBe(
+      '/fr/espace-client/tableau-de-bord'
+    )
+  })
+
+  it('accepts safe internal paths with query string', () => {
+    expect(
+      resolvePostRegisterPath(
+        'fr',
+        '/fr/espace-client/claim?token=abc.def'
+      )
+    ).toBe('/fr/espace-client/claim?token=abc.def')
+  })
+
+  it('rejects auth pages and external urls', () => {
+    expect(resolvePostRegisterPath('fr', '/fr/espace-client/inscription')).toBe(
+      '/fr/espace-client/tableau-de-bord'
+    )
+    expect(resolvePostRegisterPath('fr', 'https://evil.com')).toBe(
+      '/fr/espace-client/tableau-de-bord'
+    )
+    expect(resolvePostRegisterPath('fr', '//evil.com/path')).toBe(
+      '/fr/espace-client/tableau-de-bord'
+    )
   })
 })
