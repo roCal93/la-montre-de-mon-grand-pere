@@ -21,7 +21,11 @@ function getClaimCodeSecret() {
   return secret
 }
 
-function createCodeSignature(payload: string, secret: string, sigLength: number) {
+function createCodeSignature(
+  payload: string,
+  secret: string,
+  sigLength: number
+) {
   return createHmac('sha256', secret)
     .update(payload)
     .digest('base64url')

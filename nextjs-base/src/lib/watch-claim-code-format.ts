@@ -1,8 +1,5 @@
 export function normalizeWatchClaimCodeInput(code: string) {
-  return code
-    .trim()
-    .toLowerCase()
-    .replace(/[\s-]/g, '')
+  return code.trim().toLowerCase().replace(/[\s-]/g, '')
 }
 
 export function formatWatchClaimCodeForDisplay(code: string, groupSize = 4) {

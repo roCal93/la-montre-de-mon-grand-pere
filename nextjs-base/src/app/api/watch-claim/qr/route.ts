@@ -20,7 +20,8 @@ export async function GET(req: NextRequest) {
 
   const watchFileDocumentId =
     req.nextUrl.searchParams.get('watchFileDocumentId')?.trim() ?? ''
-  const watchFileIdRaw = req.nextUrl.searchParams.get('watchFileId')?.trim() ?? ''
+  const watchFileIdRaw =
+    req.nextUrl.searchParams.get('watchFileId')?.trim() ?? ''
   const watchFileId = Number.parseInt(watchFileIdRaw, 10)
   const locale = req.nextUrl.searchParams.get('locale')?.trim() ?? 'fr'
 

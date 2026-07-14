@@ -25,7 +25,8 @@ function getClaimBaseUrl() {
 export function buildWatchClaimUrl(target: WatchClaimTarget, locale = 'fr') {
   const watchFileDocumentId =
     typeof target === 'string' ? target : target.watchFileDocumentId
-  const watchFileId = typeof target === 'string' ? undefined : target.watchFileId
+  const watchFileId =
+    typeof target === 'string' ? undefined : target.watchFileId
   const code =
     typeof watchFileId === 'number'
       ? createWatchClaimShortCode(watchFileId)

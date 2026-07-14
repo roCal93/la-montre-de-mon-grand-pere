@@ -52,7 +52,9 @@ describe('watch claim code', () => {
   })
 
   it('formats code for display with groups', () => {
-    expect(formatWatchClaimCodeForDisplay('cabc123def456')).toBe('CABC-123D-EF45-6')
+    expect(formatWatchClaimCodeForDisplay('cabc123def456')).toBe(
+      'CABC-123D-EF45-6'
+    )
     expect(formatWatchClaimCodeForDisplay(' cabc-123def456 ')).toBe(
       'CABC-123D-EF45-6'
     )

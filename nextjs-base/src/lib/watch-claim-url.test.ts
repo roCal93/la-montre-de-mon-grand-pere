@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { createWatchClaimCodeMock, createWatchClaimShortCodeMock } = vi.hoisted(() => ({
-  createWatchClaimCodeMock: vi.fn(),
-  createWatchClaimShortCodeMock: vi.fn(),
-}))
+const { createWatchClaimCodeMock, createWatchClaimShortCodeMock } = vi.hoisted(
+  () => ({
+    createWatchClaimCodeMock: vi.fn(),
+    createWatchClaimShortCodeMock: vi.fn(),
+  })
+)
 
 vi.mock('@/lib/watch-claim-code', () => ({
   createWatchClaimCode: createWatchClaimCodeMock,
@@ -32,7 +34,10 @@ describe('buildWatchClaimUrl', () => {
 
   it('builds claim url using CLAIM_QR_BASE_URL', () => {
     expect(
-      buildWatchClaimUrl({ watchFileDocumentId: 'wf_123', watchFileId: 42 }, 'fr')
+      buildWatchClaimUrl(
+        { watchFileDocumentId: 'wf_123', watchFileId: 42 },
+        'fr'
+      )
     ).toBe('https://atelier.example.com/activation?code=c1abcde')
     expect(createWatchClaimShortCodeMock).toHaveBeenCalledWith(42)
   })

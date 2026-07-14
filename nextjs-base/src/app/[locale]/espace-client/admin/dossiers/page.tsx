@@ -145,7 +145,9 @@ export default async function AdminDossiersPage({
                     {claimUrl ? (
                       <CopyClaimLinkButton claimUrl={claimUrl} />
                     ) : null}
-                    {claimCode ? <CopyClaimCodeButton claimCode={claimCode} /> : null}
+                    {claimCode ? (
+                      <CopyClaimCodeButton claimCode={claimCode} />
+                    ) : null}
                     <Link
                       href={`/api/watch-claim/qr?watchFileDocumentId=${encodeURIComponent(wf.documentId)}&watchFileId=${encodeURIComponent(String(wf.id))}&locale=${encodeURIComponent(locale)}`}
                       className="inline-flex items-center border border-neutral-400 px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-700 transition-colors hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-300 dark:hover:border-neutral-300 dark:hover:text-white"
