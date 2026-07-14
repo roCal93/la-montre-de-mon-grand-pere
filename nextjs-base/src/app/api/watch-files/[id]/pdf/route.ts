@@ -1059,7 +1059,7 @@ async function normalizeWatchFileBlockForPdf(block: WatchFileDossierBlock) {
     return {
       ...block,
       pairs: await Promise.all(
-        block.pairs.map(async (pair) => ({
+        (block.pairs ?? []).map(async (pair) => ({
           ...pair,
           beforeImage:
             (await normalizePdfMediaFile(pair.beforeImage)) ?? pair.beforeImage,

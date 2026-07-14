@@ -411,4 +411,45 @@ describe('GET /api/watch-files/[id]/pdf', () => {
 
     expect(pairContainer).toBeTruthy()
   })
+
+  it('ignores a before-after block with missing pairs instead of failing the PDF', async () => {
+    getStrapiSessionJwtMock.mockResolvedValue('jwt')
+    getCurrentStrapiUserMock.mockResolvedValue({ id: 1 })
+
+    const payload = {
+      data: {
+        documentId: 'watch_before_after_missing_pairs',
+        reference: 'MGP1002',
+        customer: { id: 1 },
+        dateReception: '2026-04-14',
+        dateMiseEnVente: '2026-04-24',
+        publicBeforeImage: [],
+        publicAfterImage: [],
+        product: { name: 'Europ Union' },
+        dossierBlocks: [
+          {
+            __component: 'watch-file.before-after-block',
+            id: 1,
+            title: 'Bloc incomplet',
+            content: [],
+          },
+        ],
+      },
+    }
+
+    vi.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
+
+    const res = await GET({} as NextRequest, {
+      params: Promise.resolve({ id: 'watch_before_after_missing_pairs' }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(renderToBufferMock).toHaveBeenCalledTimes(1)
+  })
 })
