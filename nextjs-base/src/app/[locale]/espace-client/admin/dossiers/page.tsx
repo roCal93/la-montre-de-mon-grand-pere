@@ -2,6 +2,7 @@ import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import { buildWatchClaimUrl } from '@/lib/watch-claim-url'
+import { CopyClaimLinkButton } from '@/components/espace-client/admin/CopyClaimLinkButton'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 
@@ -110,14 +111,7 @@ export default async function AdminDossiersPage({
                       Voir le dossier
                     </Link>
                     {claimUrl ? (
-                      <Link
-                        href={claimUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center border border-neutral-400 px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-700 transition-colors hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-300 dark:hover:border-neutral-300 dark:hover:text-white"
-                      >
-                        Ouvrir lien claim
-                      </Link>
+                      <CopyClaimLinkButton claimUrl={claimUrl} />
                     ) : null}
                     <Link
                       href={`/api/watch-claim/qr?watchFileDocumentId=${encodeURIComponent(wf.documentId)}&locale=${encodeURIComponent(locale)}`}
