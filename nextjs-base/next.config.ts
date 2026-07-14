@@ -18,9 +18,9 @@ function getSiteOrigin(): string {
 }
 
 const nextConfig: NextConfig = {
-  // Let Node.js load @react-pdf/renderer natively — bundling it (transpilePackages) breaks
-  // its internal state with Turbopack and causes "Cannot read properties of undefined (reading 'S')"
-  serverExternalPackages: ['@react-pdf/renderer'],
+  // Let Node.js load these packages natively — bundling native modules or @react-pdf/renderer
+  // breaks them in the serverless runtime (sharp: native binary; @react-pdf: internal state).
+  serverExternalPackages: ['@react-pdf/renderer', 'sharp'],
 
   images: {
     remotePatterns: [
