@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
   const code = body?.code?.trim()
 
   let watchFileDocumentId: string | null = null
+  let watchFileId: number | null = null
 
   if (token) {
     let verified
@@ -74,12 +75,17 @@ export async function POST(req: NextRequest) {
     try {
       const verifiedCode = verifyWatchClaimCode(code)
       if (!verifiedCode.ok || !verifiedCode.watchFileDocumentId) {
-        return NextResponse.json(
-          { error: 'Code d activation invalide.', code: 'invalid_code' },
-          { status: 400 }
-        )
+        if (verifiedCode.ok && verifiedCode.watchFileId) {
+          watchFileId = verifiedCode.watchFileId
+        } else {
+          return NextResponse.json(
+            { error: 'Code d activation invalide.', code: 'invalid_code' },
+            { status: 400 }
+          )
+        }
+      } else {
+        watchFileDocumentId = verifiedCode.watchFileDocumentId
       }
-      watchFileDocumentId = verifiedCode.watchFileDocumentId
     } catch {
       return NextResponse.json(
         { error: 'Configuration claim indisponible' },
@@ -90,7 +96,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'token ou code requis' }, { status: 400 })
   }
 
-  if (!watchFileDocumentId) {
+  if (!watchFileDocumentId && !watchFileId) {
     return NextResponse.json(
       { error: 'Code d activation invalide.', code: 'invalid_code' },
       { status: 400 }
@@ -117,6 +123,7 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({
       watchFileDocumentId,
+      watchFileId,
       customerId: strapiUser.id,
       force: false,
     }),
@@ -131,6 +138,7 @@ export async function POST(req: NextRequest) {
     success?: boolean
     reason?: string
     watchFileDocumentId?: string
+    watchFileId?: number
   } | null
 
   if (!response.ok) {

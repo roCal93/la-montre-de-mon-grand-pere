@@ -2,11 +2,18 @@ import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
 import { strapiAuthGet } from '@/lib/strapi-auth-client'
 import { buildWatchClaimUrl } from '@/lib/watch-claim-url'
+import {
+  createWatchClaimCode,
+  createWatchClaimShortCode,
+  formatWatchClaimCodeForDisplay,
+} from '@/lib/watch-claim-code'
 import { CopyClaimLinkButton } from '@/components/espace-client/admin/CopyClaimLinkButton'
+import { CopyClaimCodeButton } from '@/components/espace-client/admin/CopyClaimCodeButton'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 
 interface WatchFileAdmin {
+  id: number
   documentId: string
   reference: string
   createdAt: string
@@ -72,9 +79,23 @@ export default async function AdminDossiersPage({
               wf.dateMiseEnVente ?? wf.dateReception ?? wf.createdAt
             const formattedDate = formatDate(primaryDate)
             let claimUrl: string | null = null
+            let claimCode: string | null = null
+            let claimCodeDisplay: string | null = null
 
             try {
-              claimUrl = buildWatchClaimUrl(wf.documentId, locale)
+              claimCode =
+                typeof wf.id === 'number'
+                  ? createWatchClaimShortCode(wf.id)
+                  : createWatchClaimCode(wf.documentId)
+              claimCodeDisplay = formatWatchClaimCodeForDisplay(claimCode)
+
+              claimUrl = buildWatchClaimUrl(
+                {
+                  watchFileDocumentId: wf.documentId,
+                  watchFileId: wf.id,
+                },
+                locale
+              )
             } catch {
               claimUrl = null
             }
@@ -103,6 +124,17 @@ export default async function AdminDossiersPage({
                     <span>{formattedDate ?? ''}</span>
                   </div>
 
+                  {claimCodeDisplay ? (
+                    <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800/60">
+                      <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+                        Code activation
+                      </p>
+                      <p className="mt-1 font-[family-name:var(--font-geist-mono)] text-sm tracking-[0.08em] text-neutral-900 dark:text-white">
+                        {claimCodeDisplay}
+                      </p>
+                    </div>
+                  ) : null}
+
                   <div className="mt-1 flex flex-wrap gap-2">
                     <Link
                       href={`/${locale}/espace-client/mes-montres/${wf.documentId}`}
@@ -113,8 +145,9 @@ export default async function AdminDossiersPage({
                     {claimUrl ? (
                       <CopyClaimLinkButton claimUrl={claimUrl} />
                     ) : null}
+                    {claimCode ? <CopyClaimCodeButton claimCode={claimCode} /> : null}
                     <Link
-                      href={`/api/watch-claim/qr?watchFileDocumentId=${encodeURIComponent(wf.documentId)}&locale=${encodeURIComponent(locale)}`}
+                      href={`/api/watch-claim/qr?watchFileDocumentId=${encodeURIComponent(wf.documentId)}&watchFileId=${encodeURIComponent(String(wf.id))}&locale=${encodeURIComponent(locale)}`}
                       className="inline-flex items-center border border-neutral-400 px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-neutral-700 transition-colors hover:border-black hover:text-black dark:border-neutral-600 dark:text-neutral-300 dark:hover:border-neutral-300 dark:hover:text-white"
                     >
                       Télécharger QR

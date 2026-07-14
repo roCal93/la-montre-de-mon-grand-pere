@@ -151,6 +151,7 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
 
     const {
       watchFileDocumentId,
+      watchFileId,
       productDocumentId,
       customerId,
       customerDocumentId,
@@ -160,6 +161,7 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     } =
       ctx.request.body as {
         watchFileDocumentId?: string
+        watchFileId?: number | string
         productDocumentId?: string
         customerId?: number | string
         customerDocumentId?: string
@@ -168,9 +170,9 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
         force?: boolean
       }
 
-    if (!watchFileDocumentId && !productDocumentId) {
+    if (!watchFileDocumentId && !watchFileId && !productDocumentId) {
       return ctx.badRequest(
-        'watchFileDocumentId or productDocumentId is required'
+        'watchFileDocumentId, watchFileId or productDocumentId is required'
       )
     }
 
@@ -181,6 +183,20 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
     }
 
     const shouldForce = force !== false
+    const parsedWatchFileId =
+      typeof watchFileId === 'string'
+        ? Number.parseInt(watchFileId, 10)
+        : watchFileId
+
+    if (
+      watchFileId !== undefined &&
+      watchFileId !== null &&
+      (typeof parsedWatchFileId !== 'number' ||
+        !Number.isInteger(parsedWatchFileId) ||
+        parsedWatchFileId <= 0)
+    ) {
+      return ctx.badRequest('watchFileId must be a positive integer')
+    }
 
     // Find the Strapi user from one of the provided identifiers.
     let users: Array<{ id: number; documentId?: string; email?: string }> = []
@@ -228,6 +244,16 @@ export default factories.createCoreController(MODEL_UID, ({ strapi }) => ({
         documentId: watchFileDocumentId,
         populate: ['customer'],
       })
+    } else if (typeof parsedWatchFileId === 'number' && Number.isInteger(parsedWatchFileId)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const watchFiles = await (strapi.documents(MODEL_UID) as any).findMany({
+        filters: { id: { $eq: parsedWatchFileId } },
+        populate: ['customer'],
+        limit: 1,
+      })
+      watchFile = watchFiles[0] as
+        | { documentId: string; customer?: { id: number } | null }
+        | undefined
     } else {
       // Find the watch-file linked to this product
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

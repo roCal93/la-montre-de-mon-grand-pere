@@ -3,6 +3,10 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
+import {
+  formatWatchClaimCodeForDisplay,
+  normalizeWatchClaimCodeInput,
+} from '@/lib/watch-claim-code-format'
 
 type ClaimState =
   | { status: 'invalid_token' }
@@ -26,9 +30,11 @@ export function ClaimPageClient({
   isAdmin: boolean
 }) {
   const router = useRouter()
-  const normalizedCode = code?.trim() ?? ''
+  const normalizedCode = normalizeWatchClaimCodeInput(code ?? '')
   const normalizedToken = token.trim()
-  const [manualCodeInput, setManualCodeInput] = useState(normalizedCode)
+  const [manualCodeInput, setManualCodeInput] = useState(
+    formatWatchClaimCodeForDisplay(normalizedCode)
+  )
   const [submittedCode, setSubmittedCode] = useState(normalizedCode)
 
   const buildActivationFromPath = (activationCode: string) => {
@@ -116,12 +122,13 @@ export function ClaimPageClient({
   }, [isAuthenticated, normalizedToken, submittedCode, isAdmin])
 
   const onSubmitCode = () => {
-    const activationCode = manualCodeInput.trim()
+    const activationCode = normalizeWatchClaimCodeInput(manualCodeInput)
     if (!activationCode) return
 
     const activationPath = buildActivationFromPath(activationCode)
     router.replace(activationPath)
 
+    setManualCodeInput(formatWatchClaimCodeForDisplay(activationCode))
     setSubmittedCode(activationCode)
 
     if (!isAuthenticated) {
@@ -155,6 +162,11 @@ export function ClaimPageClient({
             Entrez votre code d&apos;activation pour rattacher la montre a votre
             compte.
           </p>
+          {normalizedCode ? (
+            <p className="mt-2 font-[family-name:var(--font-geist-mono)] text-xs tracking-[0.08em] text-neutral-500 dark:text-neutral-400">
+              Code detecte: {formatWatchClaimCodeForDisplay(normalizedCode)}
+            </p>
+          ) : null}
           <form
             className="mt-4 flex flex-wrap items-center gap-2"
             onSubmit={(event) => {
@@ -164,7 +176,11 @@ export function ClaimPageClient({
           >
             <input
               value={manualCodeInput}
-              onChange={(event) => setManualCodeInput(event.target.value)}
+              onChange={(event) =>
+                setManualCodeInput(
+                  formatWatchClaimCodeForDisplay(event.target.value)
+                )
+              }
               placeholder="Code d activation"
               className="w-full max-w-xs border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
             />

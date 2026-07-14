@@ -20,18 +20,26 @@ export async function GET(req: NextRequest) {
 
   const watchFileDocumentId =
     req.nextUrl.searchParams.get('watchFileDocumentId')?.trim() ?? ''
+  const watchFileIdRaw = req.nextUrl.searchParams.get('watchFileId')?.trim() ?? ''
+  const watchFileId = Number.parseInt(watchFileIdRaw, 10)
   const locale = req.nextUrl.searchParams.get('locale')?.trim() ?? 'fr'
 
-  if (!watchFileDocumentId) {
+  if (!watchFileDocumentId && !Number.isInteger(watchFileId)) {
     return NextResponse.json(
-      { error: 'watchFileDocumentId requis' },
+      { error: 'watchFileDocumentId ou watchFileId requis' },
       { status: 400 }
     )
   }
 
   let claimUrl: string
   try {
-    claimUrl = buildWatchClaimUrl(watchFileDocumentId, locale)
+    claimUrl = buildWatchClaimUrl(
+      {
+        watchFileDocumentId,
+        watchFileId: Number.isInteger(watchFileId) ? watchFileId : undefined,
+      },
+      locale
+    )
   } catch {
     return NextResponse.json(
       { error: 'Configuration serveur manquante pour générer le QR' },
@@ -60,7 +68,8 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const safeName = sanitizeFileName(watchFileDocumentId)
+  const fallbackName = Number.isInteger(watchFileId) ? `id-${watchFileId}` : ''
+  const safeName = sanitizeFileName(watchFileDocumentId || fallbackName)
   return new NextResponse(new Uint8Array(pngBuffer), {
     status: 200,
     headers: {

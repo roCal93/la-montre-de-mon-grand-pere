@@ -1,4 +1,14 @@
-import { createWatchClaimCode } from '@/lib/watch-claim-code'
+import {
+  createWatchClaimCode,
+  createWatchClaimShortCode,
+} from '@/lib/watch-claim-code'
+
+type WatchClaimTarget =
+  | string
+  | {
+      watchFileDocumentId: string
+      watchFileId?: number
+    }
 
 function getClaimBaseUrl() {
   const configuredBaseUrl =
@@ -12,8 +22,14 @@ function getClaimBaseUrl() {
   return configuredBaseUrl.replace(/\/$/, '')
 }
 
-export function buildWatchClaimUrl(watchFileDocumentId: string, locale = 'fr') {
-  const code = createWatchClaimCode(watchFileDocumentId)
+export function buildWatchClaimUrl(target: WatchClaimTarget, locale = 'fr') {
+  const watchFileDocumentId =
+    typeof target === 'string' ? target : target.watchFileDocumentId
+  const watchFileId = typeof target === 'string' ? undefined : target.watchFileId
+  const code =
+    typeof watchFileId === 'number'
+      ? createWatchClaimShortCode(watchFileId)
+      : createWatchClaimCode(watchFileDocumentId)
   const baseUrl = getClaimBaseUrl()
   void locale
 

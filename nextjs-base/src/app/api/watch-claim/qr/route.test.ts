@@ -74,13 +74,16 @@ describe('GET /api/watch-claim/qr', () => {
     qrToDataUrlMock.mockResolvedValue('data:image/png;base64,AQID')
 
     const req = new NextRequest(
-      'http://localhost:3000/api/watch-claim/qr?watchFileDocumentId=wf_1&locale=fr'
+      'http://localhost:3000/api/watch-claim/qr?watchFileDocumentId=wf_1&watchFileId=12&locale=fr'
     )
     const res = await GET(req)
 
     expect(res.status).toBe(200)
     expect(res.headers.get('Content-Type')).toBe('image/png')
-    expect(buildWatchClaimUrlMock).toHaveBeenCalledWith('wf_1', 'fr')
+    expect(buildWatchClaimUrlMock).toHaveBeenCalledWith(
+      { watchFileDocumentId: 'wf_1', watchFileId: 12 },
+      'fr'
+    )
     expect(qrToDataUrlMock).toHaveBeenCalled()
   })
 })
