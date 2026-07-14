@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
+import { isAdminUser } from '@/lib/is-admin-user'
 import { verifyWatchClaimToken } from '@/lib/watch-claim-token'
 
 function toJsonHeaders(token: string) {
@@ -26,6 +27,17 @@ export async function POST(req: NextRequest) {
   const strapiUser = await getCurrentStrapiUser()
   if (!strapiUser) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  }
+
+  if (isAdminUser(strapiUser)) {
+    return NextResponse.json(
+      {
+        error:
+          'Compte admin détecté. Le claim doit être fait avec le compte client final.',
+        code: 'admin_not_allowed',
+      },
+      { status: 403 }
+    )
   }
 
   const body = (await req.json().catch(() => null)) as { token?: string } | null

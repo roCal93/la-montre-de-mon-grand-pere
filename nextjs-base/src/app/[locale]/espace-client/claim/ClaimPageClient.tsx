@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 type ClaimState =
   | { status: 'invalid_token' }
   | { status: 'auth_required'; from: string }
+  | { status: 'admin_blocked' }
   | { status: 'claiming' }
   | { status: 'success'; watchFileDocumentId: string }
   | { status: 'error'; message: string }
@@ -14,10 +15,12 @@ export function ClaimPageClient({
   locale,
   token,
   isAuthenticated,
+  isAdmin,
 }: {
   locale: string
   token: string
   isAuthenticated: boolean
+  isAdmin: boolean
 }) {
   const fromPath = useMemo(() => {
     const query = new URLSearchParams({ token })
@@ -27,11 +30,12 @@ export function ClaimPageClient({
   const [state, setState] = useState<ClaimState>(() => {
     if (!token) return { status: 'invalid_token' }
     if (!isAuthenticated) return { status: 'auth_required', from: fromPath }
+    if (isAdmin) return { status: 'admin_blocked' }
     return { status: 'claiming' }
   })
 
   useEffect(() => {
-    if (!isAuthenticated || !token) return
+    if (!isAuthenticated || !token || isAdmin) return
 
     let cancelled = false
 
@@ -84,7 +88,7 @@ export function ClaimPageClient({
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, token])
+  }, [isAuthenticated, token, isAdmin])
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-12">
@@ -121,6 +125,19 @@ export function ClaimPageClient({
               Creer un compte
             </Link>
           </div>
+        </div>
+      ) : null}
+
+      {state.status === 'admin_blocked' ? (
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+          <p>
+            Vous etes connecte avec un compte admin. Pour eviter une mauvaise
+            attribution, le claim est bloque pour les admins.
+          </p>
+          <p className="mt-2">
+            Deconnectez-vous puis reconnectez-vous avec le compte client final
+            (ou ouvrez le lien en navigation privee).
+          </p>
         </div>
       ) : null}
 

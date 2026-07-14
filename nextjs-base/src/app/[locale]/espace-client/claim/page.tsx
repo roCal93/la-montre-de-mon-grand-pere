@@ -1,4 +1,5 @@
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
+import { isAdminUser } from '@/lib/is-admin-user'
 import { ClaimPageClient } from './ClaimPageClient'
 
 export default async function ClaimPage({
@@ -17,6 +18,7 @@ export default async function ClaimPage({
       locale={locale}
       token={token ?? ''}
       isAuthenticated={Boolean(strapiUser)}
+      isAdmin={isAdminUser(strapiUser)}
     />
   )
 }

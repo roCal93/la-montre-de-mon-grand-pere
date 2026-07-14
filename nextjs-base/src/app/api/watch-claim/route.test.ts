@@ -22,6 +22,7 @@ const OLD_STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 const OLD_STRAPI_TOKEN = process.env.STRAPI_API_TOKEN
 const OLD_STRAPI_WRITE_TOKEN = process.env.STRAPI_WRITE_API_TOKEN
 const OLD_ASSIGN_SECRET = process.env.CLAIM_ASSIGN_SECRET
+const OLD_ADMIN_EMAIL = process.env.ADMIN_EMAIL
 
 describe('POST /api/watch-claim', () => {
   beforeEach(() => {
@@ -29,6 +30,7 @@ describe('POST /api/watch-claim', () => {
     process.env.STRAPI_API_TOKEN = 'api-token'
     process.env.STRAPI_WRITE_API_TOKEN = 'write-api-token'
     process.env.CLAIM_ASSIGN_SECRET = 'assign-secret'
+    process.env.ADMIN_EMAIL = 'admin@test.com'
     getCurrentStrapiUserMock.mockReset()
     verifyWatchClaimTokenMock.mockReset()
     vi.restoreAllMocks()
@@ -39,6 +41,7 @@ describe('POST /api/watch-claim', () => {
     process.env.STRAPI_API_TOKEN = OLD_STRAPI_TOKEN
     process.env.STRAPI_WRITE_API_TOKEN = OLD_STRAPI_WRITE_TOKEN
     process.env.CLAIM_ASSIGN_SECRET = OLD_ASSIGN_SECRET
+    process.env.ADMIN_EMAIL = OLD_ADMIN_EMAIL
   })
 
   it('rejects unauthenticated users', async () => {
@@ -52,6 +55,30 @@ describe('POST /api/watch-claim', () => {
 
     const res = await POST(req)
     expect(res.status).toBe(401)
+  })
+
+  it('blocks admin users to avoid accidental ownership assignment', async () => {
+    getCurrentStrapiUserMock.mockResolvedValue({
+      id: 1,
+      email: 'admin@test.com',
+    })
+
+    const fetchSpy = vi.spyOn(global, 'fetch')
+
+    const req = new NextRequest('http://localhost:3000/api/watch-claim', {
+      method: 'POST',
+      body: JSON.stringify({ token: 'valid.token' }),
+      headers: { 'content-type': 'application/json' },
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(403)
+    await expect(res.json()).resolves.toEqual({
+      error:
+        'Compte admin détecté. Le claim doit être fait avec le compte client final.',
+      code: 'admin_not_allowed',
+    })
+    expect(fetchSpy).not.toHaveBeenCalled()
   })
 
   it('claims watch file when token is valid and Strapi assignment succeeds', async () => {
