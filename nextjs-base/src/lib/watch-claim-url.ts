@@ -15,7 +15,7 @@ function getClaimBaseUrl() {
 export function buildWatchClaimUrl(watchFileDocumentId: string, locale = 'fr') {
   const code = createWatchClaimCode(watchFileDocumentId)
   const baseUrl = getClaimBaseUrl()
-  const normalizedLocale = locale.trim() || 'fr'
+  void locale
 
-  return `${baseUrl}/${encodeURIComponent(normalizedLocale)}/espace-client/activation?code=${encodeURIComponent(code)}`
+  return `${baseUrl}/activation?code=${encodeURIComponent(code)}`
 }

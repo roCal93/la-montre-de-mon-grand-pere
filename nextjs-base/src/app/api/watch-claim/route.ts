@@ -41,9 +41,10 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const body = (await req.json().catch(() => null)) as
-    | { token?: string; code?: string }
-    | null
+  const body = (await req.json().catch(() => null)) as {
+    token?: string
+    code?: string
+  } | null
   const token = body?.token?.trim()
   const code = body?.code?.trim()
 
@@ -86,10 +87,7 @@ export async function POST(req: NextRequest) {
       )
     }
   } else {
-    return NextResponse.json(
-      { error: 'token ou code requis' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'token ou code requis' }, { status: 400 })
   }
 
   if (!watchFileDocumentId) {

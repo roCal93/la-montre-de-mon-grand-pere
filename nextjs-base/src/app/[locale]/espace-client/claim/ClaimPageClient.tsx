@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
 type ClaimState =
@@ -24,20 +25,25 @@ export function ClaimPageClient({
   isAuthenticated: boolean
   isAdmin: boolean
 }) {
+  const router = useRouter()
   const normalizedCode = code?.trim() ?? ''
   const normalizedToken = token.trim()
+  const [manualCodeInput, setManualCodeInput] = useState(normalizedCode)
+  const [submittedCode, setSubmittedCode] = useState(normalizedCode)
+
+  const buildActivationFromPath = (activationCode: string) => {
+    const query = new URLSearchParams({ code: activationCode })
+    return `/${locale}/espace-client/activation?${query.toString()}`
+  }
 
   const fromPath = useMemo(() => {
     if (normalizedCode) {
-      const query = new URLSearchParams({ code: normalizedCode })
-      return `/${locale}/espace-client/activation?${query.toString()}`
+      return buildActivationFromPath(normalizedCode)
     }
 
     const query = new URLSearchParams({ token: normalizedToken })
     return `/${locale}/espace-client/claim?${query.toString()}`
   }, [locale, normalizedCode, normalizedToken])
-
-  const [manualCodeInput, setManualCodeInput] = useState(normalizedCode)
 
   const [state, setState] = useState<ClaimState>(() => {
     if (!normalizedToken && !normalizedCode) return { status: 'invalid_token' }
@@ -49,7 +55,7 @@ export function ClaimPageClient({
   useEffect(() => {
     if (!isAuthenticated || isAdmin) return
 
-    const activeCode = manualCodeInput.trim()
+    const activeCode = submittedCode.trim()
     const hasCode = activeCode.length > 0
     const hasToken = normalizedToken.length > 0
     if (!hasCode && !hasToken) return
@@ -60,7 +66,9 @@ export function ClaimPageClient({
       const response = await fetch('/api/watch-claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(hasCode ? { code: activeCode } : { token: normalizedToken }),
+        body: JSON.stringify(
+          hasCode ? { code: activeCode } : { token: normalizedToken }
+        ),
       }).catch(() => null)
 
       if (!response) {
@@ -105,7 +113,32 @@ export function ClaimPageClient({
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, normalizedToken, manualCodeInput, isAdmin])
+  }, [isAuthenticated, normalizedToken, submittedCode, isAdmin])
+
+  const onSubmitCode = () => {
+    const activationCode = manualCodeInput.trim()
+    if (!activationCode) return
+
+    const activationPath = buildActivationFromPath(activationCode)
+    router.replace(activationPath)
+
+    setSubmittedCode(activationCode)
+
+    if (!isAuthenticated) {
+      setState({
+        status: 'auth_required',
+        from: activationPath,
+      })
+      return
+    }
+
+    if (isAdmin) {
+      setState({ status: 'admin_blocked' })
+      return
+    }
+
+    setState({ status: 'claiming' })
+  }
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-12">
@@ -117,25 +150,32 @@ export function ClaimPageClient({
       </h1>
 
       {state.status === 'invalid_token' ? (
-        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+        <div className="mt-6 rounded-xl border border-neutral-200 bg-white px-4 py-4 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
           <p>
-            Lien invalide. Scannez le QR code de votre carte ou saisissez votre
-            code d&apos;activation.
+            Entrez votre code d&apos;activation pour rattacher la montre a votre
+            compte.
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          <form
+            className="mt-4 flex flex-wrap items-center gap-2"
+            onSubmit={(event) => {
+              event.preventDefault()
+              onSubmitCode()
+            }}
+          >
             <input
               value={manualCodeInput}
               onChange={(event) => setManualCodeInput(event.target.value)}
               placeholder="Code d activation"
-              className="w-full max-w-xs border border-amber-300 bg-white px-3 py-2 text-sm text-neutral-900"
+              className="w-full max-w-xs border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
             />
-            <Link
-              href={`/${locale}/espace-client/activation?code=${encodeURIComponent(manualCodeInput.trim())}`}
-              className="inline-flex items-center border border-amber-700 bg-amber-700 px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-white"
+            <button
+              type="submit"
+              disabled={!manualCodeInput.trim()}
+              className="inline-flex items-center border border-black bg-black px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               Continuer
-            </Link>
-          </div>
+            </button>
+          </form>
         </div>
       ) : null}
 

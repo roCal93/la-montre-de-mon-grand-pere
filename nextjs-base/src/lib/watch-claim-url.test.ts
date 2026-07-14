@@ -28,7 +28,7 @@ describe('buildWatchClaimUrl', () => {
 
   it('builds claim url using CLAIM_QR_BASE_URL', () => {
     expect(buildWatchClaimUrl('wf_123', 'fr')).toBe(
-      'https://atelier.example.com/fr/espace-client/activation?code=shortcode1'
+      'https://atelier.example.com/activation?code=shortcode1'
     )
   })
 
@@ -36,7 +36,7 @@ describe('buildWatchClaimUrl', () => {
     process.env.CLAIM_QR_BASE_URL = ''
 
     expect(buildWatchClaimUrl('wf_123', 'fr')).toBe(
-      'https://fallback.example.com/fr/espace-client/activation?code=shortcode1'
+      'https://fallback.example.com/activation?code=shortcode1'
     )
   })
 

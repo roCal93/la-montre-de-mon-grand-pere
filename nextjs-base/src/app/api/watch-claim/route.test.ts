@@ -1,12 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-const { getCurrentStrapiUserMock, verifyWatchClaimTokenMock, verifyWatchClaimCodeMock } =
-  vi.hoisted(() => ({
-    getCurrentStrapiUserMock: vi.fn(),
-    verifyWatchClaimTokenMock: vi.fn(),
-    verifyWatchClaimCodeMock: vi.fn(),
-  }))
+const {
+  getCurrentStrapiUserMock,
+  verifyWatchClaimTokenMock,
+  verifyWatchClaimCodeMock,
+} = vi.hoisted(() => ({
+  getCurrentStrapiUserMock: vi.fn(),
+  verifyWatchClaimTokenMock: vi.fn(),
+  verifyWatchClaimCodeMock: vi.fn(),
+}))
 
 vi.mock('@/lib/strapi-session-cookie', () => ({
   getCurrentStrapiUser: getCurrentStrapiUserMock,
