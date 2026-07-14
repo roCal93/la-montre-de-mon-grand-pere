@@ -1,4 +1,4 @@
-import { createWatchClaimToken } from '@/lib/watch-claim-token'
+import { createWatchClaimCode } from '@/lib/watch-claim-code'
 
 function getClaimBaseUrl() {
   const configuredBaseUrl =
@@ -13,9 +13,9 @@ function getClaimBaseUrl() {
 }
 
 export function buildWatchClaimUrl(watchFileDocumentId: string, locale = 'fr') {
-  const token = createWatchClaimToken(watchFileDocumentId)
+  const code = createWatchClaimCode(watchFileDocumentId)
   const baseUrl = getClaimBaseUrl()
   const normalizedLocale = locale.trim() || 'fr'
 
-  return `${baseUrl}/${encodeURIComponent(normalizedLocale)}/espace-client/claim?token=${encodeURIComponent(token)}`
+  return `${baseUrl}/${encodeURIComponent(normalizedLocale)}/espace-client/activation?code=${encodeURIComponent(code)}`
 }

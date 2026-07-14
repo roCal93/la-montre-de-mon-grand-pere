@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-const { getCurrentStrapiUserMock, verifyWatchClaimTokenMock } = vi.hoisted(
-  () => ({
+const { getCurrentStrapiUserMock, verifyWatchClaimTokenMock, verifyWatchClaimCodeMock } =
+  vi.hoisted(() => ({
     getCurrentStrapiUserMock: vi.fn(),
     verifyWatchClaimTokenMock: vi.fn(),
-  })
-)
+    verifyWatchClaimCodeMock: vi.fn(),
+  }))
 
 vi.mock('@/lib/strapi-session-cookie', () => ({
   getCurrentStrapiUser: getCurrentStrapiUserMock,
@@ -14,6 +14,10 @@ vi.mock('@/lib/strapi-session-cookie', () => ({
 
 vi.mock('@/lib/watch-claim-token', () => ({
   verifyWatchClaimToken: verifyWatchClaimTokenMock,
+}))
+
+vi.mock('@/lib/watch-claim-code', () => ({
+  verifyWatchClaimCode: verifyWatchClaimCodeMock,
 }))
 
 import { POST } from './route'
@@ -33,6 +37,7 @@ describe('POST /api/watch-claim', () => {
     process.env.ADMIN_EMAIL = 'admin@test.com'
     getCurrentStrapiUserMock.mockReset()
     verifyWatchClaimTokenMock.mockReset()
+    verifyWatchClaimCodeMock.mockReset()
     vi.restoreAllMocks()
   })
 
@@ -123,6 +128,41 @@ describe('POST /api/watch-claim', () => {
         }),
       })
     )
+  })
+
+  it('claims watch file when short code is valid', async () => {
+    getCurrentStrapiUserMock.mockResolvedValue({
+      id: 42,
+      email: 'client@test.com',
+    })
+    verifyWatchClaimCodeMock.mockReturnValue({
+      ok: true,
+      watchFileDocumentId: 'wf_from_code',
+    })
+
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({ success: true, watchFileDocumentId: 'wf_from_code' }),
+        {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }
+      )
+    )
+
+    const req = new NextRequest('http://localhost:3000/api/watch-claim', {
+      method: 'POST',
+      body: JSON.stringify({ code: 'abc123' }),
+      headers: { 'content-type': 'application/json' },
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({
+      success: true,
+      watchFileDocumentId: 'wf_from_code',
+    })
+    expect(verifyWatchClaimCodeMock).toHaveBeenCalledWith('abc123')
   })
 
   it('maps Strapi 403 to a clear diagnostic message', async () => {

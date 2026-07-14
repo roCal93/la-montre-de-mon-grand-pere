@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { createWatchClaimTokenMock } = vi.hoisted(() => ({
-  createWatchClaimTokenMock: vi.fn(),
+const { createWatchClaimCodeMock } = vi.hoisted(() => ({
+  createWatchClaimCodeMock: vi.fn(),
 }))
 
-vi.mock('@/lib/watch-claim-token', () => ({
-  createWatchClaimToken: createWatchClaimTokenMock,
+vi.mock('@/lib/watch-claim-code', () => ({
+  createWatchClaimCode: createWatchClaimCodeMock,
 }))
 
 import { buildWatchClaimUrl } from './watch-claim-url'
@@ -15,8 +15,8 @@ const OLD_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL
 
 describe('buildWatchClaimUrl', () => {
   beforeEach(() => {
-    createWatchClaimTokenMock.mockReset()
-    createWatchClaimTokenMock.mockReturnValue('token.abc')
+    createWatchClaimCodeMock.mockReset()
+    createWatchClaimCodeMock.mockReturnValue('shortcode1')
     process.env.CLAIM_QR_BASE_URL = 'https://atelier.example.com/'
     process.env.NEXT_PUBLIC_SITE_URL = 'https://fallback.example.com'
   })
@@ -28,7 +28,7 @@ describe('buildWatchClaimUrl', () => {
 
   it('builds claim url using CLAIM_QR_BASE_URL', () => {
     expect(buildWatchClaimUrl('wf_123', 'fr')).toBe(
-      'https://atelier.example.com/fr/espace-client/claim?token=token.abc'
+      'https://atelier.example.com/fr/espace-client/activation?code=shortcode1'
     )
   })
 
@@ -36,7 +36,7 @@ describe('buildWatchClaimUrl', () => {
     process.env.CLAIM_QR_BASE_URL = ''
 
     expect(buildWatchClaimUrl('wf_123', 'fr')).toBe(
-      'https://fallback.example.com/fr/espace-client/claim?token=token.abc'
+      'https://fallback.example.com/fr/espace-client/activation?code=shortcode1'
     )
   })
 

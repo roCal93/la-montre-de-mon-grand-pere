@@ -1,23 +1,23 @@
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
-import { ClaimPageClient } from './ClaimPageClient'
+import { ClaimPageClient } from '../claim/ClaimPageClient'
 
-export default async function ClaimPage({
+export default async function ActivationPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ token?: string }>
+  searchParams: Promise<{ code?: string }>
 }) {
   const { locale } = await params
-  const { token } = await searchParams
+  const { code } = await searchParams
   const strapiUser = await getCurrentStrapiUser()
 
   return (
     <ClaimPageClient
       locale={locale}
-      token={token ?? ''}
-      code=""
+      token=""
+      code={code ?? ''}
       isAuthenticated={Boolean(strapiUser)}
       isAdmin={isAdminUser(strapiUser)}
     />

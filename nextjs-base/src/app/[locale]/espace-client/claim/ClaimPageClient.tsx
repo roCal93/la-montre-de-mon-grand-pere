@@ -14,28 +14,45 @@ type ClaimState =
 export function ClaimPageClient({
   locale,
   token,
+  code,
   isAuthenticated,
   isAdmin,
 }: {
   locale: string
   token: string
+  code?: string
   isAuthenticated: boolean
   isAdmin: boolean
 }) {
+  const normalizedCode = code?.trim() ?? ''
+  const normalizedToken = token.trim()
+
   const fromPath = useMemo(() => {
-    const query = new URLSearchParams({ token })
+    if (normalizedCode) {
+      const query = new URLSearchParams({ code: normalizedCode })
+      return `/${locale}/espace-client/activation?${query.toString()}`
+    }
+
+    const query = new URLSearchParams({ token: normalizedToken })
     return `/${locale}/espace-client/claim?${query.toString()}`
-  }, [locale, token])
+  }, [locale, normalizedCode, normalizedToken])
+
+  const [manualCodeInput, setManualCodeInput] = useState(normalizedCode)
 
   const [state, setState] = useState<ClaimState>(() => {
-    if (!token) return { status: 'invalid_token' }
+    if (!normalizedToken && !normalizedCode) return { status: 'invalid_token' }
     if (!isAuthenticated) return { status: 'auth_required', from: fromPath }
     if (isAdmin) return { status: 'admin_blocked' }
     return { status: 'claiming' }
   })
 
   useEffect(() => {
-    if (!isAuthenticated || !token || isAdmin) return
+    if (!isAuthenticated || isAdmin) return
+
+    const activeCode = manualCodeInput.trim()
+    const hasCode = activeCode.length > 0
+    const hasToken = normalizedToken.length > 0
+    if (!hasCode && !hasToken) return
 
     let cancelled = false
 
@@ -43,7 +60,7 @@ export function ClaimPageClient({
       const response = await fetch('/api/watch-claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify(hasCode ? { code: activeCode } : { token: normalizedToken }),
       }).catch(() => null)
 
       if (!response) {
@@ -88,7 +105,7 @@ export function ClaimPageClient({
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, token, isAdmin])
+  }, [isAuthenticated, normalizedToken, manualCodeInput, isAdmin])
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-12">
@@ -100,10 +117,26 @@ export function ClaimPageClient({
       </h1>
 
       {state.status === 'invalid_token' ? (
-        <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-          QR code invalide. Contactez l&apos;atelier pour obtenir un nouveau
-          lien.
-        </p>
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+          <p>
+            Lien invalide. Scannez le QR code de votre carte ou saisissez votre
+            code d&apos;activation.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <input
+              value={manualCodeInput}
+              onChange={(event) => setManualCodeInput(event.target.value)}
+              placeholder="Code d activation"
+              className="w-full max-w-xs border border-amber-300 bg-white px-3 py-2 text-sm text-neutral-900"
+            />
+            <Link
+              href={`/${locale}/espace-client/activation?code=${encodeURIComponent(manualCodeInput.trim())}`}
+              className="inline-flex items-center border border-amber-700 bg-amber-700 px-3 py-2 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.08em] text-white"
+            >
+              Continuer
+            </Link>
+          </div>
+        </div>
       ) : null}
 
       {state.status === 'auth_required' ? (

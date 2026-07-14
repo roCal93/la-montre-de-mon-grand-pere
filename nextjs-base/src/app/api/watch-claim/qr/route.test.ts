@@ -69,7 +69,7 @@ describe('GET /api/watch-claim/qr', () => {
     })
     isAdminUserMock.mockReturnValue(true)
     buildWatchClaimUrlMock.mockReturnValue(
-      'https://site.test/fr/espace-client/claim?token=abc'
+      'https://site.test/fr/espace-client/activation?code=abc123'
     )
     qrToDataUrlMock.mockResolvedValue('data:image/png;base64,AQID')
 

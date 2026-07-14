@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
+import { verifyWatchClaimCode } from '@/lib/watch-claim-code'
 import { verifyWatchClaimToken } from '@/lib/watch-claim-token'
 
 function toJsonHeaders(token: string) {
@@ -40,27 +41,61 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const body = (await req.json().catch(() => null)) as { token?: string } | null
+  const body = (await req.json().catch(() => null)) as
+    | { token?: string; code?: string }
+    | null
   const token = body?.token?.trim()
-  if (!token) {
-    return NextResponse.json({ error: 'token requis' }, { status: 400 })
-  }
+  const code = body?.code?.trim()
 
-  let verified
-  try {
-    verified = verifyWatchClaimToken(token)
-  } catch {
+  let watchFileDocumentId: string | null = null
+
+  if (token) {
+    let verified
+    try {
+      verified = verifyWatchClaimToken(token)
+    } catch {
+      return NextResponse.json(
+        { error: 'Configuration claim indisponible' },
+        { status: 503 }
+      )
+    }
+
+    if (!verified.ok) {
+      const mapped = mapClaimError(verified.reason)
+      return NextResponse.json(
+        { error: mapped.message, code: verified.reason },
+        { status: mapped.status }
+      )
+    }
+
+    watchFileDocumentId = verified.watchFileDocumentId
+  } else if (code) {
+    try {
+      const verifiedCode = verifyWatchClaimCode(code)
+      if (!verifiedCode.ok || !verifiedCode.watchFileDocumentId) {
+        return NextResponse.json(
+          { error: 'Code d activation invalide.', code: 'invalid_code' },
+          { status: 400 }
+        )
+      }
+      watchFileDocumentId = verifiedCode.watchFileDocumentId
+    } catch {
+      return NextResponse.json(
+        { error: 'Configuration claim indisponible' },
+        { status: 503 }
+      )
+    }
+  } else {
     return NextResponse.json(
-      { error: 'Configuration claim indisponible' },
-      { status: 503 }
+      { error: 'token ou code requis' },
+      { status: 400 }
     )
   }
 
-  if (!verified.ok) {
-    const mapped = mapClaimError(verified.reason)
+  if (!watchFileDocumentId) {
     return NextResponse.json(
-      { error: mapped.message, code: verified.reason },
-      { status: mapped.status }
+      { error: 'Code d activation invalide.', code: 'invalid_code' },
+      { status: 400 }
     )
   }
 
@@ -83,7 +118,7 @@ export async function POST(req: NextRequest) {
       'x-claim-assign-secret': assignSecret,
     },
     body: JSON.stringify({
-      watchFileDocumentId: verified.watchFileDocumentId,
+      watchFileDocumentId,
       customerId: strapiUser.id,
       force: false,
     }),
@@ -161,7 +196,6 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    watchFileDocumentId:
-      json.watchFileDocumentId ?? verified.watchFileDocumentId,
+    watchFileDocumentId: json.watchFileDocumentId ?? watchFileDocumentId,
   })
 }
