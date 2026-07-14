@@ -7,6 +7,7 @@ type PdfTestNode = {
     children?: unknown
     wrap?: boolean
     minPresenceAhead?: number
+    src?: unknown
   }
 }
 

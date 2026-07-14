@@ -33,7 +33,6 @@ import {
   type WatchFileVideoDossierBlock,
 } from '@/lib/watch-file-dossier-blocks'
 import QRCode from 'qrcode'
-import sharp from 'sharp'
 
 export const runtime = 'nodejs'
 
@@ -952,7 +951,8 @@ async function resolveLocalPdfMediaUrl(
     const inputBuffer = await readFile(localPath)
 
     if (shouldConvertPdfMedia(sourceUrl, mime)) {
-      const outputBuffer = await sharp(inputBuffer, { animated: true })
+      const { default: sharpLib } = await import('sharp')
+      const outputBuffer = await sharpLib(inputBuffer, { animated: true })
         .png()
         .toBuffer()
 
@@ -1007,7 +1007,8 @@ async function resolvePdfMediaUrl(url?: string | null, mime?: string | null) {
         getPdfMediaMimeType(sourceUrl, null)
 
       if (shouldConvertPdfMedia(sourceUrl, effectiveMime)) {
-        const outputBuffer = await sharp(inputBuffer, { animated: true })
+        const { default: sharpLib } = await import('sharp')
+        const outputBuffer = await sharpLib(inputBuffer, { animated: true })
           .png()
           .toBuffer()
         return toDataUrl(outputBuffer, 'image/png')
