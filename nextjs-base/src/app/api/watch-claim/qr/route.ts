@@ -41,16 +41,18 @@ export async function GET(req: NextRequest) {
 
   let pngBuffer: Buffer
   try {
-    pngBuffer = await QRCode.toBuffer(claimUrl, {
-      type: 'png',
+    const dataUrl = await QRCode.toDataURL(claimUrl, {
       width: 1024,
       errorCorrectionLevel: 'M',
       margin: 2,
-      color: {
-        dark: '#111111',
-        light: '#FFFFFF',
-      },
     })
+
+    const base64Payload = dataUrl.split(',')[1]
+    if (!base64Payload) {
+      throw new Error('invalid_qr_data_url')
+    }
+
+    pngBuffer = Buffer.from(base64Payload, 'base64')
   } catch {
     return NextResponse.json(
       { error: 'Erreur lors de la génération du QR' },

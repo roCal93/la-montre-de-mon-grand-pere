@@ -5,12 +5,12 @@ const {
   getCurrentStrapiUserMock,
   isAdminUserMock,
   buildWatchClaimUrlMock,
-  qrToBufferMock,
+  qrToDataUrlMock,
 } = vi.hoisted(() => ({
   getCurrentStrapiUserMock: vi.fn(),
   isAdminUserMock: vi.fn(),
   buildWatchClaimUrlMock: vi.fn(),
-  qrToBufferMock: vi.fn(),
+  qrToDataUrlMock: vi.fn(),
 }))
 
 vi.mock('@/lib/strapi-session-cookie', () => ({
@@ -27,7 +27,7 @@ vi.mock('@/lib/watch-claim-url', () => ({
 
 vi.mock('qrcode', () => ({
   default: {
-    toBuffer: qrToBufferMock,
+    toDataURL: qrToDataUrlMock,
   },
 }))
 
@@ -38,7 +38,7 @@ describe('GET /api/watch-claim/qr', () => {
     getCurrentStrapiUserMock.mockReset()
     isAdminUserMock.mockReset()
     buildWatchClaimUrlMock.mockReset()
-    qrToBufferMock.mockReset()
+    qrToDataUrlMock.mockReset()
   })
 
   it('returns 401 when user is not authenticated', async () => {
@@ -66,7 +66,7 @@ describe('GET /api/watch-claim/qr', () => {
     getCurrentStrapiUserMock.mockResolvedValue({ id: 1, email: 'admin@test.com' })
     isAdminUserMock.mockReturnValue(true)
     buildWatchClaimUrlMock.mockReturnValue('https://site.test/fr/espace-client/claim?token=abc')
-    qrToBufferMock.mockResolvedValue(Buffer.from([1, 2, 3]))
+    qrToDataUrlMock.mockResolvedValue('data:image/png;base64,AQID')
 
     const req = new NextRequest(
       'http://localhost:3000/api/watch-claim/qr?watchFileDocumentId=wf_1&locale=fr'
@@ -76,6 +76,6 @@ describe('GET /api/watch-claim/qr', () => {
     expect(res.status).toBe(200)
     expect(res.headers.get('Content-Type')).toBe('image/png')
     expect(buildWatchClaimUrlMock).toHaveBeenCalledWith('wf_1', 'fr')
-    expect(qrToBufferMock).toHaveBeenCalled()
+    expect(qrToDataUrlMock).toHaveBeenCalled()
   })
 })
