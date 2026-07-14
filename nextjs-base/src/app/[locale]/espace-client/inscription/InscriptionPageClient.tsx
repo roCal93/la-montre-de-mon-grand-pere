@@ -27,7 +27,10 @@ type RegistrationResponse = {
   error: string | null
 }
 
-export function resolvePostRegisterPath(locale: string, fromParam: string | null) {
+export function resolvePostRegisterPath(
+  locale: string,
+  fromParam: string | null
+) {
   const dashboardPath = `/${locale}/espace-client/tableau-de-bord`
   const isSafeFromPath =
     !!fromParam &&

@@ -14,11 +14,13 @@ export type WatchClaimVerificationResult =
   | { ok: true; watchFileDocumentId: string; payload: WatchClaimPayload }
   | {
       ok: false
-      reason: 'invalid_format' | 'invalid_signature' | 'expired' | 'invalid_payload'
+      reason:
+        'invalid_format' | 'invalid_signature' | 'expired' | 'invalid_payload'
     }
 
 function getClaimSecret() {
-  const secret = process.env.CLAIM_QR_SECRET?.trim() || process.env.AUTH_SECRET?.trim()
+  const secret =
+    process.env.CLAIM_QR_SECRET?.trim() || process.env.AUTH_SECRET?.trim()
   if (!secret) {
     throw new Error('CLAIM_QR_SECRET manquant')
   }
@@ -86,7 +88,9 @@ export function verifyWatchClaimToken(
   }
 
   try {
-    const parsed = JSON.parse(fromBase64Url(payloadB64)) as Partial<WatchClaimPayload>
+    const parsed = JSON.parse(
+      fromBase64Url(payloadB64)
+    ) as Partial<WatchClaimPayload>
 
     if (
       parsed.v !== 1 ||

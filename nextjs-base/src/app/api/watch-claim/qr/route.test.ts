@@ -63,9 +63,14 @@ describe('GET /api/watch-claim/qr', () => {
   })
 
   it('returns png response for admin users', async () => {
-    getCurrentStrapiUserMock.mockResolvedValue({ id: 1, email: 'admin@test.com' })
+    getCurrentStrapiUserMock.mockResolvedValue({
+      id: 1,
+      email: 'admin@test.com',
+    })
     isAdminUserMock.mockReturnValue(true)
-    buildWatchClaimUrlMock.mockReturnValue('https://site.test/fr/espace-client/claim?token=abc')
+    buildWatchClaimUrlMock.mockReturnValue(
+      'https://site.test/fr/espace-client/claim?token=abc'
+    )
     qrToDataUrlMock.mockResolvedValue('data:image/png;base64,AQID')
 
     const req = new NextRequest(

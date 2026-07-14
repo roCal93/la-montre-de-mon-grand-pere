@@ -38,20 +38,30 @@ export async function POST(req: NextRequest) {
   try {
     verified = verifyWatchClaimToken(token)
   } catch {
-    return NextResponse.json({ error: 'Configuration claim indisponible' }, { status: 503 })
+    return NextResponse.json(
+      { error: 'Configuration claim indisponible' },
+      { status: 503 }
+    )
   }
 
   if (!verified.ok) {
     const mapped = mapClaimError(verified.reason)
-    return NextResponse.json({ error: mapped.message, code: verified.reason }, { status: mapped.status })
+    return NextResponse.json(
+      { error: mapped.message, code: verified.reason },
+      { status: mapped.status }
+    )
   }
 
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
-  const apiToken = process.env.STRAPI_API_TOKEN
+  const apiToken =
+    process.env.STRAPI_WRITE_API_TOKEN || process.env.STRAPI_API_TOKEN
   const assignSecret = process.env.CLAIM_ASSIGN_SECRET
 
   if (!strapiUrl || !apiToken || !assignSecret) {
-    return NextResponse.json({ error: 'Configuration serveur manquante' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Configuration serveur manquante' },
+      { status: 500 }
+    )
   }
 
   const response = await fetch(`${strapiUrl}/api/watch-files/assign-customer`, {
@@ -72,16 +82,39 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Strapi indisponible' }, { status: 503 })
   }
 
-  const json = (await response.json().catch(() => null)) as
-    | {
-        success?: boolean
-        reason?: string
-        watchFileDocumentId?: string
-      }
-    | null
+  const json = (await response.json().catch(() => null)) as {
+    success?: boolean
+    reason?: string
+    watchFileDocumentId?: string
+  } | null
 
   if (!response.ok) {
-    return NextResponse.json({ error: 'Erreur Strapi' }, { status: response.status })
+    if (response.status === 403) {
+      return NextResponse.json(
+        {
+          error:
+            'Accès Strapi refusé. Vérifiez STRAPI_WRITE_API_TOKEN et les droits de ce token.',
+          code: 'strapi_forbidden',
+        },
+        { status: 403 }
+      )
+    }
+
+    if (response.status === 401) {
+      return NextResponse.json(
+        {
+          error:
+            'Authentification Strapi invalide. Vérifiez STRAPI_WRITE_API_TOKEN et CLAIM_ASSIGN_SECRET.',
+          code: 'strapi_unauthorized',
+        },
+        { status: 401 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Erreur Strapi' },
+      { status: response.status }
+    )
   }
 
   if (!json?.success) {
@@ -116,6 +149,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    watchFileDocumentId: json.watchFileDocumentId ?? verified.watchFileDocumentId,
+    watchFileDocumentId:
+      json.watchFileDocumentId ?? verified.watchFileDocumentId,
   })
 }

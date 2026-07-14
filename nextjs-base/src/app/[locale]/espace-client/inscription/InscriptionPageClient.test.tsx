@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import {
-  createAccount,
-  resolvePostRegisterPath,
-} from './InscriptionPageClient'
+import { createAccount, resolvePostRegisterPath } from './InscriptionPageClient'
 
 describe('createAccount', () => {
   const payload = {
@@ -84,10 +81,7 @@ describe('resolvePostRegisterPath', () => {
 
   it('accepts safe internal paths with query string', () => {
     expect(
-      resolvePostRegisterPath(
-        'fr',
-        '/fr/espace-client/claim?token=abc.def'
-      )
+      resolvePostRegisterPath('fr', '/fr/espace-client/claim?token=abc.def')
     ).toBe('/fr/espace-client/claim?token=abc.def')
   })
 

@@ -53,13 +53,11 @@ export function ClaimPageClient({
         return
       }
 
-      const json = (await response.json().catch(() => null)) as
-        | {
-            success?: boolean
-            watchFileDocumentId?: string
-            error?: string
-          }
-        | null
+      const json = (await response.json().catch(() => null)) as {
+        success?: boolean
+        watchFileDocumentId?: string
+        error?: string
+      } | null
 
       if (!response.ok || !json?.success || !json.watchFileDocumentId) {
         if (!cancelled) {
@@ -99,7 +97,8 @@ export function ClaimPageClient({
 
       {state.status === 'invalid_token' ? (
         <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-          QR code invalide. Contactez l&apos;atelier pour obtenir un nouveau lien.
+          QR code invalide. Contactez l&apos;atelier pour obtenir un nouveau
+          lien.
         </p>
       ) : null}
 
