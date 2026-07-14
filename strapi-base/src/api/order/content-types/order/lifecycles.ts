@@ -230,6 +230,84 @@ async function sendOrderStatusChangedEmail(params: {
   await sendResendEmail({ to, subject, html, text })
 }
 
+function getSellerRecipients(): string[] {
+  const raw = toText(process.env.ORDER_SELLER_EMAIL) || toText(process.env.ADMIN_EMAIL)
+  if (!raw) {
+    strapi.log.info(
+      '[order lifecycle] Seller sale email skipped: missing ORDER_SELLER_EMAIL (or ADMIN_EMAIL fallback)'
+    )
+    return []
+  }
+
+  const recipients = raw
+    .split(/[;,]/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0)
+
+  const validRecipients = recipients.filter((email) => SENDER_PLAIN_EMAIL_RE.test(email))
+
+  if (validRecipients.length === 0) {
+    strapi.log.warn(
+      '[order lifecycle] Seller sale email skipped: ORDER_SELLER_EMAIL (or ADMIN_EMAIL fallback) is invalid. Expected "email@example.com" or a comma-separated list of emails.'
+    )
+    return []
+  }
+
+  return validRecipients
+}
+
+async function sendSellerSaleNotificationEmail(order: LifecycleOrder): Promise<void> {
+  const recipients = getSellerRecipients()
+  if (recipients.length === 0) return
+
+  const ref = toText(order.documentId, 'INCONNUE').slice(-8).toUpperCase()
+  const customerName = toText(order.customerName, 'Client')
+  const customerEmail = toText(order.customerEmail, '-')
+  const total = formatAmount(order.total, order.currency)
+  const items = Array.isArray(order.lineItems) ? order.lineItems : []
+
+  const linesHtml =
+    items.length > 0
+      ? `<ul>${items
+          .map((item) => {
+            const name = escapeHtml(toText(item.productName, 'Produit'))
+            const qty = typeof item.quantity === 'number' ? item.quantity : 1
+            return `<li>${name} x ${qty}</li>`
+          })
+          .join('')}</ul>`
+      : '<p>Aucun detail article disponible.</p>'
+
+  const linesText =
+    items.length > 0
+      ? items
+          .map((item) => {
+            const name = toText(item.productName, 'Produit')
+            const qty = typeof item.quantity === 'number' ? item.quantity : 1
+            return `- ${name} x ${qty}`
+          })
+          .join('\n')
+      : '- Aucun detail article disponible.'
+
+  const subject = `Nouvelle vente #${ref}`
+  const html = `
+    <p>Bonjour,</p>
+    <p>Une nouvelle commande vient d'etre validee.</p>
+    <p><strong>Reference:</strong> #${escapeHtml(ref)}<br/>
+    <strong>Acheteur:</strong> ${escapeHtml(customerName)} (${escapeHtml(customerEmail)})<br/>
+    <strong>Total:</strong> ${escapeHtml(total)}</p>
+    <p><strong>Articles:</strong></p>
+    ${linesHtml}
+    <p>La Montre de Mon Grand-Pere</p>
+  `
+  const text = `Bonjour,\n\nUne nouvelle commande vient d'etre validee.\nReference: #${ref}\nAcheteur: ${customerName} (${customerEmail})\nTotal: ${total}\n\nArticles:\n${linesText}\n\nLa Montre de Mon Grand-Pere`
+
+  await Promise.all(
+    recipients.map(async (to) => {
+      await sendResendEmail({ to, subject, html, text })
+    })
+  )
+}
+
 export default {
   async beforeUpdate(event: {
     params: {
@@ -306,6 +384,19 @@ export default {
         })
       } catch (emailErr) {
         strapi.log.error('[order lifecycle] confirmation email error:', emailErr)
+      }
+
+      try {
+        await sendSellerSaleNotificationEmail({
+          documentId: order?.documentId,
+          customerEmail: order?.customerEmail,
+          customerName: order?.customerName,
+          total: order?.total,
+          currency: order?.currency,
+          lineItems: order?.lineItems,
+        })
+      } catch (emailErr) {
+        strapi.log.error('[order lifecycle] seller sale email error:', emailErr)
       }
 
       if (!lineItems.length) return
