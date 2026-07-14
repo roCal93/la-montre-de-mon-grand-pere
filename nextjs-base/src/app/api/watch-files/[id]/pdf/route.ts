@@ -907,6 +907,14 @@ function shouldConvertPdfMedia(url: string, mime?: string | null) {
   )
 }
 
+function getRenderablePdfImageUrl(url?: string | null, mime?: string | null) {
+  const resolvedUrl = buildPdfMediaUrl(url)
+  if (!resolvedUrl) return undefined
+  if (resolvedUrl.startsWith('data:')) return resolvedUrl
+
+  return shouldConvertPdfMedia(resolvedUrl, mime) ? undefined : resolvedUrl
+}
+
 function getPdfMediaMimeType(url: string, mime?: string | null) {
   if (mime?.trim()) return mime
 
@@ -1286,7 +1294,7 @@ function renderPdfImageBlockContent(
   block: WatchFileImageDossierBlock,
   title: string
 ) {
-  const imageUrl = buildPdfMediaUrl(block.image?.url)
+  const imageUrl = getRenderablePdfImageUrl(block.image?.url, block.image?.mime)
   if (!imageUrl) return null
 
   return createElement(
@@ -1337,7 +1345,7 @@ function renderPdfTextImageBlockContent(
   const text = extractPlainTextFromStrapiBlocks(block.content)
   const images = (block.images ?? [])
     .map((image) => {
-      const url = buildPdfMediaUrl(image?.url)
+      const url = getRenderablePdfImageUrl(image?.url, image?.mime)
 
       if (!url) return null
 
@@ -1450,8 +1458,14 @@ function renderPdfBeforeAfterBlockContent(
   const validPairs = (block.pairs ?? [])
     .map((pair) => ({
       label: pair.label?.trim() || null,
-      beforeUrl: buildPdfMediaUrl(pair.beforeImage?.url),
-      afterUrl: buildPdfMediaUrl(pair.afterImage?.url),
+      beforeUrl: getRenderablePdfImageUrl(
+        pair.beforeImage?.url,
+        pair.beforeImage?.mime
+      ),
+      afterUrl: getRenderablePdfImageUrl(
+        pair.afterImage?.url,
+        pair.afterImage?.mime
+      ),
     }))
     .filter(
       (
@@ -1748,8 +1762,9 @@ function renderPoint1OverviewPage(watchFile: WatchFile, pageNumber: number) {
   const productName = asText(watchFile.product?.name, 'Montre ancienne')
   const publicSummary = normalizeText(watchFile.marketingShortDescription, '')
   const publicHistory = stripHtml(watchFile.marketingDescription)
-  const productHeroImageUrl = buildPdfMediaUrl(
-    watchFile.product?.images?.[0]?.url
+  const productHeroImageUrl = getRenderablePdfImageUrl(
+    watchFile.product?.images?.[0]?.url,
+    watchFile.product?.images?.[0]?.mime
   )
   const dossierRows = [
     ['Référence dossier', asText(watchFile.reference)],
@@ -2801,6 +2816,10 @@ function renderPoint5ValidationPage(
   includeOrderSection = false
 ) {
   const validationAtelier = watchFile.validationAtelier
+  const signatureImageUrl = getRenderablePdfImageUrl(
+    validationAtelier?.signature?.url,
+    validationAtelier?.signature?.mime
+  )
 
   if (
     !validationAtelier?.dateFin &&
@@ -2929,11 +2948,9 @@ function renderPoint5ValidationPage(
         createElement(
           View,
           { style: styles.validationSignoffLine },
-          validationAtelier?.signature?.url
+          signatureImageUrl
             ? createElement(Image, {
-                src:
-                  cleanImageUrl(validationAtelier.signature.url) ??
-                  validationAtelier.signature.url,
+                src: signatureImageUrl,
                 style: styles.validationSignatureImage,
               })
             : null

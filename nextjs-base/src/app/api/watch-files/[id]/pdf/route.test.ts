@@ -452,4 +452,51 @@ describe('GET /api/watch-files/[id]/pdf', () => {
     expect(res.status).toBe(200)
     expect(renderToBufferMock).toHaveBeenCalledTimes(1)
   })
+
+  it('skips an unresolved SVG atelier signature instead of passing it to the PDF renderer', async () => {
+    getStrapiSessionJwtMock.mockResolvedValue('jwt')
+    getCurrentStrapiUserMock.mockResolvedValue({ id: 1 })
+
+    const signatureUrl =
+      'https://res.cloudinary.com/dhwioewnd/image/upload/v1776332628/logo_54c88fd46b.svg'
+
+    const payload = {
+      data: {
+        documentId: 'watch_svg_signature',
+        reference: 'MGP1003',
+        customer: { id: 1 },
+        dateReception: '2026-04-14',
+        dateMiseEnVente: '2026-04-24',
+        publicBeforeImage: [],
+        publicAfterImage: [],
+        product: { name: 'Europ Union' },
+        validationAtelier: {
+          dateFin: '2026-04-26',
+          signature: { url: signatureUrl, mime: 'image/svg+xml' },
+        },
+      },
+    }
+
+    vi.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(payload), { status: 200 })
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 503 }))
+
+    const res = await GET({} as NextRequest, {
+      params: Promise.resolve({ id: 'watch_svg_signature' }),
+    })
+
+    expect(res.status).toBe(200)
+
+    const documentElement = renderToBufferMock.mock.calls[0]?.[0]
+    const renderedDocument = (documentElement as PdfDocumentElement).type(
+      (documentElement as PdfDocumentElement).props
+    )
+    const images = collectElementsByType(renderedDocument, 'Image')
+
+    expect(images.some((image) => image.props?.src === signatureUrl)).toBe(
+      false
+    )
+  })
 })
