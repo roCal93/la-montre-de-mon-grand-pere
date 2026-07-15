@@ -387,10 +387,10 @@ function InvoiceDocument({ order }: { order: Order }) {
               View,
               {
                 key: i,
-                style: [
-                  styles.tableRow,
-                  i === lineItems.length - 1 ? styles.tableRowLast : null,
-                ],
+                style:
+                  i === lineItems.length - 1
+                    ? [styles.tableRow, styles.tableRowLast]
+                    : styles.tableRow,
               },
               createElement(
                 Text,
