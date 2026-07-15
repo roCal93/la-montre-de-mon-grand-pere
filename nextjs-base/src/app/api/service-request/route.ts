@@ -12,6 +12,13 @@ const serviceRequestSchema = z.object({
   description: z.string().min(10).max(2000),
 })
 
+const TYPE_LABELS: Record<string, string> = {
+  retour_garantie: 'Retour sous garantie',
+  reparation: 'Réparation',
+  nettoyage: 'Nettoyage',
+  autre: 'Autre',
+}
+
 function buildWatchLabel(watchFile: {
   reference?: string
   product?: { name?: string } | null
@@ -149,7 +156,7 @@ export async function POST(req: NextRequest) {
           '/': '&#x2F;',
         })[c] ?? c
     )
-  const safeType = esc(parsed.data.type)
+  const safeType = esc(TYPE_LABELS[parsed.data.type] ?? parsed.data.type)
   const safeName = esc(session.user.name ?? '')
   const safeEmail = esc(session.user.email ?? '')
   const safeWatch = esc(watchTitle)
@@ -225,15 +232,15 @@ export async function POST(req: NextRequest) {
 
       await sendEmail({
         to: clientEmail,
-        subject: 'Votre demande de service a bien ete recue',
+        subject: 'Votre demande de service a bien été reçue',
         html: `
           <p>Bonjour ${clientFirstName},</p>
-          <p>Nous confirmons la bonne reception de votre demande de service.</p>
+          <p>Nous confirmons la bonne réception de votre demande de service.</p>
           <p>Type : <strong>${safeType}</strong></p>
           <p>Montre : <strong>${safeWatch || 'Votre montre'}</strong></p>
           <p>Description :</p>
           <blockquote>${safeDesc}</blockquote>
-          <p>Notre atelier reviendra vers vous des qu'une mise a jour sera disponible.</p>
+          <p>Notre atelier reviendra vers vous dès qu'une mise à jour sera disponible.</p>
           ${siteUrl ? `<p><a href="${siteUrl}/fr/espace-client/demandes-de-service">Suivre ma demande</a></p>` : ''}
         `,
       })

@@ -74,11 +74,11 @@ export function ServiceRequestAdminForm({ locale, request }: Props) {
 
       const emailHint = request.customerEmail
         ? json?.emailNotification?.sent
-          ? ' Le client a ete notifie par email.'
+          ? ' Le client a été notifié par email.'
           : json?.emailNotification?.reason === 'email_not_configured'
-            ? ' Email client non envoye: configuration email manquante.'
+            ? ' Email client non envoyé : configuration email manquante.'
             : json?.emailNotification?.reason === 'send_failed'
-              ? " Email client non envoye: echec d'envoi (voir logs serveur)."
+              ? " Email client non envoyé : échec d'envoi (voir logs serveur)."
               : ''
         : ''
       setSuccess(`Mise à jour enregistrée.${emailHint}`)

@@ -26,15 +26,15 @@ const updateSchema = z.object({
 const STATUS_LABELS: Record<string, string> = {
   pending: 'En attente',
   in_progress: 'En cours de traitement',
-  quote_sent: 'Devis envoye',
-  accepted: 'Acceptee',
-  completed: 'Terminee',
-  cancelled: 'Annulee',
+  quote_sent: 'Devis envoyé',
+  accepted: 'Acceptée',
+  completed: 'Terminée',
+  cancelled: 'Annulée',
 }
 
 const TYPE_LABELS: Record<string, string> = {
   retour_garantie: 'Retour sous garantie',
-  reparation: 'Reparation',
+  reparation: 'Réparation',
   nettoyage: 'Nettoyage',
   autre: 'Autre',
 }
@@ -95,11 +95,11 @@ export async function PATCH(
   const strapiUser = await getCurrentStrapiUser()
 
   if (!strapiUser) {
-    return NextResponse.json({ error: 'Non authentifie' }, { status: 401 })
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
   if (!isAdminUser(strapiUser)) {
-    return NextResponse.json({ error: 'Acces refuse' }, { status: 403 })
+    return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
   }
 
   const body = await req.json().catch(() => null)
@@ -107,7 +107,7 @@ export async function PATCH(
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Donnees invalides', details: parsed.error.flatten() },
+      { error: 'Données invalides', details: parsed.error.flatten() },
       { status: 400 }
     )
   }
@@ -237,18 +237,18 @@ export async function PATCH(
     )
     const safeReference = escapeHtml(existing.watch_file?.reference ?? 'N/A')
     const safeResponse = escapeHtml(
-      normalizedResponse || 'Aucun message complementaire.'
+      normalizedResponse || 'Aucun message complémentaire.'
     ).replace(/\n/g, '<br>')
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
 
     await sendEmail({
       to: customerEmail,
-      subject: '[Atelier] Mise a jour de votre demande de service',
+      subject: '[Atelier] Mise à jour de votre demande de service',
       html: `
         <p>Bonjour,</p>
-        <p>Votre demande de service a ete mise a jour.</p>
+        <p>Votre demande de service a été mise à jour.</p>
         <p>Type : <strong>${safeType}</strong></p>
-        <p>Reference montre : <strong>${safeReference}</strong></p>
+        <p>Référence montre : <strong>${safeReference}</strong></p>
         <p>Nouveau statut : <strong>${safeStatus}</strong></p>
         <p>Message atelier :</p>
         <blockquote>${safeResponse}</blockquote>

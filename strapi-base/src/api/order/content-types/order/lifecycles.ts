@@ -10,10 +10,10 @@ const WATCH_FILE_UID: WatchFileUID = 'api::watch-file.watch-file'
 const RESEND_API_URL = 'https://api.resend.com/emails'
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
-  commande_confirmee: 'Commande confirmee',
-  en_preparation: 'En preparation',
-  commande_expediee: 'Commande expediee',
-  commande_terminee: 'Commande terminee',
+  commande_confirmee: 'Commande confirmée',
+  en_preparation: 'En préparation',
+  commande_expediee: 'Commande expédiée',
+  commande_terminee: 'Commande terminée',
 }
 
 const toText = (value: unknown, fallback = ''): string => {
@@ -187,20 +187,20 @@ async function sendOrderConfirmationEmail(order: LifecycleOrder): Promise<void> 
             return `<li>${name} x ${qty}</li>`
           })
           .join('')}</ul>`
-      : '<p>Details disponibles dans votre espace client.</p>'
+      : '<p>Détails disponibles dans votre espace client.</p>'
 
-  const subject = `Commande confirmee #${ref}`
+  const subject = `Commande confirmée #${ref}`
   const html = `
     <p>Bonjour ${escapeHtml(customerName)},</p>
-    <p>Votre commande a bien ete enregistree.</p>
-    <p><strong>Reference:</strong> #${escapeHtml(ref)}<br/>
+    <p>Votre commande a bien été enregistrée.</p>
+    <p><strong>Référence :</strong> #${escapeHtml(ref)}<br/>
     <strong>Statut:</strong> ${escapeHtml(status)}<br/>
     <strong>Total:</strong> ${escapeHtml(total)}</p>
     <p><strong>Articles:</strong></p>
     ${linesHtml}
-    <p>Merci pour votre confiance,<br/>La Montre de Mon Grand-Pere</p>
+    <p>Merci pour votre confiance,<br/>La Montre de Mon Grand-Père</p>
   `
-  const text = `Bonjour ${customerName},\n\nVotre commande a bien ete enregistree.\nReference: #${ref}\nStatut: ${status}\nTotal: ${total}\n\nMerci pour votre confiance.\nLa Montre de Mon Grand-Pere`
+  const text = `Bonjour ${customerName},\n\nVotre commande a bien été enregistrée.\nRéférence : #${ref}\nStatut : ${status}\nTotal : ${total}\n\nMerci pour votre confiance.\nLa Montre de Mon Grand-Père`
 
   await sendResendEmail({ to, subject, html, text })
 }
@@ -217,15 +217,15 @@ async function sendOrderStatusChangedEmail(params: {
   const prevLabel = statusLabel(params.previousStatus)
   const nextLabel = statusLabel(params.order.order_status)
 
-  const subject = `Mise a jour commande #${ref}`
+  const subject = `Mise à jour commande #${ref}`
   const html = `
     <p>Bonjour ${escapeHtml(customerName)},</p>
-    <p>Le statut de votre commande <strong>#${escapeHtml(ref)}</strong> a ete mis a jour.</p>
-    <p><strong>Ancien statut:</strong> ${escapeHtml(prevLabel)}<br/>
-    <strong>Nouveau statut:</strong> ${escapeHtml(nextLabel)}</p>
-    <p>Merci,<br/>La Montre de Mon Grand-Pere</p>
+    <p>Le statut de votre commande <strong>#${escapeHtml(ref)}</strong> a été mis à jour.</p>
+    <p><strong>Ancien statut :</strong> ${escapeHtml(prevLabel)}<br/>
+    <strong>Nouveau statut :</strong> ${escapeHtml(nextLabel)}</p>
+    <p>Merci,<br/>La Montre de Mon Grand-Père</p>
   `
-  const text = `Bonjour ${customerName},\n\nLe statut de votre commande #${ref} a ete mis a jour.\nAncien statut: ${prevLabel}\nNouveau statut: ${nextLabel}\n\nLa Montre de Mon Grand-Pere`
+  const text = `Bonjour ${customerName},\n\nLe statut de votre commande #${ref} a été mis à jour.\nAncien statut : ${prevLabel}\nNouveau statut : ${nextLabel}\n\nLa Montre de Mon Grand-Père`
 
   await sendResendEmail({ to, subject, html, text })
 }
@@ -275,7 +275,7 @@ async function sendSellerSaleNotificationEmail(order: LifecycleOrder): Promise<v
             return `<li>${name} x ${qty}</li>`
           })
           .join('')}</ul>`
-      : '<p>Aucun detail article disponible.</p>'
+      : '<p>Aucun détail article disponible.</p>'
 
   const linesText =
     items.length > 0
@@ -286,20 +286,20 @@ async function sendSellerSaleNotificationEmail(order: LifecycleOrder): Promise<v
             return `- ${name} x ${qty}`
           })
           .join('\n')
-      : '- Aucun detail article disponible.'
+      : '- Aucun détail article disponible.'
 
   const subject = `Nouvelle vente #${ref}`
   const html = `
     <p>Bonjour,</p>
-    <p>Une nouvelle commande vient d'etre validee.</p>
-    <p><strong>Reference:</strong> #${escapeHtml(ref)}<br/>
+    <p>Une nouvelle commande vient d'être validée.</p>
+    <p><strong>Référence :</strong> #${escapeHtml(ref)}<br/>
     <strong>Acheteur:</strong> ${escapeHtml(customerName)} (${escapeHtml(customerEmail)})<br/>
     <strong>Total:</strong> ${escapeHtml(total)}</p>
     <p><strong>Articles:</strong></p>
     ${linesHtml}
-    <p>La Montre de Mon Grand-Pere</p>
+    <p>La Montre de Mon Grand-Père</p>
   `
-  const text = `Bonjour,\n\nUne nouvelle commande vient d'etre validee.\nReference: #${ref}\nAcheteur: ${customerName} (${customerEmail})\nTotal: ${total}\n\nArticles:\n${linesText}\n\nLa Montre de Mon Grand-Pere`
+  const text = `Bonjour,\n\nUne nouvelle commande vient d'être validée.\nRéférence : #${ref}\nAcheteur : ${customerName} (${customerEmail})\nTotal : ${total}\n\nArticles :\n${linesText}\n\nLa Montre de Mon Grand-Père`
 
   await Promise.all(
     recipients.map(async (to) => {

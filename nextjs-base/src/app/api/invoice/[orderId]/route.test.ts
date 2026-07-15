@@ -25,10 +25,26 @@ vi.mock('@react-pdf/renderer', () => ({
 
 import { GET } from './route'
 
+function collectPdfText(node: unknown): string[] {
+  if (node == null || typeof node === 'boolean') return []
+  if (typeof node === 'string' || typeof node === 'number')
+    return [String(node)]
+  if (Array.isArray(node)) return node.flatMap((child) => collectPdfText(child))
+  if (typeof node === 'object') {
+    return collectPdfText(
+      (node as { props?: { children?: unknown } }).props?.children
+    )
+  }
+  return []
+}
+
 describe('GET /api/invoice/[orderId]', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_STRAPI_URL = 'http://strapi.test'
     process.env.STRAPI_API_TOKEN = 'token'
+    process.env.COMPANY_NAME = 'Maison Test'
+    process.env.COMPANY_ADDRESS = '12 rue des Tests\n75000 Paris'
+    process.env.COMPANY_SIRET = '12345678900012'
     authMock.mockReset()
     renderToBufferMock.mockReset()
     renderToBufferMock.mockResolvedValue(new Uint8Array([1, 2, 3]))
@@ -66,6 +82,13 @@ describe('GET /api/invoice/[orderId]', () => {
 
   it('returns a PDF response when order belongs to authenticated user', async () => {
     authMock.mockResolvedValue({ user: { email: 'owner@example.com' } })
+    let renderedDocument: unknown
+    renderToBufferMock.mockImplementation(async (pdfDocument: unknown) => {
+      renderedDocument = (
+        pdfDocument as { type: (props: unknown) => unknown }
+      ).type((pdfDocument as { props: unknown }).props)
+      return new Uint8Array([1, 2, 3])
+    })
     vi.spyOn(global, 'fetch').mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -76,7 +99,15 @@ describe('GET /api/invoice/[orderId]', () => {
               createdAt: '2026-04-07T10:00:00.000Z',
               customerEmail: 'owner@example.com',
               customerName: 'Owner',
-              lineItems: [],
+              lineItems: [
+                {
+                  productName: 'Omega Seamaster',
+                  productSlug: 'omega-seamaster',
+                  quantity: 1,
+                  unitPrice: 10,
+                  total: 10,
+                },
+              ],
               shippingAddress: {
                 firstName: 'Owner',
                 lastName: 'User',
@@ -101,6 +132,20 @@ describe('GET /api/invoice/[orderId]', () => {
 
     expect(res.status).toBe(200)
     expect(res.headers.get('Content-Type')).toBe('application/pdf')
+    expect(res.headers.get('Content-Disposition')).toBe(
+      'attachment; filename="facture-FAC-20260407-12345678.pdf"'
+    )
     expect(renderToBufferMock).toHaveBeenCalledTimes(1)
+
+    const pdfText = collectPdfText(renderedDocument).join(' ')
+    expect(pdfText).toContain('Maison Test')
+    expect(pdfText).toContain('12 rue des Tests')
+    expect(pdfText).toContain('SIRET : 12345678900012')
+    expect(pdfText).toContain('N° FAC-20260407-12345678')
+    expect(pdfText).toContain('Date')
+    expect(pdfText).toContain('Owner User')
+    expect(pdfText).toContain('owner@example.com')
+    expect(pdfText).toContain('Omega Seamaster')
+    expect(pdfText).toContain('TVA non applicable, art. 293 B du CGI')
   })
 })

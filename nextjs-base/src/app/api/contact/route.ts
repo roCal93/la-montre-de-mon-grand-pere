@@ -189,20 +189,20 @@ export async function POST(request: NextRequest) {
     const sanitizedEmail = escapeHtml(email.trim())
     const sanitizedMessage = escapeHtml(message.trim())
 
-    // Vérifier si Amazon SES est configuré
+    // Vérifier si Resend est configuré
     if (!isEmailConfigured()) {
-      console.warn('AWS SES not configured. Email not sent.')
+      console.warn('Resend not configured. Email not sent.')
       return NextResponse.json(
         {
           success: true,
           message:
-            'Message reçu (mode démo - email non envoyé car Amazon SES non configuré)',
+            'Message reçu (mode démo - email non envoyé car Resend non configuré)',
         },
         { status: 200 }
       )
     }
 
-    // Envoi de l'email avec Amazon SES
+    // Envoi de l'email avec Resend
     const messageId = await sendEmail({
       from: getDefaultFromEmail(),
       to: process.env.CONTACT_EMAIL || 'contact@votre-domaine.com',
@@ -298,7 +298,7 @@ export async function POST(request: NextRequest) {
     // but we explicitly await it so the runtime does not drop it after responding.
     try {
       await sendEmail({
-        from: `${process.env.COMPANY_NAME || 'Contact'} <${getDefaultFromEmail()}>`,
+        from: getDefaultFromEmail(),
         to: sanitizedEmail,
         subject: template.subject,
         html: `
