@@ -14,20 +14,46 @@ const defaultFrom =
   process.env.MAIL_FROM_EMAIL ||
   process.env.ORDER_EMAIL_FROM
 
+function normalizeFromAddress(value: string | undefined | null) {
+  const rawValue = value?.trim()
+  if (!rawValue) return null
+
+  const plainEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (plainEmailPattern.test(rawValue)) {
+    return rawValue
+  }
+
+  const formattedPattern = /^.+<\s*[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+\s*>$/
+  if (formattedPattern.test(rawValue)) {
+    return rawValue.replace(/<\s*/, '<').replace(/\s*>/, '>')
+  }
+
+  const emailMatch = rawValue.match(/([^\s<>@]+@[^\s<>@]+\.[^\s<>@]+)$/)
+  if (!emailMatch) return null
+
+  const email = emailMatch[1]
+  const name = rawValue.slice(0, emailMatch.index).trim()
+
+  return name ? `${name} <${email}>` : email
+}
+
 export function isEmailConfigured() {
-  return Boolean(apiKey && defaultFrom)
+  return Boolean(apiKey && normalizeFromAddress(defaultFrom))
 }
 
 export function getEmailConfigurationStatus() {
+  const normalizedFrom = normalizeFromAddress(defaultFrom)
+
   return {
     hasApiKey: Boolean(apiKey),
     hasFromAddress: Boolean(defaultFrom),
-    configured: Boolean(apiKey && defaultFrom),
+    hasValidFromAddress: Boolean(normalizedFrom),
+    configured: Boolean(apiKey && normalizedFrom),
   }
 }
 
 export function getDefaultFromEmail() {
-  return defaultFrom || 'contact@votre-domaine.com'
+  return normalizeFromAddress(defaultFrom) || 'contact@votre-domaine.com'
 }
 
 export async function sendEmail({
@@ -41,9 +67,11 @@ export async function sendEmail({
     throw new Error('RESEND_API_KEY is not configured.')
   }
 
-  const fromAddress = from || defaultFrom
+  const fromAddress = normalizeFromAddress(from || defaultFrom)
   if (!fromAddress) {
-    throw new Error('RESEND_FROM_EMAIL is missing.')
+    throw new Error(
+      'Sender email is invalid. Use email@example.com or Name <email@example.com>.'
+    )
   }
 
   const toAddresses = Array.isArray(to) ? to : [to]

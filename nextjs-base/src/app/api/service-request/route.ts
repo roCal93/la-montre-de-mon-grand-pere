@@ -115,6 +115,25 @@ export async function POST(req: NextRequest) {
 
   const json = await res.json()
 
+  const esc = (s: string) =>
+    s.replace(
+      /[&<>"'/]/g,
+      (c) =>
+        ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;',
+          '/': '&#x2F;',
+        })[c] ?? c
+    )
+  const safeType = esc(parsed.data.type)
+  const safeName = esc(session.user.name ?? '')
+  const safeEmail = esc(session.user.email ?? '')
+  const safeWatch = esc(watchTitle)
+  const safeDesc = esc(parsed.data.description).replace(/\n/g, '<br>')
+
   // Notify admin via email
   const adminEmail = process.env.CONTACT_EMAIL
   const emailNotification: {
@@ -132,24 +151,6 @@ export async function POST(req: NextRequest) {
       getEmailConfigurationStatus,
     } = await import('@/lib/email-client')
     if (isEmailConfigured()) {
-      const esc = (s: string) =>
-        s.replace(
-          /[&<>"'/]/g,
-          (c) =>
-            ({
-              '&': '&amp;',
-              '<': '&lt;',
-              '>': '&gt;',
-              '"': '&quot;',
-              "'": '&#039;',
-              '/': '&#x2F;',
-            })[c] ?? c
-        )
-      const safeType = esc(parsed.data.type)
-      const safeName = esc(session.user.name ?? '')
-      const safeEmail = esc(session.user.email ?? '')
-      const safeWatch = esc(watchTitle)
-      const safeDesc = esc(parsed.data.description).replace(/\n/g, '<br>')
       await sendEmail({
         to: adminEmail,
         subject: `[Demande de service] ${parsed.data.type} — ${session.user.email}`,
@@ -184,10 +185,65 @@ export async function POST(req: NextRequest) {
     console.warn('[service-request] admin email skipped: CONTACT_EMAIL missing')
   }
 
+  const clientEmailNotification: {
+    sent: boolean
+    reason: 'sent' | 'missing_client_email' | 'email_not_configured' | 'send_failed'
+  } = {
+    sent: false,
+    reason: 'missing_client_email',
+  }
+
+  const clientEmail = session.user.email?.trim()
+
+  if (clientEmail) {
+    const {
+      sendEmail,
+      isEmailConfigured,
+      getEmailConfigurationStatus,
+    } = await import('@/lib/email-client')
+
+    if (isEmailConfigured()) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+      const clientFirstName = safeName || 'Bonjour'
+
+      await sendEmail({
+        to: clientEmail,
+        subject: 'Votre demande de service a bien ete recue',
+        html: `
+          <p>Bonjour ${clientFirstName},</p>
+          <p>Nous confirmons la bonne reception de votre demande de service.</p>
+          <p>Type : <strong>${safeType}</strong></p>
+          <p>Montre : <strong>${safeWatch || 'Votre montre'}</strong></p>
+          <p>Description :</p>
+          <blockquote>${safeDesc}</blockquote>
+          <p>Notre atelier reviendra vers vous des qu'une mise a jour sera disponible.</p>
+          ${siteUrl ? `<p><a href="${siteUrl}/fr/espace-client/demandes-de-service">Suivre ma demande</a></p>` : ''}
+        `,
+      })
+        .then(() => {
+          clientEmailNotification.sent = true
+          clientEmailNotification.reason = 'sent'
+        })
+        .catch((error) => {
+          clientEmailNotification.sent = false
+          clientEmailNotification.reason = 'send_failed'
+          console.error('[service-request] client email send failed', error)
+        })
+    } else {
+      clientEmailNotification.sent = false
+      clientEmailNotification.reason = 'email_not_configured'
+      console.warn(
+        '[service-request] client email skipped: provider not configured',
+        getEmailConfigurationStatus()
+      )
+    }
+  }
+
   return NextResponse.json(
     {
       ...json,
       emailNotification,
+      clientEmailNotification,
     },
     { status: 201 }
   )
