@@ -255,13 +255,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 18,
-    paddingBottom: 14,
+    marginBottom: 20,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
   headerLeft: {
-    flexGrow: 1,
+    width: 300,
     flexDirection: 'column',
     alignItems: 'flex-start',
   },
@@ -270,12 +270,21 @@ const styles = StyleSheet.create({
     flexBasis: 0,
     flexDirection: 'column',
     alignItems: 'flex-end',
+    paddingTop: 4,
   },
   logo: {
     width: 280,
     height: 90,
     objectFit: 'contain',
     marginBottom: 6,
+  },
+  logoFallback: {
+    width: 280,
+    fontSize: 18,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    color: '#111827',
+    marginBottom: 10,
   },
   companyNameHeader: {
     fontSize: 13,
@@ -290,29 +299,40 @@ const styles = StyleSheet.create({
     width: 280,
     textAlign: 'center',
   },
+  invoicePanel: {
+    minWidth: 240,
+    alignItems: 'flex-end',
+  },
   invoiceTitle: {
-    fontSize: 28,
+    fontSize: 25,
     fontFamily: 'Helvetica',
     fontWeight: 700,
     color: '#111827',
-    letterSpacing: 2,
-    marginBottom: 6,
+    letterSpacing: 1.2,
+    marginBottom: 8,
   },
   invoiceBadge: {
     backgroundColor: '#111827',
     color: '#ffffff',
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 4,
-    fontSize: 7.5,
+    fontSize: 7.4,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
-    marginBottom: 5,
+    marginBottom: 8,
+  },
+  invoiceMetaGroup: {
+    alignItems: 'flex-end',
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
   invoiceMeta: {
     fontSize: 8.2,
     color: '#6b7280',
-    marginBottom: 2,
+    marginBottom: 3,
+    textAlign: 'right',
   },
   // ── Info cards ──────────────────────────────────────────
   infoRow: {
@@ -542,11 +562,7 @@ function InvoiceDocument({
           { style: styles.headerLeft },
           logoSrc
             ? createElement(Image, { src: logoSrc, style: styles.logo })
-            : createElement(
-                Text,
-                { style: styles.companyNameHeader },
-                issuer.name
-              ),
+            : createElement(Text, { style: styles.logoFallback }, issuer.name),
           createElement(
             Text,
             { style: styles.companySubHeader },
@@ -556,21 +572,29 @@ function InvoiceDocument({
         createElement(
           View,
           { style: styles.headerRight },
-          createElement(Text, { style: styles.invoiceTitle }, 'FACTURE'),
           createElement(
-            Text,
-            { style: styles.invoiceBadge },
-            `N° ${invoiceNumber}`
-          ),
-          createElement(
-            Text,
-            { style: styles.invoiceMeta },
-            `Émise le ${invoiceDate}`
-          ),
-          createElement(
-            Text,
-            { style: styles.invoiceMeta },
-            `Réf. commande : #${orderReference}`
+            View,
+            { style: styles.invoicePanel },
+            createElement(Text, { style: styles.invoiceTitle }, 'FACTURE'),
+            createElement(
+              Text,
+              { style: styles.invoiceBadge },
+              `N° ${invoiceNumber}`
+            ),
+            createElement(
+              View,
+              { style: styles.invoiceMetaGroup },
+              createElement(
+                Text,
+                { style: styles.invoiceMeta },
+                `Émise le ${invoiceDate}`
+              ),
+              createElement(
+                Text,
+                { style: styles.invoiceMeta },
+                `Réf. commande : #${orderReference}`
+              )
+            )
           )
         )
       ),
