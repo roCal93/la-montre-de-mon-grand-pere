@@ -259,6 +259,7 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexGrow: 1,
     flexDirection: 'column',
+    alignItems: 'center',
   },
   headerRight: {
     flexDirection: 'column',
