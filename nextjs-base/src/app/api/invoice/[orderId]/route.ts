@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   page: {
     paddingTop: 32,
     paddingBottom: 28,
-    paddingLeft: 20,
+    paddingLeft: 0,
     paddingRight: 36,
     fontFamily: 'Helvetica',
     fontSize: 9,
