@@ -84,9 +84,19 @@ function asText(value: unknown, fallback = '-'): string {
   return fallback
 }
 
+function toReadableCompanyName(value: string): string {
+  const trimmed = value.trim()
+  if (/^[a-z0-9]+(?:[-_][a-z0-9]+)+$/i.test(trimmed)) {
+    return trimmed.replace(/[-_]+/g, ' ')
+  }
+  return trimmed
+}
+
 function getInvoiceIssuer(): InvoiceIssuer {
+  const configuredCompanyName = process.env.COMPANY_NAME?.trim()
+  const siteName = process.env.NEXT_PUBLIC_SITE_NAME?.trim()
   const name = asText(
-    process.env.COMPANY_NAME || process.env.NEXT_PUBLIC_SITE_NAME,
+    configuredCompanyName || (siteName ? toReadableCompanyName(siteName) : ''),
     'La Montre de Mon Grand-Père'
   )
   const address = process.env.COMPANY_ADDRESS?.trim() ?? ''
@@ -194,47 +204,64 @@ function getLogoMimeType(filePath: string): string | undefined {
 }
 
 async function getCompanyLogoDataUri(): Promise<string | undefined> {
-  const rawPath = asText(process.env.COMPANY_LOGO_PATH, '/images/logo.svg')
-  const normalizedPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`
-  const publicRelativePath = normalizedPath.replace(/^\//, '')
-  const absolutePath = path.join(process.cwd(), 'public', publicRelativePath)
-  const mimeType = getLogoMimeType(normalizedPath)
+  const configuredPath = process.env.COMPANY_LOGO_PATH?.trim()
+  const candidates = [
+    configuredPath,
+    '/images/logo.png',
+    '/images/logo.svg',
+    '/images/hakuna-mataweb-logo.svg',
+  ].filter((value): value is string =>
+    Boolean(value && value.trim().length > 0)
+  )
 
-  if (!mimeType) return undefined
+  for (const candidate of candidates) {
+    const normalizedPath = candidate.startsWith('/')
+      ? candidate
+      : `/${candidate}`
+    const publicRelativePath = normalizedPath.replace(/^\//, '')
+    const absolutePath = path.join(process.cwd(), 'public', publicRelativePath)
+    const mimeType = getLogoMimeType(normalizedPath)
 
-  try {
-    const fileBuffer = await readFile(absolutePath)
-    return `data:${mimeType};base64,${fileBuffer.toString('base64')}`
-  } catch {
-    return undefined
+    if (!mimeType) {
+      continue
+    }
+
+    try {
+      const fileBuffer = await readFile(absolutePath)
+      return `data:${mimeType};base64,${fileBuffer.toString('base64')}`
+    } catch {
+      continue
+    }
   }
+
+  return undefined
 }
 
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 28,
     fontFamily: 'Helvetica',
-    fontSize: 10,
+    fontSize: 9,
     color: '#1c1917',
     backgroundColor: '#ffffff',
   },
   header: {
-    marginBottom: 18,
-    borderBottomWidth: 2,
+    marginBottom: 10,
+    borderBottomWidth: 1,
     borderBottomColor: '#1f2937',
-    paddingBottom: 12,
+    paddingBottom: 8,
   },
   issuerBlock: {
-    marginTop: 10,
+    marginTop: 6,
     borderWidth: 1,
     borderColor: '#e7e5e4',
     backgroundColor: '#fafaf9',
     borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   title: {
-    fontSize: 30,
+    fontSize: 24,
     fontFamily: 'Helvetica',
     fontWeight: 700,
     marginBottom: 2,
@@ -242,15 +269,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#6b7280',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  section: { marginBottom: 20 },
+  section: { marginBottom: 10 },
   columns: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   column: {
     flexGrow: 1,
@@ -259,8 +286,8 @@ const styles = StyleSheet.create({
     borderColor: '#e7e5e4',
     borderRadius: 8,
     backgroundColor: '#fafaf9',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   columnLeft: {
     marginRight: 8,
@@ -272,50 +299,51 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: 'Helvetica',
     fontWeight: 700,
-    marginBottom: 9,
+    marginBottom: 6,
     color: '#6b7280',
     textTransform: 'uppercase',
     letterSpacing: 0.7,
   },
   issuerName: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Helvetica',
     fontWeight: 700,
     marginBottom: 3,
     color: '#111827',
   },
-  issuerLine: { fontSize: 9.5, color: '#374151', marginBottom: 2 },
-  issuerSubLine: { fontSize: 9, color: '#6b7280', marginBottom: 2 },
+  issuerLine: { fontSize: 8.8, color: '#374151', marginBottom: 1 },
+  issuerSubLine: { fontSize: 8.5, color: '#6b7280', marginBottom: 1 },
   logo: {
-    width: 180,
-    height: 52,
-    objectFit: 'contain',
-    marginBottom: 8,
-  },
-  footerLogo: {
-    width: 140,
-    height: 40,
+    width: 150,
+    height: 42,
     objectFit: 'contain',
     marginBottom: 6,
-    alignSelf: 'center',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   paymentInfo: {
-    marginTop: 3,
-    fontSize: 9,
+    marginTop: 2,
+    fontSize: 8.4,
     color: '#4b5563',
     lineHeight: 1.4,
   },
   bold: { fontFamily: 'Helvetica', fontWeight: 700 },
-  infoText: { fontSize: 9.5, color: '#374151', lineHeight: 1.5 },
+  infoText: { fontSize: 8.8, color: '#374151', lineHeight: 1.35 },
+  infoLabel: {
+    marginTop: 4,
+    marginBottom: 3,
+    fontSize: 8.2,
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
   divider: {
     borderBottomWidth: 1,
     borderBottomColor: '#e7e5e4',
-    marginVertical: 10,
+    marginVertical: 6,
   },
   table: {
     borderWidth: 1,
@@ -338,9 +366,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   cell: {
-    paddingVertical: 10,
+    paddingVertical: 7,
     paddingHorizontal: 8,
-    fontSize: 9.2,
+    fontSize: 8.6,
     color: '#111827',
   },
   cellSubLine: {
@@ -351,7 +379,7 @@ const styles = StyleSheet.create({
   cellHeader: {
     paddingVertical: 8,
     paddingHorizontal: 8,
-    fontSize: 9,
+    fontSize: 8.2,
     fontFamily: 'Helvetica',
     fontWeight: 700,
     color: '#ffffff',
@@ -362,26 +390,6 @@ const styles = StyleSheet.create({
   cellQuantity: { flexGrow: 0.8, flexBasis: 0, textAlign: 'center' },
   cellUnitPrice: { flexGrow: 1, flexBasis: 0, textAlign: 'right' },
   cellTotal: { flexGrow: 1, flexBasis: 0, textAlign: 'right' },
-  footerBlock: {
-    marginTop: 26,
-    borderTopWidth: 1,
-    borderTopColor: '#d1d5db',
-    paddingTop: 12,
-  },
-  footerTitle: {
-    fontSize: 10,
-    color: '#111827',
-    textAlign: 'center',
-    fontFamily: 'Helvetica',
-    fontWeight: 700,
-    marginBottom: 3,
-  },
-  footerLine: {
-    fontSize: 8.2,
-    color: '#4b5563',
-    textAlign: 'center',
-    marginBottom: 2,
-  },
   badge: {
     alignSelf: 'flex-start',
     backgroundColor: '#111827',
@@ -390,15 +398,21 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 4,
     fontSize: 8.5,
-    marginBottom: 10,
+    marginBottom: 7,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   taxNote: {
-    marginTop: 8,
-    fontSize: 9.2,
+    marginTop: 5,
+    fontSize: 8.5,
     color: '#4b5563',
     fontStyle: 'italic',
+  },
+  footerNote: {
+    marginTop: 8,
+    fontSize: 7.8,
+    color: '#6b7280',
+    textAlign: 'center',
   },
 })
 
@@ -562,7 +576,21 @@ function InvoiceDocument({
                 { style: styles.infoText },
                 `Téléphone : ${shippingPhone}`
               )
-            : null
+            : null,
+          shippingAddress
+            ? createElement(
+                Text,
+                { style: styles.infoLabel },
+                'Adresse de livraison'
+              )
+            : null,
+          ...shippingAddressLines.map((line, index) =>
+            createElement(
+              Text,
+              { key: `shipping-line-${index}`, style: styles.infoText },
+              line
+            )
+          )
         )
       ),
       createElement(View, { style: styles.divider }),
@@ -679,36 +707,10 @@ function InvoiceDocument({
         ),
         createElement(Text, { style: styles.taxNote }, issuer.vatNotice)
       ),
-      shippingAddress
-        ? createElement(
-            View,
-            { style: styles.section },
-            createElement(
-              Text,
-              { style: styles.sectionTitle },
-              'Adresse de livraison'
-            ),
-            ...shippingAddressLines
-          )
-        : null,
       createElement(
-        View,
-        { style: styles.footerBlock },
-        logoSrc
-          ? createElement(Image, { src: logoSrc, style: styles.footerLogo })
-          : createElement(Text, { style: styles.footerTitle }, issuer.name),
-        createElement(Text, { style: styles.footerLine }, issuer.legalStatus),
-        createElement(
-          Text,
-          { style: styles.footerLine },
-          `SIRET : ${issuer.siret}`
-        ),
-        createElement(Text, { style: styles.footerLine }, issuer.website),
-        createElement(Text, { style: styles.footerLine }, issuer.email),
-        issuer.phone
-          ? createElement(Text, { style: styles.footerLine }, issuer.phone)
-          : null,
-        createElement(Text, { style: styles.footerLine }, issuer.vatNotice)
+        Text,
+        { style: styles.footerNote },
+        'Document généré automatiquement'
       )
     )
   )
