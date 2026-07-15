@@ -13,13 +13,9 @@ const serviceRequestSchema = z.object({
 })
 
 function buildWatchLabel(watchFile: {
-  title?: string
   reference?: string
   product?: { name?: string } | null
 }) {
-  const title = watchFile.title?.trim()
-  if (title) return title
-
   const productName = watchFile.product?.name?.trim()
   const reference = watchFile.reference?.trim()
 
@@ -57,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   // Verify the watch-file belongs to the authenticated user (IDOR prevention)
   const wfRes = await fetch(
-    `${strapiUrl}/api/watch-files/${parsed.data.watch_file_document_id}?populate[customer]=true&populate[product][fields][0]=name&fields[0]=reference&fields[1]=title`,
+    `${strapiUrl}/api/watch-files/${parsed.data.watch_file_document_id}?populate[customer]=true&populate[product][fields][0]=name&fields[0]=reference`,
     { headers: { Authorization: `Bearer ${strapiJwt}` } }
   )
   if (!wfRes.ok) {
@@ -68,7 +64,6 @@ export async function POST(req: NextRequest) {
   }
   const wfJson = (await wfRes.json()) as {
     data?: {
-      title?: string
       reference?: string
       product?: { name?: string } | null
     }
