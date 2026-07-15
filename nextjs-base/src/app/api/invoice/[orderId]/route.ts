@@ -239,180 +239,258 @@ async function getCompanyLogoDataUri(): Promise<string | undefined> {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 28,
+    padding: 36,
+    paddingBottom: 28,
     fontFamily: 'Helvetica',
     fontSize: 9,
     color: '#1c1917',
     backgroundColor: '#ffffff',
   },
+  // ── Header ──────────────────────────────────────────────
   header: {
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f2937',
-    paddingBottom: 8,
-  },
-  issuerBlock: {
-    marginTop: 6,
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-    backgroundColor: '#fafaf9',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: 'Helvetica',
-    fontWeight: 700,
-    marginBottom: 2,
-    color: '#111827',
-    letterSpacing: 1,
-  },
-  subtitle: {
-    fontSize: 9,
-    color: '#6b7280',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  section: { marginBottom: 10 },
-  columns: {
-    flexDirection: 'row',
-    marginBottom: 6,
-  },
-  column: {
-    flexGrow: 1,
-    flexBasis: 0,
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-    borderRadius: 8,
-    backgroundColor: '#fafaf9',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  columnLeft: {
-    marginRight: 8,
-  },
-  columnRight: {
-    marginLeft: 8,
-  },
-  sectionTitle: {
-    fontSize: 9,
-    fontFamily: 'Helvetica',
-    fontWeight: 700,
-    marginBottom: 6,
-    color: '#6b7280',
-    textTransform: 'uppercase',
-    letterSpacing: 0.7,
-  },
-  issuerName: {
-    fontSize: 11,
-    fontFamily: 'Helvetica',
-    fontWeight: 700,
-    marginBottom: 3,
-    color: '#111827',
-  },
-  issuerLine: { fontSize: 8.8, color: '#374151', marginBottom: 1 },
-  issuerSubLine: { fontSize: 8.5, color: '#6b7280', marginBottom: 1 },
-  logo: {
-    width: 150,
-    height: 42,
-    objectFit: 'contain',
-    marginBottom: 6,
-  },
-  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 18,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  headerLeft: {
+    flexGrow: 1,
+    flexDirection: 'column',
+  },
+  headerRight: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  logo: {
+    width: 140,
+    height: 40,
+    objectFit: 'contain',
     marginBottom: 4,
   },
-  paymentInfo: {
-    marginTop: 2,
-    fontSize: 8.4,
-    color: '#4b5563',
-    lineHeight: 1.4,
-  },
-  bold: { fontFamily: 'Helvetica', fontWeight: 700 },
-  infoText: { fontSize: 8.8, color: '#374151', lineHeight: 1.35 },
-  infoLabel: {
-    marginTop: 4,
+  companyNameHeader: {
+    fontSize: 13,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    color: '#111827',
     marginBottom: 3,
-    fontSize: 8.2,
+  },
+  companySubHeader: {
+    fontSize: 8,
     color: '#6b7280',
+  },
+  invoiceTitle: {
+    fontSize: 28,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    color: '#111827',
+    letterSpacing: 2,
+    marginBottom: 6,
+  },
+  invoiceBadge: {
+    backgroundColor: '#111827',
+    color: '#ffffff',
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 4,
+    fontSize: 7.5,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
+    marginBottom: 5,
   },
-  divider: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#e7e5e4',
-    marginVertical: 6,
+  invoiceMeta: {
+    fontSize: 8.2,
+    color: '#6b7280',
+    marginBottom: 2,
+  },
+  // ── Info cards ──────────────────────────────────────────
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  infoCardLeft: {
+    flexGrow: 1,
+    flexBasis: 0,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginRight: 10,
+  },
+  infoCardRight: {
+    flexGrow: 1,
+    flexBasis: 0,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  cardLabel: {
+    fontSize: 7.2,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  cardName: {
+    fontSize: 10,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    color: '#111827',
+    marginBottom: 3,
+  },
+  cardLine: {
+    fontSize: 8.4,
+    color: '#4b5563',
+    marginBottom: 1.5,
+    lineHeight: 1.35,
+  },
+  cardSubLabel: {
+    fontSize: 7.2,
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 7,
+    marginBottom: 3,
+  },
+  // ── Table ───────────────────────────────────────────────
+  sectionLabel: {
+    fontSize: 7.2,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 6,
   },
   table: {
     borderWidth: 1,
-    borderColor: '#e7e5e4',
-    borderRadius: 8,
+    borderColor: '#e5e7eb',
+    borderRadius: 6,
     overflow: 'hidden',
+    marginBottom: 10,
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#111827',
-    borderBottomWidth: 1,
-    borderBottomColor: '#111827',
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
+  tableRowAlt: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    backgroundColor: '#f9fafb',
+  },
   tableRowLast: {
     borderBottomWidth: 0,
   },
-  cell: {
-    paddingVertical: 7,
-    paddingHorizontal: 8,
-    fontSize: 8.6,
-    color: '#111827',
-  },
-  cellSubLine: {
-    marginTop: 3,
-    fontSize: 8.5,
-    color: '#78716c',
-  },
   cellHeader: {
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    fontSize: 8.2,
+    paddingVertical: 7,
+    paddingHorizontal: 9,
+    fontSize: 7.5,
     fontFamily: 'Helvetica',
     fontWeight: 700,
     color: '#ffffff',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.4,
+  },
+  cell: {
+    paddingVertical: 8,
+    paddingHorizontal: 9,
+    fontSize: 8.8,
+    color: '#1f2937',
+    lineHeight: 1.4,
   },
   cellDesignation: { flexGrow: 3, flexBasis: 0 },
-  cellQuantity: { flexGrow: 0.8, flexBasis: 0, textAlign: 'center' },
-  cellUnitPrice: { flexGrow: 1, flexBasis: 0, textAlign: 'right' },
-  cellTotal: { flexGrow: 1, flexBasis: 0, textAlign: 'right' },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#111827',
-    color: '#ffffff',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 4,
-    fontSize: 8.5,
-    marginBottom: 7,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
+  cellQuantity: { flexGrow: 0.7, flexBasis: 0, textAlign: 'center' },
+  cellUnitPrice: { flexGrow: 1.2, flexBasis: 0, textAlign: 'right' },
+  cellTotalCol: { flexGrow: 1.2, flexBasis: 0, textAlign: 'right' },
+  // ── Totals ──────────────────────────────────────────────
+  totalsWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 6,
   },
-  taxNote: {
-    marginTop: 5,
+  totalsBox: {
+    width: 224,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  totalsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  totalsLabel: {
     fontSize: 8.5,
     color: '#4b5563',
-    fontStyle: 'italic',
   },
-  footerNote: {
-    marginTop: 8,
+  totalsValue: {
+    fontSize: 8.5,
+    color: '#1f2937',
+  },
+  totalRowFinal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#111827',
+  },
+  totalLabelFinal: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    color: '#ffffff',
+    letterSpacing: 0.5,
+  },
+  totalValueFinal: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    color: '#ffffff',
+  },
+  taxNote: {
     fontSize: 7.8,
-    color: '#6b7280',
-    textAlign: 'center',
+    color: '#9ca3af',
+    fontStyle: 'italic',
+    marginBottom: 14,
+    textAlign: 'right',
+  },
+  // ── Footer ──────────────────────────────────────────────
+  footer: {
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  footerLeft: {
+    fontSize: 7.5,
+    color: '#9ca3af',
+    lineHeight: 1.6,
+  },
+  footerRight: {
+    fontSize: 7.5,
+    color: '#9ca3af',
+    textAlign: 'right',
   },
 })
 
@@ -434,41 +512,9 @@ function InvoiceDocument({
   const lineItems = Array.isArray(order.lineItems) ? order.lineItems : []
   const shippingAddress = order.shippingAddress ?? null
   const shippingFullName = shippingAddress
-    ? `${asText(shippingAddress.firstName, 'Client')} ${asText(shippingAddress.lastName, '')}`.trim()
+    ? `${asText(shippingAddress.firstName, '')} ${asText(shippingAddress.lastName, '')}`.trim()
     : ''
   const shippingPhone = asText(shippingAddress?.phone, '')
-  const shippingAddressLines: ReactElement[] = []
-
-  if (shippingAddress) {
-    shippingAddressLines.push(
-      createElement(Text, null, shippingFullName || 'Client')
-    )
-    shippingAddressLines.push(
-      createElement(
-        Text,
-        null,
-        asText(shippingAddress.address1, 'Adresse non fournie')
-      )
-    )
-    if (shippingAddress.address2) {
-      shippingAddressLines.push(
-        createElement(Text, null, asText(shippingAddress.address2))
-      )
-    }
-    shippingAddressLines.push(
-      createElement(
-        Text,
-        null,
-        `${asText(shippingAddress.postalCode, '00000')} ${asText(shippingAddress.city, 'Ville inconnue')} - ${asText(shippingAddress.country, 'FR')}`
-      )
-    )
-    if (shippingPhone) {
-      shippingAddressLines.push(
-        createElement(Text, null, `Téléphone : ${shippingPhone}`)
-      )
-    }
-  }
-
   const issuerAddressLines = splitAddressLines(issuer.address)
 
   return createElement(
@@ -477,240 +523,281 @@ function InvoiceDocument({
     createElement(
       Page,
       { size: 'A4', style: styles.page },
+
+      // ── Header: logo à gauche, numéro/date à droite ──
       createElement(
         View,
         { style: styles.header },
-        createElement(Text, { style: styles.title }, 'Facture'),
         createElement(
-          Text,
-          { style: styles.subtitle },
-          `Commande n° ${orderReference}`
+          View,
+          { style: styles.headerLeft },
+          logoSrc
+            ? createElement(Image, { src: logoSrc, style: styles.logo })
+            : createElement(
+                Text,
+                { style: styles.companyNameHeader },
+                issuer.name
+              ),
+          createElement(
+            Text,
+            { style: styles.companySubHeader },
+            issuer.legalStatus
+          )
         ),
         createElement(
           View,
-          { style: styles.issuerBlock },
-          logoSrc
-            ? createElement(Image, { src: logoSrc, style: styles.logo })
-            : createElement(Text, { style: styles.issuerName }, issuer.name),
+          { style: styles.headerRight },
+          createElement(Text, { style: styles.invoiceTitle }, 'FACTURE'),
           createElement(
             Text,
-            { style: styles.issuerSubLine },
-            issuer.legalStatus
+            { style: styles.invoiceBadge },
+            `N° ${invoiceNumber}`
           ),
           createElement(
             Text,
-            { style: styles.issuerSubLine },
+            { style: styles.invoiceMeta },
+            `Émise le ${invoiceDate}`
+          ),
+          createElement(
+            Text,
+            { style: styles.invoiceMeta },
+            `Réf. commande : #${orderReference}`
+          )
+        )
+      ),
+
+      // ── Cartes DE / POUR ──
+      createElement(
+        View,
+        { style: styles.infoRow },
+        // Carte émetteur
+        createElement(
+          View,
+          { style: styles.infoCardLeft },
+          createElement(Text, { style: styles.cardLabel }, 'De'),
+          createElement(Text, { style: styles.cardName }, issuer.name),
+          createElement(
+            Text,
+            { style: styles.cardLine },
             `Responsable : ${issuer.ownerName}`
           ),
-          ...issuerAddressLines.map((line, index) =>
+          ...issuerAddressLines.map((line, i) =>
             createElement(
               Text,
-              { key: `issuer-line-${index}`, style: styles.issuerLine },
+              { key: `il-${i}`, style: styles.cardLine },
               line
             )
           ),
           createElement(
             Text,
-            { style: styles.issuerLine },
+            { style: styles.cardLine },
             `SIRET : ${issuer.siret}`
           ),
-          createElement(Text, { style: styles.issuerLine }, issuer.email),
-          createElement(Text, { style: styles.issuerLine }, issuer.website),
+          createElement(Text, { style: styles.cardLine }, issuer.email),
+          createElement(Text, { style: styles.cardLine }, issuer.website),
           issuer.phone
-            ? createElement(Text, { style: styles.issuerLine }, issuer.phone)
+            ? createElement(Text, { style: styles.cardLine }, issuer.phone)
             : null
-        )
-      ),
-      createElement(
-        View,
-        { style: styles.columns },
-        createElement(
-          View,
-          { style: [styles.column, styles.columnLeft] },
-          createElement(Text, { style: styles.sectionTitle }, 'Facture'),
-          createElement(Text, { style: styles.badge }, `N° ${invoiceNumber}`),
-          createElement(
-            View,
-            { style: styles.row },
-            createElement(Text, null, 'Date'),
-            createElement(Text, { style: styles.bold }, invoiceDate)
-          ),
-          createElement(
-            View,
-            { style: styles.row },
-            createElement(Text, null, 'Référence commande'),
-            createElement(Text, null, `#${orderReference}`)
-          ),
-          createElement(
-            Text,
-            { style: styles.paymentInfo },
-            `Paiement : ${paymentMethod}`
-          ),
-          createElement(
-            Text,
-            { style: styles.paymentInfo },
-            `Date de règlement : ${paymentDate}`
-          )
         ),
+        // Carte client
         createElement(
           View,
-          { style: [styles.column, styles.columnRight] },
+          { style: styles.infoCardRight },
+          createElement(Text, { style: styles.cardLabel }, 'Pour'),
           createElement(
             Text,
-            { style: styles.sectionTitle },
-            'Coordonnées du client'
+            { style: styles.cardName },
+            asText(order.customerName, 'Client')
           ),
           createElement(
             Text,
-            { style: styles.infoText },
-            `Nom : ${asText(order.customerName, 'Client')}`
-          ),
-          createElement(
-            Text,
-            { style: styles.infoText },
-            `Email : ${asText(order.customerEmail, '-')}`
+            { style: styles.cardLine },
+            asText(order.customerEmail, '-')
           ),
           shippingPhone
+            ? createElement(Text, { style: styles.cardLine }, shippingPhone)
+            : null,
+          shippingAddress
             ? createElement(
                 Text,
-                { style: styles.infoText },
-                `Téléphone : ${shippingPhone}`
+                { style: styles.cardSubLabel },
+                'Adresse de livraison'
               )
             : null,
           shippingAddress
             ? createElement(
                 Text,
-                { style: styles.infoLabel },
-                'Adresse de livraison'
+                { style: styles.cardLine },
+                shippingFullName || 'Client'
               )
             : null,
-          ...shippingAddressLines.map((line, index) =>
+          shippingAddress
+            ? createElement(
+                Text,
+                { style: styles.cardLine },
+                asText(shippingAddress.address1, '-')
+              )
+            : null,
+          shippingAddress?.address2
+            ? createElement(
+                Text,
+                { style: styles.cardLine },
+                shippingAddress.address2
+              )
+            : null,
+          shippingAddress
+            ? createElement(
+                Text,
+                { style: styles.cardLine },
+                `${asText(shippingAddress.postalCode, '')} ${asText(shippingAddress.city, '')} – ${asText(shippingAddress.country, 'FR')}`
+              )
+            : null
+        )
+      ),
+
+      // ── Tableau des articles ──
+      createElement(Text, { style: styles.sectionLabel }, 'Articles'),
+      createElement(
+        View,
+        { style: styles.table },
+        createElement(
+          View,
+          { style: styles.tableHeader },
+          createElement(
+            Text,
+            { style: [styles.cellHeader, styles.cellDesignation] },
+            'Désignation'
+          ),
+          createElement(
+            Text,
+            { style: [styles.cellHeader, styles.cellQuantity] },
+            'Qté'
+          ),
+          createElement(
+            Text,
+            { style: [styles.cellHeader, styles.cellUnitPrice] },
+            'P.U.'
+          ),
+          createElement(
+            Text,
+            { style: [styles.cellHeader, styles.cellTotalCol] },
+            'Total'
+          )
+        ),
+        ...lineItems.map((item, i) => {
+          const isLast = i === lineItems.length - 1
+          const baseRow = i % 2 === 1 ? styles.tableRowAlt : styles.tableRow
+          const rowStyle = isLast ? [baseRow, styles.tableRowLast] : baseRow
+          const ref = formatInternalReference(item.productSlug)
+          const label = `${asText(item.productName, 'Montre')}${ref ? `\n${ref}` : ''}${item.description ? `\n${item.description}` : ''}`
+          return createElement(
+            View,
+            { key: i, style: rowStyle },
             createElement(
               Text,
-              { key: `shipping-line-${index}`, style: styles.infoText },
-              line
+              { style: [styles.cell, styles.cellDesignation] },
+              label
+            ),
+            createElement(
+              Text,
+              { style: [styles.cell, styles.cellQuantity] },
+              String(Number(item.quantity) || 0)
+            ),
+            createElement(
+              Text,
+              { style: [styles.cell, styles.cellUnitPrice] },
+              formatPrice(Number(item.unitPrice) || 0)
+            ),
+            createElement(
+              Text,
+              { style: [styles.cell, styles.cellTotalCol] },
+              formatPrice(
+                (Number(item.unitPrice) || 0) * (Number(item.quantity) || 0)
+              )
+            )
+          )
+        }),
+        lineItems.length === 0
+          ? createElement(
+              View,
+              { style: styles.tableRow },
+              createElement(
+                Text,
+                { style: [styles.cell, styles.cellDesignation] },
+                'Aucune ligne article disponible.'
+              )
+            )
+          : null
+      ),
+
+      // ── Totaux (alignés à droite) ──
+      createElement(
+        View,
+        { style: styles.totalsWrapper },
+        createElement(
+          View,
+          { style: styles.totalsBox },
+          createElement(
+            View,
+            { style: styles.totalsRow },
+            createElement(Text, { style: styles.totalsLabel }, 'Sous-total'),
+            createElement(
+              Text,
+              { style: styles.totalsValue },
+              formatPrice(order.subtotal)
+            )
+          ),
+          createElement(
+            View,
+            { style: styles.totalsRow },
+            createElement(Text, { style: styles.totalsLabel }, 'Livraison'),
+            createElement(
+              Text,
+              { style: styles.totalsValue },
+              order.shippingCost === 0
+                ? 'Offerte'
+                : formatPrice(order.shippingCost)
+            )
+          ),
+          createElement(
+            View,
+            { style: styles.totalRowFinal },
+            createElement(Text, { style: styles.totalLabelFinal }, 'Total'),
+            createElement(
+              Text,
+              { style: styles.totalValueFinal },
+              formatPrice(order.total)
             )
           )
         )
       ),
-      createElement(View, { style: styles.divider }),
+
+      // Note TVA
+      createElement(Text, { style: styles.taxNote }, issuer.vatNotice),
+
+      // ── Footer ──
       createElement(
         View,
-        { style: styles.section },
-        createElement(
-          Text,
-          { style: styles.sectionTitle },
-          'Désignation de la montre'
-        ),
+        { style: styles.footer },
         createElement(
           View,
-          { style: styles.table },
-          createElement(
-            View,
-            { key: 'head', style: styles.tableHeader },
-            createElement(
-              Text,
-              {
-                key: 'designation',
-                style: [styles.cellHeader, styles.cellDesignation],
-              },
-              'Désignation'
-            ),
-            createElement(
-              Text,
-              { key: 'qty', style: [styles.cellHeader, styles.cellQuantity] },
-              'Qté'
-            ),
-            createElement(
-              Text,
-              { key: 'unit', style: [styles.cellHeader, styles.cellUnitPrice] },
-              'Prix unitaire'
-            ),
-            createElement(
-              Text,
-              { key: 'total', style: [styles.cellHeader, styles.cellTotal] },
-              'Prix'
-            )
-          ),
-          ...lineItems.map((item, i) =>
-            createElement(
-              View,
-              {
-                key: i,
-                style:
-                  i === lineItems.length - 1
-                    ? [styles.tableRow, styles.tableRowLast]
-                    : styles.tableRow,
-              },
-              createElement(
-                Text,
-                { style: [styles.cell, styles.cellDesignation] },
-                `${asText(item.productName, 'Montre')}${formatInternalReference(item.productSlug) ? `\n${formatInternalReference(item.productSlug)}` : ''}${item.description ? `\n${item.description}` : ''}`
-              ),
-              createElement(
-                Text,
-                { style: [styles.cell, styles.cellQuantity] },
-                String(Number(item.quantity) || 0)
-              ),
-              createElement(
-                Text,
-                { style: [styles.cell, styles.cellUnitPrice] },
-                formatPrice(Number(item.unitPrice) || 0)
-              ),
-              createElement(
-                Text,
-                { style: [styles.cell, styles.cellTotal] },
-                formatPrice(
-                  (Number(item.unitPrice) || 0) * (Number(item.quantity) || 0)
-                )
-              )
-            )
-          )
-        ),
-        lineItems.length === 0
-          ? createElement(
-              Text,
-              { style: styles.infoText },
-              'Aucune ligne article disponible.'
-            )
-          : null
-      ),
-      createElement(View, { style: styles.divider }),
-      createElement(
-        View,
-        { style: styles.section },
-        createElement(Text, { style: styles.sectionTitle }, 'Totaux'),
-        createElement(
-          View,
-          { style: styles.row },
-          createElement(Text, null, 'Sous-total'),
-          createElement(Text, null, formatPrice(order.subtotal))
-        ),
-        createElement(
-          View,
-          { style: styles.row },
-          createElement(Text, null, 'Livraison'),
+          null,
           createElement(
             Text,
-            null,
-            order.shippingCost === 0
-              ? 'Livraison offerte'
-              : formatPrice(order.shippingCost)
+            { style: styles.footerLeft },
+            `Paiement : ${paymentMethod}`
+          ),
+          createElement(
+            Text,
+            { style: styles.footerLeft },
+            `Date de règlement : ${paymentDate}`
           )
         ),
-        createElement(View, { style: styles.divider }),
         createElement(
-          View,
-          { style: styles.row },
-          createElement(Text, { style: styles.bold }, 'Total'),
-          createElement(Text, { style: styles.bold }, formatPrice(order.total))
-        ),
-        createElement(Text, { style: styles.taxNote }, issuer.vatNotice)
-      ),
-      createElement(
-        Text,
-        { style: styles.footerNote },
-        'Document généré automatiquement'
+          Text,
+          { style: styles.footerRight },
+          'Document généré automatiquement'
+        )
       )
     )
   )
