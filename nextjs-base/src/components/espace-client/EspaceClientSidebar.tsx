@@ -19,6 +19,11 @@ const ADMIN_NAV_ITEM = {
   label: 'Admin — Tous les dossiers',
 }
 
+const ADMIN_NAV_SERVICE_REQUESTS_ITEM = {
+  href: '/espace-client/admin/demandes-de-service',
+  label: 'Admin — Demandes service',
+}
+
 export function EspaceClientSidebar({
   locale,
   isAdmin = false,
@@ -31,7 +36,7 @@ export function EspaceClientSidebar({
 
   const localePrefix = `/${locale}`
   const navItems = isAdmin
-    ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM]
+    ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM, ADMIN_NAV_SERVICE_REQUESTS_ITEM]
     : BASE_NAV_ITEMS
 
   return (

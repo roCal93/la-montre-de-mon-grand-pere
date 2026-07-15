@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'import { useCart } from '@/components/cart/CartContext'
+import Link from 'next/link'
+import { useCart } from '@/components/cart/CartContext'
 import { CartLineItem } from '@/components/cart/CartLineItem'
 import { formatPrice } from '@/lib/currency'
 import { useParams, useRouter } from 'next/navigation'

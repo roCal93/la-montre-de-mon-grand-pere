@@ -44,7 +44,8 @@ export function ClaimPageClient({
 
   const fromPath = useMemo(() => {
     if (normalizedCode) {
-      return buildActivationFromPath(normalizedCode)
+      const query = new URLSearchParams({ code: normalizedCode })
+      return `/${locale}/espace-client/activation?${query.toString()}`
     }
 
     const query = new URLSearchParams({ token: normalizedToken })
