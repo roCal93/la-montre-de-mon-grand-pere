@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useCart } from '@/components/cart/CartContext'
+import Link from 'next/link'import { useCart } from '@/components/cart/CartContext'
 import { CartLineItem } from '@/components/cart/CartLineItem'
 import { formatPrice } from '@/lib/currency'
 import { useParams, useRouter } from 'next/navigation'
@@ -13,6 +13,7 @@ export function CartDrawer() {
   const router = useRouter()
   const locale = (params?.locale as string) ?? 'fr'
   const [headerOffset, setHeaderOffset] = useState(0)
+  const [cgvAccepted, setCgvAccepted] = useState(false)
 
   useEffect(() => {
     const updateHeaderOffset = () => {
@@ -153,9 +154,43 @@ export function CartDrawer() {
               </span>
               <span className="font-semibold">{formatPrice(subtotal)}</span>
             </div>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={cgvAccepted}
+                onChange={(e) => setCgvAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border border-neutral-300 accent-neutral-900 dark:accent-white"
+              />
+              <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                {locale === 'en' ? (
+                  <>
+                    I have read and accept the{' '}
+                    <Link
+                      href={`/${locale}/cgv`}
+                      onClick={closeCart}
+                      className="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white"
+                    >
+                      Terms & Conditions
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    J&apos;ai lu et j&apos;accepte les{' '}
+                    <Link
+                      href={`/${locale}/cgv`}
+                      onClick={closeCart}
+                      className="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white"
+                    >
+                      Conditions Générales de Vente
+                    </Link>
+                  </>
+                )}
+              </span>
+            </label>
             <button
               onClick={handleCheckout}
-              className="w-full rounded-md bg-black py-3 text-sm font-medium text-white hover:bg-neutral-800 active:bg-neutral-900 transition-colors"
+              disabled={!cgvAccepted}
+              className="w-full rounded-md bg-black py-3 text-sm font-medium text-white hover:bg-neutral-800 active:bg-neutral-900 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             >
               Passer commande
             </button>
