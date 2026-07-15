@@ -12,6 +12,24 @@ const serviceRequestSchema = z.object({
   description: z.string().min(10).max(2000),
 })
 
+function buildWatchLabel(watchFile: {
+  title?: string
+  reference?: string
+  product?: { name?: string } | null
+}) {
+  const title = watchFile.title?.trim()
+  if (title) return title
+
+  const productName = watchFile.product?.name?.trim()
+  const reference = watchFile.reference?.trim()
+
+  if (productName && reference) return `${productName} - ${reference}`
+  if (productName) return productName
+  if (reference) return `Dossier ${reference}`
+
+  return ''
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth()
   const strapiJwt = await getStrapiSessionJwt()
@@ -39,7 +57,7 @@ export async function POST(req: NextRequest) {
 
   // Verify the watch-file belongs to the authenticated user (IDOR prevention)
   const wfRes = await fetch(
-    `${strapiUrl}/api/watch-files/${parsed.data.watch_file_document_id}?populate[customer]=true`,
+    `${strapiUrl}/api/watch-files/${parsed.data.watch_file_document_id}?populate[customer]=true&populate[product][fields][0]=name&fields[0]=reference&fields[1]=title`,
     { headers: { Authorization: `Bearer ${strapiJwt}` } }
   )
   if (!wfRes.ok) {
@@ -48,8 +66,14 @@ export async function POST(req: NextRequest) {
       { status: 404 }
     )
   }
-  const wfJson = (await wfRes.json()) as { data: { title?: string } }
-  const watchTitle = wfJson.data?.title ?? ''
+  const wfJson = (await wfRes.json()) as {
+    data?: {
+      title?: string
+      reference?: string
+      product?: { name?: string } | null
+    }
+  }
+  const watchTitle = buildWatchLabel(wfJson.data ?? {})
 
   const primaryRes = await fetch(`${strapiUrl}/api/service-requests`, {
     method: 'POST',
@@ -61,6 +85,7 @@ export async function POST(req: NextRequest) {
       data: {
         type: parsed.data.type,
         description: parsed.data.description,
+        watch_description: watchTitle || null,
         watch_file: {
           connect: [{ documentId: parsed.data.watch_file_document_id }],
         },
@@ -89,6 +114,7 @@ export async function POST(req: NextRequest) {
           data: {
             type: parsed.data.type,
             description: parsed.data.description,
+            watch_description: watchTitle || null,
             watch_file: {
               connect: [{ documentId: parsed.data.watch_file_document_id }],
             },
@@ -138,18 +164,16 @@ export async function POST(req: NextRequest) {
   const adminEmail = process.env.CONTACT_EMAIL
   const emailNotification: {
     sent: boolean
-    reason: 'sent' | 'missing_contact_email' | 'email_not_configured' | 'send_failed'
+    reason:
+      'sent' | 'missing_contact_email' | 'email_not_configured' | 'send_failed'
   } = {
     sent: false,
     reason: 'missing_contact_email',
   }
 
   if (adminEmail) {
-    const {
-      sendEmail,
-      isEmailConfigured,
-      getEmailConfigurationStatus,
-    } = await import('@/lib/email-client')
+    const { sendEmail, isEmailConfigured, getEmailConfigurationStatus } =
+      await import('@/lib/email-client')
     if (isEmailConfigured()) {
       await sendEmail({
         to: adminEmail,
@@ -187,7 +211,8 @@ export async function POST(req: NextRequest) {
 
   const clientEmailNotification: {
     sent: boolean
-    reason: 'sent' | 'missing_client_email' | 'email_not_configured' | 'send_failed'
+    reason:
+      'sent' | 'missing_client_email' | 'email_not_configured' | 'send_failed'
   } = {
     sent: false,
     reason: 'missing_client_email',
@@ -196,11 +221,8 @@ export async function POST(req: NextRequest) {
   const clientEmail = session.user.email?.trim()
 
   if (clientEmail) {
-    const {
-      sendEmail,
-      isEmailConfigured,
-      getEmailConfigurationStatus,
-    } = await import('@/lib/email-client')
+    const { sendEmail, isEmailConfigured, getEmailConfigurationStatus } =
+      await import('@/lib/email-client')
 
     if (isEmailConfigured()) {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')

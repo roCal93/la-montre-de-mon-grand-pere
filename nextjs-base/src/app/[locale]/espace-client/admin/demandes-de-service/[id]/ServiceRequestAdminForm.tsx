@@ -76,7 +76,7 @@ export function ServiceRequestAdminForm({ locale, request }: Props) {
         ? json?.emailNotification?.sent
           ? ' Le client a ete notifie par email.'
           : json?.emailNotification?.reason === 'email_not_configured'
-            ? " Email client non envoye: configuration email manquante."
+            ? ' Email client non envoye: configuration email manquante.'
             : json?.emailNotification?.reason === 'send_failed'
               ? " Email client non envoye: echec d'envoi (voir logs serveur)."
               : ''

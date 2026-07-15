@@ -7,6 +7,10 @@ interface ServiceRequest {
   documentId: string
   type: string
   watch_description?: string
+  watch_file?: {
+    reference?: string
+    product?: { name?: string }
+  }
   status: string
   createdAt: string
   admin_response?: string
@@ -56,7 +60,7 @@ export default async function DemandesDeServicePage({
   if (!strapiUser) redirect(`/${locale}/espace-client/connexion`)
 
   const { data } = await strapiAuthGet<StrapiList<ServiceRequest>>(
-    '/service-requests?sort=createdAt:desc',
+    '/service-requests?sort=createdAt:desc&populate[watch_file][fields][0]=reference&populate[watch_file][populate][product][fields][0]=name',
     0
   )
 
@@ -98,48 +102,56 @@ export default async function DemandesDeServicePage({
         </div>
       ) : (
         <ul className="space-y-4">
-          {requests.map((req) => (
-            <li
-              key={req.documentId}
-              className="border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-neutral-900 dark:text-white">
-                    {TYPE_LABELS[req.type] ?? req.type}
-                  </p>
-                  {req.watch_description && (
-                    <p className="mt-0.5 text-xs text-neutral-400 truncate dark:text-neutral-500">
-                      {req.watch_description}
-                    </p>
-                  )}
-                  <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                    {new Date(req.createdAt).toLocaleDateString('fr-FR', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[req.status] ?? 'bg-stone-100 text-stone-600'}`}
-                >
-                  {STATUS_LABELS[req.status] ?? req.status}
-                </span>
-              </div>
+          {requests.map((req) => {
+            const watchLabel =
+              req.watch_description ||
+              req.watch_file?.product?.name ||
+              req.watch_file?.reference ||
+              ''
 
-              {req.admin_response && (
-                <div className="mt-3 rounded-lg bg-amber-50 border border-amber-100 px-4 py-3 dark:bg-amber-950 dark:border-amber-800">
-                  <p className="text-xs font-medium text-amber-900 mb-1 dark:text-amber-300">
-                    Réponse de l&apos;atelier :
-                  </p>
-                  <p className="text-sm text-amber-800 dark:text-amber-400">
-                    {req.admin_response}
-                  </p>
+            return (
+              <li
+                key={req.documentId}
+                className="border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                      {TYPE_LABELS[req.type] ?? req.type}
+                    </p>
+                    {watchLabel && (
+                      <p className="mt-0.5 text-xs text-neutral-400 truncate dark:text-neutral-500">
+                        {watchLabel}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
+                      {new Date(req.createdAt).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[req.status] ?? 'bg-stone-100 text-stone-600'}`}
+                  >
+                    {STATUS_LABELS[req.status] ?? req.status}
+                  </span>
                 </div>
-              )}
-            </li>
-          ))}
+
+                {req.admin_response && (
+                  <div className="mt-3 rounded-lg bg-amber-50 border border-amber-100 px-4 py-3 dark:bg-amber-950 dark:border-amber-800">
+                    <p className="text-xs font-medium text-amber-900 mb-1 dark:text-amber-300">
+                      Réponse de l&apos;atelier :
+                    </p>
+                    <p className="text-sm text-amber-800 dark:text-amber-400">
+                      {req.admin_response}
+                    </p>
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

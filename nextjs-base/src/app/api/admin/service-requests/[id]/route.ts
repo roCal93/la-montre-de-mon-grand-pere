@@ -219,7 +219,8 @@ export async function PATCH(
 
   const emailNotification: {
     sent: boolean
-    reason: 'sent' | 'missing_customer_email' | 'email_not_configured' | 'send_failed'
+    reason:
+      'sent' | 'missing_customer_email' | 'email_not_configured' | 'send_failed'
   } = {
     sent: false,
     reason: 'missing_customer_email',
