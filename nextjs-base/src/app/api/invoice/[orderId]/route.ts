@@ -52,6 +52,16 @@ interface InvoiceIssuer {
   siret: string
 }
 
+class InvoiceIssuerConfigError extends Error {
+  missing: string[]
+
+  constructor(missing: string[]) {
+    super('Invoice issuer configuration is missing')
+    this.name = 'InvoiceIssuerConfigError'
+    this.missing = missing
+  }
+}
+
 function asText(value: unknown, fallback = '-'): string {
   if (typeof value === 'string') {
     const trimmed = value.trim()
@@ -71,8 +81,12 @@ function getInvoiceIssuer(): InvoiceIssuer {
   const address = process.env.COMPANY_ADDRESS?.trim() ?? ''
   const siret = process.env.COMPANY_SIRET?.trim() ?? ''
 
-  if (!address || !siret) {
-    throw new Error('Invoice issuer configuration is missing')
+  const missing: string[] = []
+  if (!address) missing.push('COMPANY_ADDRESS')
+  if (!siret) missing.push('COMPANY_SIRET')
+
+  if (missing.length > 0) {
+    throw new InvoiceIssuerConfigError(missing)
   }
 
   return { name, address, siret }
@@ -558,12 +572,12 @@ export async function GET(
       error,
     })
 
-    if (
-      error instanceof Error &&
-      error.message === 'Invoice issuer configuration is missing'
-    ) {
+    if (error instanceof InvoiceIssuerConfigError) {
       return NextResponse.json(
-        { error: 'Configuration facture manquante' },
+        {
+          error: 'Configuration facture manquante',
+          missing: error.missing,
+        },
         { status: 500 }
       )
     }

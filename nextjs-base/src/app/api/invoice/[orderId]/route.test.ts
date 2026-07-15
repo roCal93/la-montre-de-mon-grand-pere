@@ -148,4 +148,54 @@ describe('GET /api/invoice/[orderId]', () => {
     expect(pdfText).toContain('Omega Seamaster')
     expect(pdfText).toContain('TVA non applicable, art. 293 B du CGI')
   })
+
+  it('returns a precise config error when issuer identity is missing', async () => {
+    authMock.mockResolvedValue({ user: { email: 'owner@example.com' } })
+    delete process.env.COMPANY_ADDRESS
+    delete process.env.COMPANY_SIRET
+    renderToBufferMock.mockImplementation(async (pdfDocument: unknown) => {
+      ;(pdfDocument as { type: (props: unknown) => unknown }).type(
+        (pdfDocument as { props: unknown }).props
+      )
+      return new Uint8Array([1, 2, 3])
+    })
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [
+            {
+              documentId: 'doc_12345678',
+              status: 'paid',
+              createdAt: '2026-04-07T10:00:00.000Z',
+              customerEmail: 'owner@example.com',
+              customerName: 'Owner',
+              lineItems: [],
+              shippingAddress: {
+                firstName: 'Owner',
+                lastName: 'User',
+                address1: '1 rue test',
+                city: 'Paris',
+                postalCode: '75001',
+                country: 'FR',
+              },
+              subtotal: 10,
+              shippingCost: 0,
+              total: 10,
+            },
+          ],
+        }),
+        { status: 200 }
+      )
+    )
+
+    const res = await GET({} as NextRequest, {
+      params: Promise.resolve({ orderId: 'doc_12345678' }),
+    })
+
+    expect(res.status).toBe(500)
+    await expect(res.json()).resolves.toEqual({
+      error: 'Configuration facture manquante',
+      missing: ['COMPANY_ADDRESS', 'COMPANY_SIRET'],
+    })
+  })
 })
