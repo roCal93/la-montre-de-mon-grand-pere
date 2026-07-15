@@ -17,6 +17,8 @@ export const Footer = ({
   const legalLabel = isEn ? 'Legal Notice' : 'Mentions légales'
   const shippingLabel = isEn ? 'Shipping' : 'Livraison'
   const warrantyLabel = isEn ? 'Warranty' : 'Garantie'
+  const cgvLabel = isEn ? 'Terms & Conditions' : 'CGV'
+  const retractationLabel = isEn ? 'Withdrawal Policy' : 'Rétractation'
   const rightsLabel = isEn ? 'All rights reserved.' : 'Tous droits réservés.'
   const madeWithLabel = isEn ? 'Made with passion by' : 'Fait avec passion par'
 
@@ -59,6 +61,24 @@ export const Footer = ({
             className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:underline"
           >
             {warrantyLabel}
+          </Link>
+          <span aria-hidden="true" className="text-gray-400 dark:text-gray-600">
+            •
+          </span>
+          <Link
+            href={`/${locale}/cgv`}
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:underline"
+          >
+            {cgvLabel}
+          </Link>
+          <span aria-hidden="true" className="text-gray-400 dark:text-gray-600">
+            •
+          </span>
+          <Link
+            href={`/${locale}/retractation`}
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:underline"
+          >
+            {retractationLabel}
           </Link>
         </div>
         <p className="text-sm text-gray-500 dark:text-gray-400">
