@@ -356,8 +356,12 @@ function InvoiceDocument({ order }: { order: Order }) {
           { style: styles.sectionTitle },
           'Désignation de la montre'
         ),
-        createElement(View, { style: styles.table }, [
-          createElement(View, { key: 'head', style: styles.tableHeader }, [
+        createElement(
+          View,
+          { style: styles.table },
+          createElement(
+            View,
+            { key: 'head', style: styles.tableHeader },
             createElement(
               Text,
               {
@@ -380,8 +384,8 @@ function InvoiceDocument({ order }: { order: Order }) {
               Text,
               { key: 'total', style: [styles.cellHeader, styles.cellTotal] },
               'Prix'
-            ),
-          ]),
+            )
+          ),
           ...lineItems.map((item, i) =>
             createElement(
               View,
@@ -415,8 +419,8 @@ function InvoiceDocument({ order }: { order: Order }) {
                 )
               )
             )
-          ),
-        ]),
+          )
+        ),
         lineItems.length === 0
           ? createElement(
               Text,
