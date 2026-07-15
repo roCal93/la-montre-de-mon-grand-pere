@@ -243,8 +243,9 @@ async function getCompanyLogoDataUri(): Promise<string | undefined> {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 36,
-    paddingBottom: 28,
+    paddingHorizontal: 24,
+    paddingTop: 30,
+    paddingBottom: 24,
     fontFamily: 'Helvetica',
     fontSize: 9,
     color: '#1c1917',
