@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { useCart } from '@/components/cart/CartContext'
 import { CartLineItem } from '@/components/cart/CartLineItem'
 import { formatPrice } from '@/lib/currency'
@@ -19,6 +20,7 @@ export default function PanierPageClient({
 }: PanierPageClientProps) {
   const { items, subtotal } = useCart()
   const router = useRouter()
+  const [cgvAccepted, setCgvAccepted] = useState(false)
 
   const handleCheckout = async () => {
     const res = await fetch('/api/checkout/session', {
@@ -80,9 +82,43 @@ export default function PanierPageClient({
                 ? "Frais de livraison calcules a l'etape suivante."
                 : 'Shipping calculated at next step.'}
             </p>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={cgvAccepted}
+                onChange={(e) => setCgvAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border border-neutral-300 accent-neutral-900 dark:accent-white"
+              />
+              <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                {locale === 'fr' ? (
+                  <>
+                    J&apos;ai lu et j&apos;accepte les{' '}
+                    <Link
+                      href={`/${locale}/cgv`}
+                      target="_blank"
+                      className="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white"
+                    >
+                      Conditions Générales de Vente
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    I have read and accept the{' '}
+                    <Link
+                      href={`/${locale}/cgv`}
+                      target="_blank"
+                      className="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white"
+                    >
+                      Terms & Conditions
+                    </Link>
+                  </>
+                )}
+              </span>
+            </label>
             <button
               onClick={handleCheckout}
-              className="w-full rounded-md bg-neutral-900 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-700 active:bg-neutral-600 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 dark:active:bg-neutral-300"
+              disabled={!cgvAccepted}
+              className="w-full rounded-md bg-neutral-900 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-700 active:bg-neutral-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 dark:active:bg-neutral-300 dark:disabled:opacity-40"
             >
               {locale === 'fr' ? 'Passer commande' : 'Proceed to checkout'}
             </button>
