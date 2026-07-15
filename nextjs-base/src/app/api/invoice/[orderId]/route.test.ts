@@ -45,6 +45,11 @@ describe('GET /api/invoice/[orderId]', () => {
     process.env.COMPANY_NAME = 'Maison Test'
     process.env.COMPANY_ADDRESS = '12 rue des Tests\n75000 Paris'
     process.env.COMPANY_SIRET = '12345678900012'
+    process.env.COMPANY_OWNER_NAME = 'Romain Calmelet'
+    process.env.COMPANY_LEGAL_STATUS = 'Auto-entrepreneur / Micro-entreprise'
+    process.env.COMPANY_EMAIL = 'contact@lamontredemongrandpere.com'
+    process.env.COMPANY_WEBSITE = 'www.lamontredemongrandpere.com'
+    process.env.COMPANY_PAYMENT_METHOD_LABEL = 'Stripe (Carte bancaire)'
     authMock.mockReset()
     renderToBufferMock.mockReset()
     renderToBufferMock.mockResolvedValue(new Uint8Array([1, 2, 3]))
@@ -95,14 +100,14 @@ describe('GET /api/invoice/[orderId]', () => {
           data: [
             {
               documentId: 'doc_12345678',
-              status: 'paid',
+              order_status: 'commande_confirmee',
               createdAt: '2026-04-07T10:00:00.000Z',
               customerEmail: 'owner@example.com',
               customerName: 'Owner',
               lineItems: [
                 {
                   productName: 'Omega Seamaster',
-                  productSlug: 'omega-seamaster',
+                  productSlug: 'lmgp-00027',
                   quantity: 1,
                   unitPrice: 10,
                   total: 10,
@@ -141,12 +146,19 @@ describe('GET /api/invoice/[orderId]', () => {
     expect(pdfText).toContain('Maison Test')
     expect(pdfText).toContain('12 rue des Tests')
     expect(pdfText).toContain('SIRET : 12345678900012')
+    expect(pdfText).toContain('Responsable : Romain Calmelet')
     expect(pdfText).toContain('N° FAC-20260407-12345678')
-    expect(pdfText).toContain('Date')
+    expect(pdfText).toContain('Facture')
+    expect(pdfText).toContain('Commande n° 12345678')
+    expect(pdfText).toContain('Paiement : Stripe (Carte bancaire)')
+    expect(pdfText).toContain('Date de règlement : 7 avril 2026')
     expect(pdfText).toContain('Owner User')
     expect(pdfText).toContain('owner@example.com')
     expect(pdfText).toContain('Omega Seamaster')
+    expect(pdfText).toContain('Référence interne : LMGP-00027')
     expect(pdfText).toContain('TVA non applicable, art. 293 B du CGI')
+    expect(pdfText).toContain('www.lamontredemongrandpere.com')
+    expect(pdfText).toContain('contact@lamontredemongrandpere.com')
   })
 
   it('returns a precise config error when issuer identity is missing', async () => {

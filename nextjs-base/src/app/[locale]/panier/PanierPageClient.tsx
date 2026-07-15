@@ -79,8 +79,8 @@ export default function PanierPageClient({
             </div>
             <p className="text-xs text-neutral-400">
               {locale === 'fr'
-                ? "Frais de livraison calcules a l'etape suivante."
-                : 'Shipping calculated at next step.'}
+                ? 'Livraison offerte (France et Europe)'
+                : 'Free shipping (France and Europe)'}
             </p>
             <label className="flex items-start gap-2 cursor-pointer">
               <input

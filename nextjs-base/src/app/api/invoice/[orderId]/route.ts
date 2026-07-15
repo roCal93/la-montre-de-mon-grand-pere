@@ -20,6 +20,7 @@ interface LineItem {
   quantity: number
   unitPrice: number
   total: number
+  description?: string
 }
 
 interface ShippingAddress {
@@ -37,6 +38,7 @@ interface Order {
   documentId: string
   order_status: string
   createdAt: string
+  paidAt?: string
   customerEmail: string
   customerName: string
   lineItems: LineItem[]
@@ -50,6 +52,12 @@ interface InvoiceIssuer {
   name: string
   address: string
   siret: string
+  ownerName: string
+  legalStatus: string
+  email: string
+  website: string
+  phone?: string
+  vatNotice: string
 }
 
 class InvoiceIssuerConfigError extends Error {
@@ -80,6 +88,24 @@ function getInvoiceIssuer(): InvoiceIssuer {
   )
   const address = process.env.COMPANY_ADDRESS?.trim() ?? ''
   const siret = process.env.COMPANY_SIRET?.trim() ?? ''
+  const ownerName = asText(process.env.COMPANY_OWNER_NAME, 'Romain Calmelet')
+  const legalStatus = asText(
+    process.env.COMPANY_LEGAL_STATUS,
+    'Auto-entrepreneur / Micro-entreprise'
+  )
+  const email = asText(
+    process.env.COMPANY_EMAIL,
+    'contact@lamontredemongrandpere.com'
+  )
+  const website = asText(
+    process.env.COMPANY_WEBSITE,
+    'www.lamontredemongrandpere.com'
+  )
+  const phone = asText(process.env.COMPANY_PHONE, '')
+  const vatNotice = asText(
+    process.env.COMPANY_VAT_NOTICE,
+    'TVA non applicable, art. 293 B du CGI'
+  )
 
   const missing: string[] = []
   if (!address) missing.push('COMPANY_ADDRESS')
@@ -89,7 +115,17 @@ function getInvoiceIssuer(): InvoiceIssuer {
     throw new InvoiceIssuerConfigError(missing)
   }
 
-  return { name, address, siret }
+  return {
+    name,
+    address,
+    siret,
+    ownerName,
+    legalStatus,
+    email,
+    website,
+    phone: phone || undefined,
+    vatNotice,
+  }
 }
 
 function getInvoiceNumber(order: Order): string {
@@ -110,6 +146,32 @@ function getInvoiceDate(order: Order): string {
     month: 'long',
     year: 'numeric',
   })
+}
+
+function getPaymentDate(order: Order): string {
+  const sourceDate = order.paidAt || order.createdAt
+  const parsed = new Date(sourceDate)
+  const paymentDate = Number.isNaN(parsed.getTime()) ? new Date() : parsed
+
+  return paymentDate.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+function getPaymentMethodLabel(): string {
+  return asText(
+    process.env.COMPANY_PAYMENT_METHOD_LABEL,
+    'Stripe (Carte bancaire)'
+  )
+}
+
+function formatInternalReference(productSlug?: string): string {
+  if (!productSlug) return ''
+  const compact = productSlug.replace(/[^a-zA-Z0-9]+/g, '-').toUpperCase()
+  if (!compact) return ''
+  return `Référence interne : ${compact}`
 }
 
 function splitAddressLines(address: string): string[] {
@@ -158,10 +220,17 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   issuerLine: { fontSize: 10, color: '#57534e', marginBottom: 2 },
+  issuerSubLine: { fontSize: 9.5, color: '#78716c', marginBottom: 2 },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 4,
+  },
+  paymentInfo: {
+    marginTop: 6,
+    fontSize: 9.5,
+    color: '#57534e',
+    lineHeight: 1.4,
   },
   bold: { fontFamily: 'Helvetica', fontWeight: 700 },
   infoText: { fontSize: 10, color: '#57534e', lineHeight: 1.5 },
@@ -196,6 +265,11 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     color: '#1c1917',
   },
+  cellSubLine: {
+    marginTop: 3,
+    fontSize: 8.5,
+    color: '#78716c',
+  },
   cellHeader: {
     paddingVertical: 8,
     paddingHorizontal: 8,
@@ -210,7 +284,26 @@ const styles = StyleSheet.create({
   cellQuantity: { flexGrow: 0.8, flexBasis: 0, textAlign: 'center' },
   cellUnitPrice: { flexGrow: 1, flexBasis: 0, textAlign: 'right' },
   cellTotal: { flexGrow: 1, flexBasis: 0, textAlign: 'right' },
-  footer: { marginTop: 40, fontSize: 8, color: '#a8a29e', textAlign: 'center' },
+  footerBlock: {
+    marginTop: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#e7e5e4',
+    paddingTop: 10,
+  },
+  footerTitle: {
+    fontSize: 9.5,
+    color: '#44403c',
+    textAlign: 'center',
+    fontFamily: 'Helvetica',
+    fontWeight: 700,
+    marginBottom: 2,
+  },
+  footerLine: {
+    fontSize: 8.5,
+    color: '#78716c',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
   badge: {
     alignSelf: 'flex-start',
     backgroundColor: '#f5f5f4',
@@ -233,6 +326,8 @@ function InvoiceDocument({ order }: { order: Order }) {
   const issuer = getInvoiceIssuer()
   const invoiceNumber = getInvoiceNumber(order)
   const invoiceDate = getInvoiceDate(order)
+  const paymentDate = getPaymentDate(order)
+  const paymentMethod = getPaymentMethodLabel()
   const orderReference = asText(order.documentId, 'INCONNU')
     .slice(-8)
     .toUpperCase()
@@ -289,6 +384,16 @@ function InvoiceDocument({ order }: { order: Order }) {
           View,
           { style: styles.issuerBlock },
           createElement(Text, { style: styles.issuerName }, issuer.name),
+          createElement(
+            Text,
+            { style: styles.issuerSubLine },
+            issuer.legalStatus
+          ),
+          createElement(
+            Text,
+            { style: styles.issuerSubLine },
+            `Responsable : ${issuer.ownerName}`
+          ),
           ...issuerAddressLines.map((line, index) =>
             createElement(
               Text,
@@ -300,17 +405,18 @@ function InvoiceDocument({ order }: { order: Order }) {
             Text,
             { style: styles.issuerLine },
             `SIRET : ${issuer.siret}`
-          )
+          ),
+          createElement(Text, { style: styles.issuerLine }, issuer.email),
+          createElement(Text, { style: styles.issuerLine }, issuer.website),
+          issuer.phone
+            ? createElement(Text, { style: styles.issuerLine }, issuer.phone)
+            : null
         ),
-        createElement(
-          Text,
-          { style: styles.title },
-          'Facture / Bon de commande'
-        ),
+        createElement(Text, { style: styles.title }, 'Facture'),
         createElement(
           Text,
           { style: styles.subtitle },
-          'Document commercial généré automatiquement'
+          `Commande n° ${orderReference}`
         )
       ),
       createElement(
@@ -332,6 +438,16 @@ function InvoiceDocument({ order }: { order: Order }) {
             { style: styles.row },
             createElement(Text, null, 'Référence commande'),
             createElement(Text, null, `#${orderReference}`)
+          ),
+          createElement(
+            Text,
+            { style: styles.paymentInfo },
+            `Paiement : ${paymentMethod}`
+          ),
+          createElement(
+            Text,
+            { style: styles.paymentInfo },
+            `Date de règlement : ${paymentDate}`
           )
         ),
         createElement(
@@ -413,7 +529,7 @@ function InvoiceDocument({ order }: { order: Order }) {
               createElement(
                 Text,
                 { style: [styles.cell, styles.cellDesignation] },
-                asText(item.productName, 'Montre')
+                `${asText(item.productName, 'Montre')}${formatInternalReference(item.productSlug) ? `\n${formatInternalReference(item.productSlug)}` : ''}${item.description ? `\n${item.description}` : ''}`
               ),
               createElement(
                 Text,
@@ -462,7 +578,7 @@ function InvoiceDocument({ order }: { order: Order }) {
             Text,
             null,
             order.shippingCost === 0
-              ? 'Offerte'
+              ? 'Livraison offerte'
               : formatPrice(order.shippingCost)
           )
         ),
@@ -473,11 +589,7 @@ function InvoiceDocument({ order }: { order: Order }) {
           createElement(Text, { style: styles.bold }, 'Total'),
           createElement(Text, { style: styles.bold }, formatPrice(order.total))
         ),
-        createElement(
-          Text,
-          { style: styles.taxNote },
-          'TVA non applicable, art. 293 B du CGI'
-        )
+        createElement(Text, { style: styles.taxNote }, issuer.vatNotice)
       ),
       shippingAddress
         ? createElement(
@@ -492,9 +604,21 @@ function InvoiceDocument({ order }: { order: Order }) {
           )
         : null,
       createElement(
-        Text,
-        { style: styles.footer },
-        'La Montre de Mon Grand-Père — Document généré automatiquement'
+        View,
+        { style: styles.footerBlock },
+        createElement(Text, { style: styles.footerTitle }, issuer.name),
+        createElement(Text, { style: styles.footerLine }, issuer.legalStatus),
+        createElement(
+          Text,
+          { style: styles.footerLine },
+          `SIRET : ${issuer.siret}`
+        ),
+        createElement(Text, { style: styles.footerLine }, issuer.website),
+        createElement(Text, { style: styles.footerLine }, issuer.email),
+        issuer.phone
+          ? createElement(Text, { style: styles.footerLine }, issuer.phone)
+          : null,
+        createElement(Text, { style: styles.footerLine }, issuer.vatNotice)
       )
     )
   )

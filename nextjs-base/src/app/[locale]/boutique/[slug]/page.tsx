@@ -959,8 +959,8 @@ export default async function ProductPage({ params }: Props) {
               href: `/${locale}/garantie`,
             },
             {
-              val: '72 h',
-              key: locale === 'fr' ? 'Expédition' : 'Shipping',
+              val: locale === 'fr' ? 'Offerte' : 'Free',
+              key: locale === 'fr' ? 'Livraison' : 'Shipping',
               href: `/${locale}/livraison`,
             },
             {

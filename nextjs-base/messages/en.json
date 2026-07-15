@@ -6,7 +6,7 @@
     "unitPrice": "/ unit",
     "addToCart": "Add to cart",
     "outOfStock": "Out of stock",
-    "shippingNote": "Shipping calculated at checkout.",
+    "shippingNote": "Free shipping (France and Europe).",
     "backToShop": "Back to shop"
   },
   "cart": {
@@ -15,7 +15,7 @@
     "browseShop": "Browse the shop",
     "summary": "Summary",
     "subtotal": "Subtotal",
-    "shippingNote": "Shipping calculated at next step.",
+    "shippingNote": "Free shipping (France and Europe).",
     "checkout": "Proceed to checkout",
     "continueShopping": "Continue shopping",
     "remove": "Remove",

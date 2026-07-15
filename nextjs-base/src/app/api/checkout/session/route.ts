@@ -150,6 +150,23 @@ export async function POST(request: NextRequest) {
       shipping_address_collection: {
         allowed_countries: ['FR', 'BE', 'CH', 'LU', 'MC'],
       },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            display_name:
+              locale === 'fr' ? 'Livraison offerte' : 'Free shipping',
+            type: 'fixed_amount',
+            fixed_amount: {
+              amount: 0,
+              currency: 'eur',
+            },
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: 2 },
+              maximum: { unit: 'business_day', value: 5 },
+            },
+          },
+        },
+      ],
       payment_method_types: ['card'],
       success_url: `${siteUrl}/${locale}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/${locale}/panier?cancelled=1`,

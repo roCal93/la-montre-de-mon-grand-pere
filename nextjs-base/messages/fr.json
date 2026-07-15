@@ -6,7 +6,7 @@
     "unitPrice": "/ unité",
     "addToCart": "Ajouter au panier",
     "outOfStock": "Rupture de stock",
-    "shippingNote": "Livraison calculée au moment du paiement.",
+    "shippingNote": "Livraison offerte (France et Europe).",
     "backToShop": "Retour à la boutique"
   },
   "cart": {
@@ -15,7 +15,7 @@
     "browseShop": "Découvrir la boutique",
     "summary": "Récapitulatif",
     "subtotal": "Sous-total",
-    "shippingNote": "Frais de livraison calculés à l'étape suivante.",
+    "shippingNote": "Livraison offerte (France et Europe).",
     "checkout": "Passer commande",
     "continueShopping": "Continuer mes achats",
     "remove": "Retirer",

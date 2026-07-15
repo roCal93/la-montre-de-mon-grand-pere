@@ -355,7 +355,7 @@ export default async function CommandeDetailPage({
             <span>Livraison</span>
             <span>
               {order.shippingCost === 0
-                ? 'Offerte'
+                ? 'Livraison offerte'
                 : formatPrice(order.shippingCost)}
             </span>
           </div>

@@ -151,7 +151,7 @@ export function CartDrawer() {
           <div className="border-t px-6 py-4 space-y-4 dark:border-neutral-700">
             <div className="flex justify-between text-sm">
               <span className="text-neutral-600 dark:text-neutral-400">
-                Sous-total (hors livraison)
+                Sous-total (livraison offerte)
               </span>
               <span className="font-semibold">{formatPrice(subtotal)}</span>
             </div>
