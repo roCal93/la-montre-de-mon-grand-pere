@@ -959,14 +959,14 @@ export default async function ProductPage({ params }: Props) {
               href: `/${locale}/garantie`,
             },
             {
-              val: '48 h',
+              val: '72 h',
               key: locale === 'fr' ? 'Expédition' : 'Shipping',
               href: `/${locale}/livraison`,
             },
             {
               val: '14 jours',
               key: locale === 'fr' ? 'Retour' : 'Return',
-              href: `/${locale}/livraison`,
+              href: `/${locale}/retractation`,
             },
             {
               val: locale === 'fr' ? 'Sécurisé' : 'Secure',
