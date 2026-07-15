@@ -96,7 +96,11 @@ function getInvoiceIssuer(): InvoiceIssuer {
   const configuredCompanyName = process.env.COMPANY_NAME?.trim()
   const siteName = process.env.NEXT_PUBLIC_SITE_NAME?.trim()
   const name = asText(
-    configuredCompanyName || (siteName ? toReadableCompanyName(siteName) : ''),
+    configuredCompanyName
+      ? toReadableCompanyName(configuredCompanyName)
+      : siteName
+        ? toReadableCompanyName(siteName)
+        : '',
     'La Montre de Mon Grand-Père'
   )
   const address = process.env.COMPANY_ADDRESS?.trim() ?? ''
@@ -259,7 +263,7 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexGrow: 1,
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   headerRight: {
     flexDirection: 'column',
@@ -281,6 +285,7 @@ const styles = StyleSheet.create({
   companySubHeader: {
     fontSize: 8,
     color: '#6b7280',
+    width: 280,
     textAlign: 'center',
   },
   invoiceTitle: {
