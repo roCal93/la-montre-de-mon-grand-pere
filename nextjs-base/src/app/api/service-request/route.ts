@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { z } from 'zod'
-import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
+import {
+  getCurrentStrapiUser,
+  getStrapiSessionJwt,
+} from '@/lib/strapi-session-cookie'
 
 const serviceRequestSchema = z.object({
   type: z.enum(['retour_garantie', 'reparation', 'nettoyage', 'autre']),
@@ -27,6 +30,12 @@ export async function POST(req: NextRequest) {
   }
 
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
+  if (!strapiUrl) {
+    return NextResponse.json(
+      { error: 'Configuration Strapi manquante' },
+      { status: 500 }
+    )
+  }
 
   // Verify the watch-file belongs to the authenticated user (IDOR prevention)
   const wfRes = await fetch(
@@ -42,7 +51,7 @@ export async function POST(req: NextRequest) {
   const wfJson = (await wfRes.json()) as { data: { title?: string } }
   const watchTitle = wfJson.data?.title ?? ''
 
-  const res = await fetch(`${strapiUrl}/api/service-requests`, {
+  const primaryRes = await fetch(`${strapiUrl}/api/service-requests`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -59,20 +68,69 @@ export async function POST(req: NextRequest) {
     }),
   })
 
+  let res = primaryRes
+
+  // Fallback: in some environments, Authenticated role may not have create permission
+  // on service-requests. Retry with server token while preserving customer identity.
+  if (res.status === 401 || res.status === 403) {
+    const writeToken =
+      process.env.STRAPI_WRITE_API_TOKEN || process.env.STRAPI_API_TOKEN
+    const strapiUser = await getCurrentStrapiUser()
+
+    if (writeToken && strapiUser?.id) {
+      res = await fetch(`${strapiUrl}/api/service-requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${writeToken}`,
+          'x-hakuna-customer-id': String(strapiUser.id),
+        },
+        body: JSON.stringify({
+          data: {
+            type: parsed.data.type,
+            description: parsed.data.description,
+            watch_file: {
+              connect: [{ documentId: parsed.data.watch_file_document_id }],
+            },
+          },
+        }),
+      })
+    }
+  }
+
   if (!res.ok) {
-    const json = (await res.json()) as { error?: { message?: string } }
-    return NextResponse.json(
-      { error: json?.error?.message ?? 'Erreur Strapi' },
-      { status: 500 }
-    )
+    const json = (await res.json().catch(() => null)) as {
+      error?: { message?: string } | string
+    } | null
+
+    const errorMsg =
+      typeof json?.error === 'string'
+        ? json.error
+        : (json?.error?.message ?? 'Erreur Strapi')
+
+    const status = res.status >= 400 && res.status < 600 ? res.status : 500
+
+    return NextResponse.json({ error: errorMsg }, { status })
   }
 
   const json = await res.json()
 
   // Notify admin via email
   const adminEmail = process.env.CONTACT_EMAIL
+  const emailNotification: {
+    sent: boolean
+    reason: 'sent' | 'missing_contact_email' | 'email_not_configured' | 'send_failed'
+  } = {
+    sent: false,
+    reason: 'missing_contact_email',
+  }
+
   if (adminEmail) {
-    const { sendEmail, isEmailConfigured } = await import('@/lib/email-client')
+    const {
+      sendEmail,
+      isEmailConfigured,
+      getEmailConfigurationStatus,
+    } = await import('@/lib/email-client')
     if (isEmailConfigured()) {
       const esc = (s: string) =>
         s.replace(
@@ -104,9 +162,33 @@ export async function POST(req: NextRequest) {
           <blockquote>${safeDesc}</blockquote>
           <p><a href="${process.env.NEXT_PUBLIC_STRAPI_URL}/admin">Voir dans l'admin Strapi</a></p>
         `,
-      }).catch(() => {})
+      })
+        .then(() => {
+          emailNotification.sent = true
+          emailNotification.reason = 'sent'
+        })
+        .catch((error) => {
+          emailNotification.sent = false
+          emailNotification.reason = 'send_failed'
+          console.error('[service-request] admin email send failed', error)
+        })
+    } else {
+      emailNotification.sent = false
+      emailNotification.reason = 'email_not_configured'
+      console.warn(
+        '[service-request] admin email skipped: provider not configured',
+        getEmailConfigurationStatus()
+      )
     }
+  } else {
+    console.warn('[service-request] admin email skipped: CONTACT_EMAIL missing')
   }
 
-  return NextResponse.json(json, { status: 201 })
+  return NextResponse.json(
+    {
+      ...json,
+      emailNotification,
+    },
+    { status: 201 }
+  )
 }

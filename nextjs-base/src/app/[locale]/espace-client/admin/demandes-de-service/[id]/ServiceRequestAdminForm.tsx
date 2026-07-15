@@ -61,7 +61,10 @@ export function ServiceRequestAdminForm({ locale, request }: Props) {
 
       const json = (await res.json().catch(() => null)) as {
         error?: string
-        emailSent?: boolean
+        emailNotification?: {
+          sent?: boolean
+          reason?: string
+        }
       } | null
 
       if (!res.ok) {
@@ -69,10 +72,15 @@ export function ServiceRequestAdminForm({ locale, request }: Props) {
         return
       }
 
-      const emailHint =
-        request.customerEmail && json?.emailSent
-          ? ' Le client a été notifié par email.'
-          : ''
+      const emailHint = request.customerEmail
+        ? json?.emailNotification?.sent
+          ? ' Le client a ete notifie par email.'
+          : json?.emailNotification?.reason === 'email_not_configured'
+            ? " Email client non envoye: configuration email manquante."
+            : json?.emailNotification?.reason === 'send_failed'
+              ? " Email client non envoye: echec d'envoi (voir logs serveur)."
+              : ''
+        : ''
       setSuccess(`Mise à jour enregistrée.${emailHint}`)
     } catch {
       setError('Erreur lors de la mise à jour.')

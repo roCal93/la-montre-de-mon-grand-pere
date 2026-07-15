@@ -9,10 +9,21 @@ type SendEmailArgs = {
 }
 
 const apiKey = process.env.RESEND_API_KEY
-const defaultFrom = process.env.RESEND_FROM_EMAIL || process.env.MAIL_FROM_EMAIL
+const defaultFrom =
+  process.env.RESEND_FROM_EMAIL ||
+  process.env.MAIL_FROM_EMAIL ||
+  process.env.ORDER_EMAIL_FROM
 
 export function isEmailConfigured() {
   return Boolean(apiKey && defaultFrom)
+}
+
+export function getEmailConfigurationStatus() {
+  return {
+    hasApiKey: Boolean(apiKey),
+    hasFromAddress: Boolean(defaultFrom),
+    configured: Boolean(apiKey && defaultFrom),
+  }
 }
 
 export function getDefaultFromEmail() {
