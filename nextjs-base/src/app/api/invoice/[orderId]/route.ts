@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import {
   Document,
   type DocumentProps,
+  Image,
   Page,
   Text,
   View,
@@ -11,6 +12,8 @@ import {
 } from '@react-pdf/renderer'
 import { createElement, type ReactElement } from 'react'
 import { formatPrice } from '@/lib/currency'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 
 export const runtime = 'nodejs'
 
@@ -181,89 +184,164 @@ function splitAddressLines(address: string): string[] {
     .filter((line) => line.length > 0)
 }
 
+function getLogoMimeType(filePath: string): string | undefined {
+  const ext = path.extname(filePath).toLowerCase()
+  if (ext === '.png') return 'image/png'
+  if (ext === '.jpg' || ext === '.jpeg') return 'image/jpeg'
+  if (ext === '.webp') return 'image/webp'
+  if (ext === '.svg') return 'image/svg+xml'
+  return undefined
+}
+
+async function getCompanyLogoDataUri(): Promise<string | undefined> {
+  const rawPath = asText(process.env.COMPANY_LOGO_PATH, '/images/logo.svg')
+  const normalizedPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`
+  const publicRelativePath = normalizedPath.replace(/^\//, '')
+  const absolutePath = path.join(process.cwd(), 'public', publicRelativePath)
+  const mimeType = getLogoMimeType(normalizedPath)
+
+  if (!mimeType) return undefined
+
+  try {
+    const fileBuffer = await readFile(absolutePath)
+    return `data:${mimeType};base64,${fileBuffer.toString('base64')}`
+  } catch {
+    return undefined
+  }
+}
+
 const styles = StyleSheet.create({
   page: {
-    padding: 48,
+    padding: 40,
     fontFamily: 'Helvetica',
     fontSize: 10,
     color: '#1c1917',
+    backgroundColor: '#ffffff',
   },
-  header: { marginBottom: 32 },
-  issuerBlock: { marginBottom: 16 },
+  header: {
+    marginBottom: 18,
+    borderBottomWidth: 2,
+    borderBottomColor: '#1f2937',
+    paddingBottom: 12,
+  },
+  issuerBlock: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#e7e5e4',
+    backgroundColor: '#fafaf9',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   title: {
-    fontSize: 22,
+    fontSize: 30,
     fontFamily: 'Helvetica',
     fontWeight: 700,
-    marginBottom: 4,
+    marginBottom: 2,
+    color: '#111827',
+    letterSpacing: 1,
   },
-  subtitle: { fontSize: 10, color: '#78716c' },
+  subtitle: {
+    fontSize: 10,
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   section: { marginBottom: 20 },
   columns: {
     flexDirection: 'row',
-    gap: 16,
+    marginBottom: 10,
   },
   column: {
     flexGrow: 1,
     flexBasis: 0,
+    borderWidth: 1,
+    borderColor: '#e7e5e4',
+    borderRadius: 8,
+    backgroundColor: '#fafaf9',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  columnLeft: {
+    marginRight: 8,
+  },
+  columnRight: {
+    marginLeft: 8,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 9,
     fontFamily: 'Helvetica',
     fontWeight: 700,
-    marginBottom: 8,
-    color: '#44403c',
+    marginBottom: 9,
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
   },
   issuerName: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Helvetica',
     fontWeight: 700,
     marginBottom: 3,
+    color: '#111827',
   },
-  issuerLine: { fontSize: 10, color: '#57534e', marginBottom: 2 },
-  issuerSubLine: { fontSize: 9.5, color: '#78716c', marginBottom: 2 },
+  issuerLine: { fontSize: 9.5, color: '#374151', marginBottom: 2 },
+  issuerSubLine: { fontSize: 9, color: '#6b7280', marginBottom: 2 },
+  logo: {
+    width: 180,
+    height: 52,
+    objectFit: 'contain',
+    marginBottom: 8,
+  },
+  footerLogo: {
+    width: 140,
+    height: 40,
+    objectFit: 'contain',
+    marginBottom: 6,
+    alignSelf: 'center',
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   paymentInfo: {
-    marginTop: 6,
-    fontSize: 9.5,
-    color: '#57534e',
+    marginTop: 3,
+    fontSize: 9,
+    color: '#4b5563',
     lineHeight: 1.4,
   },
   bold: { fontFamily: 'Helvetica', fontWeight: 700 },
-  infoText: { fontSize: 10, color: '#57534e', lineHeight: 1.5 },
+  infoText: { fontSize: 9.5, color: '#374151', lineHeight: 1.5 },
   divider: {
     borderBottomWidth: 1,
     borderBottomColor: '#e7e5e4',
-    marginVertical: 12,
+    marginVertical: 10,
   },
   table: {
     borderWidth: 1,
     borderColor: '#e7e5e4',
-    borderRadius: 6,
+    borderRadius: 8,
     overflow: 'hidden',
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f5f5f4',
+    backgroundColor: '#111827',
     borderBottomWidth: 1,
-    borderBottomColor: '#e7e5e4',
+    borderBottomColor: '#111827',
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f4',
+    borderBottomColor: '#e5e7eb',
   },
   tableRowLast: {
     borderBottomWidth: 0,
   },
   cell: {
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 8,
-    fontSize: 9.5,
-    color: '#1c1917',
+    fontSize: 9.2,
+    color: '#111827',
   },
   cellSubLine: {
     marginTop: 3,
@@ -276,7 +354,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: 'Helvetica',
     fontWeight: 700,
-    color: '#44403c',
+    color: '#ffffff',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
@@ -285,44 +363,52 @@ const styles = StyleSheet.create({
   cellUnitPrice: { flexGrow: 1, flexBasis: 0, textAlign: 'right' },
   cellTotal: { flexGrow: 1, flexBasis: 0, textAlign: 'right' },
   footerBlock: {
-    marginTop: 32,
+    marginTop: 26,
     borderTopWidth: 1,
-    borderTopColor: '#e7e5e4',
-    paddingTop: 10,
+    borderTopColor: '#d1d5db',
+    paddingTop: 12,
   },
   footerTitle: {
-    fontSize: 9.5,
-    color: '#44403c',
+    fontSize: 10,
+    color: '#111827',
     textAlign: 'center',
     fontFamily: 'Helvetica',
     fontWeight: 700,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   footerLine: {
-    fontSize: 8.5,
-    color: '#78716c',
+    fontSize: 8.2,
+    color: '#4b5563',
     textAlign: 'center',
     marginBottom: 2,
   },
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#f5f5f4',
-    color: '#57534e',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    backgroundColor: '#111827',
+    color: '#ffffff',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: 4,
-    fontSize: 9,
-    marginBottom: 12,
+    fontSize: 8.5,
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   taxNote: {
     marginTop: 8,
-    fontSize: 10,
-    color: '#44403c',
+    fontSize: 9.2,
+    color: '#4b5563',
     fontStyle: 'italic',
   },
 })
 
-function InvoiceDocument({ order }: { order: Order }) {
+function InvoiceDocument({
+  order,
+  logoSrc,
+}: {
+  order: Order
+  logoSrc?: string
+}) {
   const issuer = getInvoiceIssuer()
   const invoiceNumber = getInvoiceNumber(order)
   const invoiceDate = getInvoiceDate(order)
@@ -380,10 +466,18 @@ function InvoiceDocument({ order }: { order: Order }) {
       createElement(
         View,
         { style: styles.header },
+        createElement(Text, { style: styles.title }, 'Facture'),
+        createElement(
+          Text,
+          { style: styles.subtitle },
+          `Commande n° ${orderReference}`
+        ),
         createElement(
           View,
           { style: styles.issuerBlock },
-          createElement(Text, { style: styles.issuerName }, issuer.name),
+          logoSrc
+            ? createElement(Image, { src: logoSrc, style: styles.logo })
+            : createElement(Text, { style: styles.issuerName }, issuer.name),
           createElement(
             Text,
             { style: styles.issuerSubLine },
@@ -411,12 +505,6 @@ function InvoiceDocument({ order }: { order: Order }) {
           issuer.phone
             ? createElement(Text, { style: styles.issuerLine }, issuer.phone)
             : null
-        ),
-        createElement(Text, { style: styles.title }, 'Facture'),
-        createElement(
-          Text,
-          { style: styles.subtitle },
-          `Commande n° ${orderReference}`
         )
       ),
       createElement(
@@ -424,7 +512,7 @@ function InvoiceDocument({ order }: { order: Order }) {
         { style: styles.columns },
         createElement(
           View,
-          { style: styles.column },
+          { style: [styles.column, styles.columnLeft] },
           createElement(Text, { style: styles.sectionTitle }, 'Facture'),
           createElement(Text, { style: styles.badge }, `N° ${invoiceNumber}`),
           createElement(
@@ -452,7 +540,7 @@ function InvoiceDocument({ order }: { order: Order }) {
         ),
         createElement(
           View,
-          { style: styles.column },
+          { style: [styles.column, styles.columnRight] },
           createElement(
             Text,
             { style: styles.sectionTitle },
@@ -606,7 +694,9 @@ function InvoiceDocument({ order }: { order: Order }) {
       createElement(
         View,
         { style: styles.footerBlock },
-        createElement(Text, { style: styles.footerTitle }, issuer.name),
+        logoSrc
+          ? createElement(Image, { src: logoSrc, style: styles.footerLogo })
+          : createElement(Text, { style: styles.footerTitle }, issuer.name),
         createElement(Text, { style: styles.footerLine }, issuer.legalStatus),
         createElement(
           Text,
@@ -672,8 +762,10 @@ export async function GET(
   const PDF_TIMEOUT_ERROR = `PDF generation timed out after ${PDF_TIMEOUT_MS}ms`
 
   try {
+    const logoSrc = await getCompanyLogoDataUri()
     const pdfDocument = createElement(InvoiceDocument, {
       order,
+      logoSrc,
     }) as unknown as ReactElement<DocumentProps>
 
     const buffer: Buffer = await Promise.race([

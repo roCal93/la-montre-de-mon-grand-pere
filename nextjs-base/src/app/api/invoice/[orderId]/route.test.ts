@@ -19,6 +19,7 @@ vi.mock('@react-pdf/renderer', () => ({
   Page: 'Page',
   Text: 'Text',
   View: 'View',
+  Image: 'Image',
   StyleSheet: { create: (v: unknown) => v },
   renderToBuffer: renderToBufferMock,
 }))
@@ -143,7 +144,6 @@ describe('GET /api/invoice/[orderId]', () => {
     expect(renderToBufferMock).toHaveBeenCalledTimes(1)
 
     const pdfText = collectPdfText(renderedDocument).join(' ')
-    expect(pdfText).toContain('Maison Test')
     expect(pdfText).toContain('12 rue des Tests')
     expect(pdfText).toContain('SIRET : 12345678900012')
     expect(pdfText).toContain('Responsable : Romain Calmelet')
