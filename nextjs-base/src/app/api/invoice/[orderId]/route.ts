@@ -265,10 +265,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   logo: {
-    width: 220,
-    height: 70,
+    width: 280,
+    height: 90,
     objectFit: 'contain',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   companyNameHeader: {
     fontSize: 13,
@@ -280,6 +280,7 @@ const styles = StyleSheet.create({
   companySubHeader: {
     fontSize: 8,
     color: '#6b7280',
+    textAlign: 'center',
   },
   invoiceTitle: {
     fontSize: 28,
