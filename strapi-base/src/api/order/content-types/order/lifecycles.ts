@@ -94,6 +94,10 @@ async function sendResendEmail(payload: {
   subject: string
   html: string
   text: string
+  attachments?: Array<{
+    filename: string
+    content: string
+  }>
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const rawFrom = process.env.ORDER_EMAIL_FROM
@@ -143,12 +147,71 @@ async function sendResendEmail(payload: {
       subject: payload.subject,
       html: payload.html,
       text: payload.text,
+      ...(payload.attachments && payload.attachments.length > 0
+        ? { attachments: payload.attachments }
+        : {}),
     }),
   })
 
   if (!response.ok) {
     const text = await response.text().catch(() => '')
     throw new Error(`Resend send failed (${response.status}): ${text}`)
+  }
+}
+
+async function getOrderInvoiceAttachment(
+  orderDocumentId: string
+): Promise<{ filename: string; content: string } | undefined> {
+  const invoiceApiUrl = toText(process.env.ORDER_INVOICE_API_URL)
+  const invoiceServiceToken = toText(process.env.ORDER_INVOICE_SERVICE_TOKEN)
+
+  if (!invoiceApiUrl || !invoiceServiceToken) {
+    strapi.log.warn(
+      '[order lifecycle] Invoice attachment skipped: missing ORDER_INVOICE_API_URL or ORDER_INVOICE_SERVICE_TOKEN'
+    )
+    return undefined
+  }
+
+  const baseUrl = invoiceApiUrl.replace(/\/+$/g, '')
+  const invoiceUrl = `${baseUrl}/api/invoice/${encodeURIComponent(orderDocumentId)}`
+
+  try {
+    const response = await fetch(invoiceUrl, {
+      headers: {
+        Authorization: `Bearer ${invoiceServiceToken}`,
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '')
+      strapi.log.warn(
+        `[order lifecycle] Invoice attachment skipped: fetch failed (${response.status}) ${errorText}`
+      )
+      return undefined
+    }
+
+    const contentType = (response.headers.get('content-type') || '').toLowerCase()
+    if (!contentType.includes('application/pdf')) {
+      strapi.log.warn(
+        `[order lifecycle] Invoice attachment skipped: expected PDF content-type, got "${contentType || 'unknown'}"`
+      )
+      return undefined
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer())
+    if (!buffer.length) {
+      strapi.log.warn('[order lifecycle] Invoice attachment skipped: empty PDF response')
+      return undefined
+    }
+
+    const ref = orderDocumentId.slice(-8).toUpperCase()
+    return {
+      filename: `facture-${ref}.pdf`,
+      content: buffer.toString('base64'),
+    }
+  } catch (error) {
+    strapi.log.warn('[order lifecycle] Invoice attachment skipped: unexpected error', error)
+    return undefined
   }
 }
 
@@ -171,12 +234,16 @@ type LifecycleOrder = {
 async function sendOrderConfirmationEmail(order: LifecycleOrder): Promise<void> {
   const to = toText(order.customerEmail)
   if (!to) return
+  const orderDocumentId = toText(order.documentId)
 
   const ref = toText(order.documentId, 'INCONNUE').slice(-8).toUpperCase()
   const customerName = toText(order.customerName, 'Client')
   const total = formatAmount(order.total, order.currency)
   const status = statusLabel(order.order_status)
   const items = Array.isArray(order.lineItems) ? order.lineItems : []
+  const invoiceAttachment = orderDocumentId
+    ? await getOrderInvoiceAttachment(orderDocumentId)
+    : undefined
 
   const linesHtml =
     items.length > 0
@@ -202,7 +269,13 @@ async function sendOrderConfirmationEmail(order: LifecycleOrder): Promise<void> 
   `
   const text = `Bonjour ${customerName},\n\nVotre commande a bien été enregistrée.\nRéférence : #${ref}\nStatut : ${status}\nTotal : ${total}\n\nMerci pour votre confiance.\nLa Montre de Mon Grand-Père`
 
-  await sendResendEmail({ to, subject, html, text })
+  await sendResendEmail({
+    to,
+    subject,
+    html,
+    text,
+    attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
+  })
 }
 
 async function sendOrderStatusChangedEmail(params: {

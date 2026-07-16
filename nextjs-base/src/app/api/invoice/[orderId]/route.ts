@@ -837,12 +837,23 @@ function InvoiceDocument({
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
-  const session = await auth()
-  const sessionEmail = session?.user?.email?.trim().toLowerCase()
-  if (!session || !sessionEmail) {
+  const serviceToken = process.env.INVOICE_SERVICE_TOKEN?.trim()
+  const authHeader = req.headers.get('authorization') || ''
+  const bearerToken = authHeader.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : ''
+  const isServiceRequest =
+    Boolean(serviceToken) &&
+    bearerToken.length > 0 &&
+    bearerToken === serviceToken
+
+  const session = isServiceRequest ? null : await auth()
+  const sessionEmail = session?.user?.email?.trim().toLowerCase() || ''
+
+  if (!isServiceRequest && !sessionEmail) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
@@ -857,11 +868,9 @@ export async function GET(
     )
   }
 
-  const query =
-    `${strapiUrl}/api/orders` +
-    `?filters[documentId][$eq]=${encodeURIComponent(orderId)}` +
-    `&filters[customerEmail][$eqi]=${encodeURIComponent(sessionEmail)}` +
-    '&populate=*'
+  const query = isServiceRequest
+    ? `${strapiUrl}/api/orders?filters[documentId][$eq]=${encodeURIComponent(orderId)}&populate=*`
+    : `${strapiUrl}/api/orders?filters[documentId][$eq]=${encodeURIComponent(orderId)}&filters[customerEmail][$eqi]=${encodeURIComponent(sessionEmail)}&populate=*`
 
   const res = await fetch(query, {
     headers: { Authorization: `Bearer ${token}` },
