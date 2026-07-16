@@ -271,6 +271,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let event: Stripe.Event
   try {
     const rawBody = await request.text()
+    const secret = process.env.STRIPE_WEBHOOK_SECRET ?? ''
+    console.info(
+      `[webhook] secret check: set=${!!secret} len=${secret.length} prefix=${secret.slice(0, 8)} bodyLen=${rawBody.length}`
+    )
     event = validateStripeWebhookSignature(rawBody, signature)
   } catch (err) {
     console.error('[webhook] Signature validation failed:', err)
