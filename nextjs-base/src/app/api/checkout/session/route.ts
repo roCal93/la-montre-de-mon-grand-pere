@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { getStripe } from '@/lib/stripe'
 import { toCents } from '@/lib/currency'
 import type { CartItem } from '@/types/cart'
@@ -67,6 +68,11 @@ function toPublicImageUrl(url: string | null | undefined): string[] {
 
 export async function POST(request: NextRequest) {
   try {
+    const strapiUser = await getCurrentStrapiUser()
+    if (!strapiUser) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { items, locale = 'fr' } = body as {
       items: CartItem[]

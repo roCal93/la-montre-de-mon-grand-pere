@@ -2,16 +2,17 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter, useParams } from 'next/navigation'
 import { useCart } from '@/components/cart/CartContext'
 import { CartLineItem } from '@/components/cart/CartLineItem'
 import { formatPrice } from '@/lib/currency'
-import { useParams, useRouter } from 'next/navigation'
 
 export function CartDrawer() {
   const { items, subtotal, isOpen, closeCart } = useCart()
   const overlayRef = useRef<HTMLDivElement>(null)
   const params = useParams()
   const router = useRouter()
+  const pathname = usePathname()
   const locale = (params?.locale as string) ?? 'fr'
   const [headerOffset, setHeaderOffset] = useState(0)
   const [cgvAccepted, setCgvAccepted] = useState(false)
@@ -62,6 +63,13 @@ export function CartDrawer() {
     if (data.url) {
       router.push(data.url)
     } else {
+      if (res.status === 401) {
+        closeCart()
+        router.push(
+          `/${locale}/espace-client/connexion?from=${encodeURIComponent(pathname)}`
+        )
+        return
+      }
       console.error('Checkout session error:', data.error)
     }
   }

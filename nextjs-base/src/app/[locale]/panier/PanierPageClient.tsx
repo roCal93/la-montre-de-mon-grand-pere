@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useCart } from '@/components/cart/CartContext'
@@ -20,6 +21,7 @@ export default function PanierPageClient({
 }: PanierPageClientProps) {
   const { items, subtotal } = useCart()
   const router = useRouter()
+  const pathname = usePathname()
   const [cgvAccepted, setCgvAccepted] = useState(false)
 
   const handleCheckout = async () => {
@@ -31,6 +33,13 @@ export default function PanierPageClient({
     const data = (await res.json()) as { url?: string; error?: string }
     if (data.url) {
       router.push(data.url)
+      return
+    }
+
+    if (res.status === 401) {
+      router.push(
+        `/${locale}/espace-client/connexion?from=${encodeURIComponent(pathname)}`
+      )
     }
   }
 
