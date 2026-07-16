@@ -151,21 +151,21 @@ export function ClaimPageClient({
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-12">
       <p className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.16em] text-neutral-500">
-        Activation montre
+        Activation de la montre
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-[0.01em] text-neutral-900 dark:text-white">
-        Associer votre montre a votre compte
+        Associer votre montre à votre compte
       </h1>
 
       {state.status === 'invalid_token' ? (
         <div className="mt-6 rounded-xl border border-neutral-200 bg-white px-4 py-4 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
           <p>
-            Entrez votre code d&apos;activation pour rattacher la montre a votre
+            Entrez votre code d&apos;activation pour rattacher la montre à votre
             compte.
           </p>
           {normalizedCode ? (
             <p className="mt-2 font-[family-name:var(--font-geist-mono)] text-xs tracking-[0.08em] text-neutral-500 dark:text-neutral-400">
-              Code detecte: {formatWatchClaimCodeForDisplay(normalizedCode)}
+              Code détecté: {formatWatchClaimCodeForDisplay(normalizedCode)}
             </p>
           ) : null}
           <form
@@ -182,7 +182,7 @@ export function ClaimPageClient({
                   formatWatchClaimCodeForDisplay(event.target.value)
                 )
               }
-              placeholder="Code d activation"
+              placeholder="Code d'activation"
               className="w-full max-w-xs border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
             />
             <button
@@ -199,7 +199,7 @@ export function ClaimPageClient({
       {state.status === 'auth_required' ? (
         <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
           <p className="text-sm text-neutral-600 dark:text-neutral-300">
-            Connectez-vous ou creez votre compte pour associer cette montre.
+            Connectez-vous ou créez votre compte pour associer cette montre.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
@@ -212,7 +212,7 @@ export function ClaimPageClient({
               href={`/${locale}/espace-client/inscription?from=${encodeURIComponent(state.from)}`}
               className="inline-flex items-center border border-neutral-400 px-4 py-2.5 font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-700 dark:border-neutral-500 dark:text-neutral-200"
             >
-              Creer un compte
+              Créer un compte
             </Link>
           </div>
         </div>
@@ -221,12 +221,12 @@ export function ClaimPageClient({
       {state.status === 'admin_blocked' ? (
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
           <p>
-            Vous etes connecte avec un compte admin. Pour eviter une mauvaise
-            attribution, le claim est bloque pour les admins.
+            Vous êtes connecté avec un compte admin. Pour éviter une mauvaise
+            attribution, le claim est bloqué pour les admins.
           </p>
           <p className="mt-2">
-            Deconnectez-vous puis reconnectez-vous avec le compte client final
-            (ou ouvrez le lien en navigation privee).
+            Déconnectez-vous puis reconnectez-vous avec le compte client final
+            (ou ouvrez le lien en navigation privée).
           </p>
         </div>
       ) : null}
@@ -239,7 +239,7 @@ export function ClaimPageClient({
 
       {state.status === 'success' ? (
         <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
-          <p>Votre montre a bien ete associee a votre compte.</p>
+          <p>Votre montre a bien été associée à votre compte.</p>
           <Link
             href={`/${locale}/espace-client/mes-montres/${state.watchFileDocumentId}`}
             className="mt-3 inline-flex items-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-emerald-900 underline"
@@ -256,7 +256,7 @@ export function ClaimPageClient({
             href={`/${locale}/espace-client/mes-montres`}
             className="mt-3 inline-flex items-center font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-red-800 underline"
           >
-            Aller a mes montres
+            Aller à mes montres
           </Link>
         </div>
       ) : null}

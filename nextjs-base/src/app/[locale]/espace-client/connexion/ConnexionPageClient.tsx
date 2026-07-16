@@ -125,7 +125,7 @@ export function ConnexionPageClient({ locale }: { locale: string }) {
             Heureux de vous revoir
           </h1>
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-            Entrez vos identifiants pour acceder a votre compte.
+            Entrez vos identifiants pour accéder à votre compte.
           </p>
         </div>
 
@@ -201,7 +201,7 @@ export function ConnexionPageClient({ locale }: { locale: string }) {
                 href={`/${locale}/espace-client/mot-de-passe-oublie`}
                 className="font-[family-name:var(--font-geist-mono)] text-[11px] uppercase tracking-[0.1em] text-neutral-800 transition-colors hover:text-black dark:text-neutral-200 dark:hover:text-white"
               >
-                Mot de passe oublie ?
+                Mot de passe oublié ?
               </Link>
             </p>
             <p>
@@ -210,7 +210,7 @@ export function ConnexionPageClient({ locale }: { locale: string }) {
                 href={`/${locale}/espace-client/inscription`}
                 className="font-semibold text-neutral-900 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-black dark:text-white dark:decoration-neutral-600 dark:hover:text-neutral-300"
               >
-                Creer un compte
+                Créer un compte
               </Link>
             </p>
           </div>

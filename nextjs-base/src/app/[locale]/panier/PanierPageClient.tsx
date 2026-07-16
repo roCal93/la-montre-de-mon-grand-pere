@@ -51,7 +51,7 @@ export default function PanierPageClient({
             href={`/${locale}/boutique`}
             className="inline-block rounded-md bg-black px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
           >
-            {locale === 'fr' ? 'Decouvrir la boutique' : 'Browse the shop'}
+            {locale === 'fr' ? 'Découvrir la boutique' : 'Browse the shop'}
           </Link>
         </div>
       ) : (
@@ -71,7 +71,7 @@ export default function PanierPageClient({
 
           <div className="self-start space-y-4 rounded-xl border p-6">
             <h2 className="font-semibold">
-              {locale === 'fr' ? 'Recapitulatif' : 'Summary'}
+              {locale === 'fr' ? 'Récapitulatif' : 'Summary'}
             </h2>
             <div className="flex justify-between text-sm text-neutral-600">
               <span>{locale === 'fr' ? 'Sous-total' : 'Subtotal'}</span>

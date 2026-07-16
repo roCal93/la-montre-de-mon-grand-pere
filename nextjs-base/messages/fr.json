@@ -28,7 +28,7 @@
   "checkout": {
     "success": {
       "title": "Commande confirmée !",
-      "description": "Merci pour votre achat. Vous recevrez un email de confirmation prochainement."
+      "description": "Merci pour votre achat. Vous recevrez un e-mail de confirmation prochainement."
     },
     "cancel": {
       "title": "Paiement annulé",

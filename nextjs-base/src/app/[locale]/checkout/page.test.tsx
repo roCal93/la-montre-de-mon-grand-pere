@@ -8,7 +8,7 @@ describe('checkout locale content', () => {
     expect(getCheckoutSuccessContent('fr')).toEqual({
       title: 'Commande confirmée !',
       description:
-        'Merci pour votre achat. Vous recevrez un email de confirmation prochainement.',
+        'Merci pour votre achat. Vous recevrez un e-mail de confirmation prochainement.',
       ctaLabel: 'Retour à la boutique',
       ctaHref: '/fr/boutique',
     })

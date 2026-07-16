@@ -956,7 +956,9 @@ export async function POST(
     ? authHeader.slice('Bearer '.length).trim()
     : ''
   const isServiceRequest =
-    Boolean(serviceToken) && bearerToken.length > 0 && bearerToken === serviceToken
+    Boolean(serviceToken) &&
+    bearerToken.length > 0 &&
+    bearerToken === serviceToken
 
   if (!isServiceRequest) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
@@ -970,11 +972,17 @@ export async function POST(
     if (!body || typeof body !== 'object') throw new Error('invalid body')
     order = body as Order
   } catch {
-    return NextResponse.json({ error: 'Corps de requête invalide' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Corps de requête invalide' },
+      { status: 400 }
+    )
   }
 
   if (!order.documentId) {
-    return NextResponse.json({ error: 'documentId manquant dans le corps' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'documentId manquant dans le corps' },
+      { status: 400 }
+    )
   }
 
   const invoiceNumber = getInvoiceNumber(order)

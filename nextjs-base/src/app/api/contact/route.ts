@@ -293,7 +293,7 @@ export async function POST(request: NextRequest) {
       `,
     })
 
-    // Email de confirmation automatique à l'expéditeur (multilingue)
+    // E-mail de confirmation automatique à l'expéditeur (multilingue)
     // Best-effort: the request still succeeds if this secondary email fails,
     // but we explicitly await it so the runtime does not drop it after responding.
     try {

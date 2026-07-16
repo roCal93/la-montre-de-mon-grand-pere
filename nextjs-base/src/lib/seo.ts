@@ -63,7 +63,7 @@ export function buildMetadata({
         },
       ],
       siteName:
-        process.env.NEXT_PUBLIC_SITE_NAME || 'La Montre de Mon Grand-Pere',
+        process.env.NEXT_PUBLIC_SITE_NAME || 'La Montre de Mon Grand-Père',
       type: 'website',
       locale:
         alternates && alternates.length > 0

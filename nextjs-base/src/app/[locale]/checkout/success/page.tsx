@@ -10,7 +10,7 @@ export function getCheckoutSuccessContent(locale: string) {
     title: locale === 'fr' ? 'Commande confirmée !' : 'Order confirmed!',
     description:
       locale === 'fr'
-        ? 'Merci pour votre achat. Vous recevrez un email de confirmation prochainement.'
+        ? 'Merci pour votre achat. Vous recevrez un e-mail de confirmation prochainement.'
         : 'Thank you for your purchase. You will receive a confirmation email shortly.',
     ctaLabel: locale === 'fr' ? 'Retour à la boutique' : 'Back to shop',
     ctaHref: `/${locale}/boutique`,

@@ -243,19 +243,11 @@ export default async function BlogPage({ params, searchParams }: Props) {
                 containerWidth={normalizeContainerWidth(section.containerWidth)}
                 spacingTop={
                   section.spacingTop as
-                    | 'none'
-                    | 'small'
-                    | 'medium'
-                    | 'large'
-                    | undefined
+                    'none' | 'small' | 'medium' | 'large' | undefined
                 }
                 spacingBottom={
                   section.spacingBottom as
-                    | 'none'
-                    | 'small'
-                    | 'medium'
-                    | 'large'
-                    | undefined
+                    'none' | 'small' | 'medium' | 'large' | undefined
                 }
               />
             ))}
@@ -288,10 +280,10 @@ export default async function BlogPage({ params, searchParams }: Props) {
           <p className="text-neutral-500">
             {query
               ? locale === 'fr'
-                ? 'Aucun article ne correspond a votre recherche.'
+                ? 'Aucun article ne correspond à votre recherche.'
                 : 'No articles match your search.'
               : locale === 'fr'
-                ? 'Aucun article publie pour le moment.'
+                ? 'Aucun article publié pour le moment.'
                 : 'No published articles yet.'}
           </p>
         ) : (

@@ -23,19 +23,19 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'La Montre de Mon Grand-Pere',
+  title: 'La Montre de Mon Grand-Père',
   description:
-    'Atelier horloger et montres de caractere: vente, entretien et restauration.',
+    'Atelier horloger et montres de caractère : vente, entretien et restauration.',
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   ),
   openGraph: {
-    title: 'La Montre de Mon Grand-Pere',
+    title: 'La Montre de Mon Grand-Père',
     description:
-      'Decouvrez une selection de montres et un accompagnement horloger sur mesure.',
+      'Découvrez une sélection de montres et un accompagnement horloger sur mesure.',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     siteName:
-      process.env.NEXT_PUBLIC_SITE_NAME || 'La Montre de Mon Grand-Pere',
+      process.env.NEXT_PUBLIC_SITE_NAME || 'La Montre de Mon Grand-Père',
     locale: 'fr_FR',
     type: 'website',
     images: [

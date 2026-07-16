@@ -750,7 +750,7 @@ export default async function ProductPage({ params }: Props) {
                     className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 bg-white px-6 py-3 text-center font-[family-name:var(--font-geist-mono)] text-[12px] uppercase tracking-[0.1em] text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
                   >
                     {locale === 'fr'
-                      ? 'Decouvrir le dossier de la montre'
+                      ? 'Découvrir le dossier de la montre'
                       : 'Discover the watch dossier'}
                   </Link>
                 ) : null}
