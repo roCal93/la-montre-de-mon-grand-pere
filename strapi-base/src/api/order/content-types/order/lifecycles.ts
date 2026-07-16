@@ -172,88 +172,68 @@ async function getOrderInvoiceAttachment(
     return undefined
   }
 
-  const baseUrl = invoiceApiUrl.replace(/\/+$/g, '')
-  const invoiceUrl = `${baseUrl}/api/invoice/${encodeURIComponent(orderDocumentId)}`
-  const maxAttemptsRaw = Number.parseInt(
-    toText(process.env.ORDER_INVOICE_FETCH_MAX_ATTEMPTS, '4'),
-    10
-  )
-  const delayMsRaw = Number.parseInt(
-    toText(process.env.ORDER_INVOICE_FETCH_RETRY_DELAY_MS, '1200'),
-    10
-  )
-  const maxAttempts = Number.isFinite(maxAttemptsRaw)
-    ? Math.min(Math.max(maxAttemptsRaw, 1), 10)
-    : 4
-  const retryDelayMs = Number.isFinite(delayMsRaw)
-    ? Math.min(Math.max(delayMsRaw, 100), 10_000)
-    : 1200
-
-  const shouldRetry = (status: number): boolean =>
-    status === 403 || status === 404 || status >= 500
-
-  const wait = async (ms: number): Promise<void> =>
-    new Promise((resolve) => {
-      setTimeout(resolve, ms)
+  // Fetch order data directly from the local Strapi DB — no HTTP round-trip back to Strapi
+  let orderData: Record<string, unknown>
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const found = await (strapi.documents('api::order.order') as any).findOne({
+      documentId: orderDocumentId,
+      populate: { lineItems: true, shippingAddress: true },
     })
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const response = await fetch(invoiceUrl, {
-      headers: {
-        Authorization: `Bearer ${invoiceServiceToken}`,
-      },
-    }).catch((error) => {
-      strapi.log.warn('[order lifecycle] Invoice attachment fetch error', error)
-      return undefined
-    })
-
-    if (!response) {
-      if (attempt < maxAttempts) {
-        await wait(retryDelayMs)
-        continue
-      }
-      strapi.log.warn('[order lifecycle] Invoice attachment skipped: fetch failed repeatedly')
+    if (!found) {
+      strapi.log.warn(
+        `[order lifecycle] Invoice attachment skipped: order ${orderDocumentId} not found in DB`
+      )
       return undefined
     }
+    orderData = found as Record<string, unknown>
+  } catch (dbError) {
+    strapi.log.warn('[order lifecycle] Invoice attachment skipped: DB fetch error', dbError)
+    return undefined
+  }
+
+  const baseUrl = invoiceApiUrl.replace(/\/+$/g, '')
+  const invoiceUrl = `${baseUrl}/api/invoice/${encodeURIComponent(orderDocumentId)}`
+
+  try {
+    const response = await fetch(invoiceUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${invoiceServiceToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData),
+    })
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '')
-      if (attempt < maxAttempts && shouldRetry(response.status)) {
-        strapi.log.info(
-          `[order lifecycle] Invoice fetch retry ${attempt}/${maxAttempts} after status=${response.status}`
-        )
-        await wait(retryDelayMs)
-        continue
-      }
-
       strapi.log.warn(
-        `[order lifecycle] Invoice attachment skipped: fetch failed (${response.status}) ${errorText}`
+        `[order lifecycle] Invoice attachment skipped: POST failed (${response.status}) ${errorText}`
       )
       return undefined
     }
 
-    const contentType = (response.headers.get('content-type') || '').toLowerCase()
-    if (!contentType.includes('application/pdf')) {
+    const result = (await response.json()) as { filename?: string; content?: string }
+
+    if (
+      typeof result.filename !== 'string' ||
+      typeof result.content !== 'string' ||
+      !result.content
+    ) {
       strapi.log.warn(
-        `[order lifecycle] Invoice attachment skipped: expected PDF content-type, got "${contentType || 'unknown'}"`
+        '[order lifecycle] Invoice attachment skipped: invalid response from invoice endpoint'
       )
       return undefined
     }
 
-    const buffer = Buffer.from(await response.arrayBuffer())
-    if (!buffer.length) {
-      strapi.log.warn('[order lifecycle] Invoice attachment skipped: empty PDF response')
-      return undefined
-    }
-
-    const ref = orderDocumentId.slice(-8).toUpperCase()
     return {
-      filename: `facture-${ref}.pdf`,
-      content: buffer.toString('base64'),
+      filename: result.filename,
+      content: result.content,
     }
+  } catch (error) {
+    strapi.log.warn('[order lifecycle] Invoice attachment skipped: unexpected error', error)
+    return undefined
   }
-
-  return undefined
 }
 
 type OrderLineItem = {

@@ -942,3 +942,83 @@ export async function GET(
     )
   }
 }
+
+// POST /api/invoice/[orderId]
+// Service-to-service: Strapi lifecycle pushes order data directly to avoid a
+// circular HTTP round-trip back to Strapi. Returns { filename, content: base64 }.
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ orderId: string }> }
+) {
+  const serviceToken = process.env.INVOICE_SERVICE_TOKEN?.trim()
+  const authHeader = req.headers.get('authorization') || ''
+  const bearerToken = authHeader.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : ''
+  const isServiceRequest =
+    Boolean(serviceToken) && bearerToken.length > 0 && bearerToken === serviceToken
+
+  if (!isServiceRequest) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+  }
+
+  const { orderId } = await params
+
+  let order: Order
+  try {
+    const body = (await req.json()) as unknown
+    if (!body || typeof body !== 'object') throw new Error('invalid body')
+    order = body as Order
+  } catch {
+    return NextResponse.json({ error: 'Corps de requête invalide' }, { status: 400 })
+  }
+
+  if (!order.documentId) {
+    return NextResponse.json({ error: 'documentId manquant dans le corps' }, { status: 400 })
+  }
+
+  const invoiceNumber = getInvoiceNumber(order)
+  const PDF_TIMEOUT_MS = 25_000
+  const PDF_TIMEOUT_ERROR = `PDF generation timed out after ${PDF_TIMEOUT_MS}ms`
+
+  try {
+    const logoSrc = await getCompanyLogoDataUri()
+    const pdfDocument = createElement(InvoiceDocument, {
+      order,
+      logoSrc,
+    }) as unknown as ReactElement<DocumentProps>
+
+    const buffer: Buffer = await Promise.race([
+      renderToBuffer(pdfDocument),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(PDF_TIMEOUT_ERROR)), PDF_TIMEOUT_MS)
+      ),
+    ])
+
+    return NextResponse.json({
+      filename: `facture-${invoiceNumber}.pdf`,
+      content: buffer.toString('base64'),
+    })
+  } catch (error) {
+    console.error('Invoice PDF generation (POST) failed', { orderId, error })
+
+    if (error instanceof InvoiceIssuerConfigError) {
+      return NextResponse.json(
+        { error: 'Configuration facture manquante', missing: error.missing },
+        { status: 500 }
+      )
+    }
+
+    if (error instanceof Error && error.message === PDF_TIMEOUT_ERROR) {
+      return NextResponse.json(
+        { error: 'La génération de la facture a expiré. Réessayez.' },
+        { status: 504 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Erreur de génération de facture' },
+      { status: 500 }
+    )
+  }
+}
