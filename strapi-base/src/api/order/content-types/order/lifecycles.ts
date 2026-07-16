@@ -174,16 +174,58 @@ async function getOrderInvoiceAttachment(
 
   const baseUrl = invoiceApiUrl.replace(/\/+$/g, '')
   const invoiceUrl = `${baseUrl}/api/invoice/${encodeURIComponent(orderDocumentId)}`
+  const maxAttemptsRaw = Number.parseInt(
+    toText(process.env.ORDER_INVOICE_FETCH_MAX_ATTEMPTS, '4'),
+    10
+  )
+  const delayMsRaw = Number.parseInt(
+    toText(process.env.ORDER_INVOICE_FETCH_RETRY_DELAY_MS, '1200'),
+    10
+  )
+  const maxAttempts = Number.isFinite(maxAttemptsRaw)
+    ? Math.min(Math.max(maxAttemptsRaw, 1), 10)
+    : 4
+  const retryDelayMs = Number.isFinite(delayMsRaw)
+    ? Math.min(Math.max(delayMsRaw, 100), 10_000)
+    : 1200
 
-  try {
+  const shouldRetry = (status: number): boolean =>
+    status === 403 || status === 404 || status >= 500
+
+  const wait = async (ms: number): Promise<void> =>
+    new Promise((resolve) => {
+      setTimeout(resolve, ms)
+    })
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const response = await fetch(invoiceUrl, {
       headers: {
         Authorization: `Bearer ${invoiceServiceToken}`,
       },
+    }).catch((error) => {
+      strapi.log.warn('[order lifecycle] Invoice attachment fetch error', error)
+      return undefined
     })
+
+    if (!response) {
+      if (attempt < maxAttempts) {
+        await wait(retryDelayMs)
+        continue
+      }
+      strapi.log.warn('[order lifecycle] Invoice attachment skipped: fetch failed repeatedly')
+      return undefined
+    }
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '')
+      if (attempt < maxAttempts && shouldRetry(response.status)) {
+        strapi.log.info(
+          `[order lifecycle] Invoice fetch retry ${attempt}/${maxAttempts} after status=${response.status}`
+        )
+        await wait(retryDelayMs)
+        continue
+      }
+
       strapi.log.warn(
         `[order lifecycle] Invoice attachment skipped: fetch failed (${response.status}) ${errorText}`
       )
@@ -209,10 +251,9 @@ async function getOrderInvoiceAttachment(
       filename: `facture-${ref}.pdf`,
       content: buffer.toString('base64'),
     }
-  } catch (error) {
-    strapi.log.warn('[order lifecycle] Invoice attachment skipped: unexpected error', error)
-    return undefined
   }
+
+  return undefined
 }
 
 type OrderLineItem = {
