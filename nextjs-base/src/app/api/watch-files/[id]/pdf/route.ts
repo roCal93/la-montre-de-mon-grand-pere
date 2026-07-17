@@ -844,15 +844,15 @@ const styles = StyleSheet.create({
   },
   validationSignoffLine: {
     marginTop: 4,
-    minHeight: 110,
+    minHeight: 96,
     borderBottomWidth: 1,
     borderBottomColor: '#1c1917',
     justifyContent: 'flex-end',
     paddingBottom: 2,
   },
   validationSignatureImage: {
-    maxWidth: 300,
-    maxHeight: 96,
+    maxWidth: 260,
+    maxHeight: 82,
     objectFit: 'contain',
   },
   validationDateText: {
