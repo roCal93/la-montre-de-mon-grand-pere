@@ -19,6 +19,8 @@ function buildCsp(nonce: string): string {
     process.env.ALLOWED_ORIGINS || process.env.NEXT_PUBLIC_ALLOWED_ORIGINS
   const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   const isProd = process.env.NODE_ENV === 'production'
+  const isVercelPreview = process.env.VERCEL_ENV === 'preview'
+  const allowInlineStyles = !isProd || isVercelPreview
 
   const frameAncestorParts = [`'self'`, strapiOrigin]
   if (allowedOriginsEnv) {
@@ -40,8 +42,10 @@ function buildCsp(nonce: string): string {
     // Nonce replaces 'unsafe-inline'; unsafe-eval only kept in dev for Fast Refresh
     // Stripe.js must load from its CDN for PCI compliance
     `script-src 'self' 'nonce-${nonce}' https://js.stripe.com https://vercel.live${isProd ? '' : " 'unsafe-eval'"}`,
-    // Block inline <style> blocks unless they carry the request nonce.
-    "style-src 'self' 'nonce-" + nonce + "'",
+    // Keep strict styles in production, but allow inline styles in dev/preview where
+    // Vercel instrumentation may inject runtime styles without a nonce.
+    "style-src 'self' 'nonce-" + nonce + "'" +
+      (allowInlineStyles ? " 'unsafe-inline'" : ''),
     // Keep style attributes support for dynamic UI libraries.
     "style-src-attr 'unsafe-inline'",
     // Stripe API calls + Strapi
