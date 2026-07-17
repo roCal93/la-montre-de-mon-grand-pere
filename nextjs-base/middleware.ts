@@ -32,7 +32,7 @@ function buildCsp(nonce: string): string {
   }
 
   const directives = [
-    "default-src 'self'",
+    "default-src 'none'",
     // Cloudinary images + Stripe fraud detection pixel
     `img-src 'self' data: https://res.cloudinary.com https://q.stripe.com ${strapiOrigin}`,
     // Cloudinary-hosted media files for watch-file audio/video blocks.
@@ -40,12 +40,14 @@ function buildCsp(nonce: string): string {
     // Nonce replaces 'unsafe-inline'; unsafe-eval only kept in dev for Fast Refresh
     // Stripe.js must load from its CDN for PCI compliance
     `script-src 'self' 'nonce-${nonce}' https://js.stripe.com https://vercel.live${isProd ? '' : " 'unsafe-eval'"}`,
-    // Some UI libs/components rely on inline style attributes at runtime.
-    // Keep style-src-attr and add unsafe-inline fallback for broader browser support.
-    "style-src 'self' 'unsafe-inline'",
+    // Block inline <style> blocks unless they carry the request nonce.
+    "style-src 'self' 'nonce-" + nonce + "'",
+    // Keep style attributes support for dynamic UI libraries.
     "style-src-attr 'unsafe-inline'",
     // Stripe API calls + Strapi
     `connect-src 'self' ${strapiOrigin} https://api.stripe.com https://r.stripe.com`,
+    "manifest-src 'self'",
+    "worker-src 'self' blob:",
     "font-src 'self' data:",
     "object-src 'none'",
     "base-uri 'self'",

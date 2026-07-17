@@ -4,9 +4,10 @@ import { useMemo, useState } from 'react'
 
 const CONSENT_COOKIE_NAME = 'cookie_consent'
 const ONE_YEAR = 60 * 60 * 24 * 365
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
 function setConsentCookie(value: 'accepted' | 'rejected') {
-  document.cookie = `${CONSENT_COOKIE_NAME}=${value}; Path=/; Max-Age=${ONE_YEAR}; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`
+  document.cookie = `${CONSENT_COOKIE_NAME}=${value}; Path=/; Max-Age=${ONE_YEAR}; SameSite=Lax${IS_PRODUCTION ? '; Secure' : ''}`
 }
 
 export default function CookieConsentBanner() {
