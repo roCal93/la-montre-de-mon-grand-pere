@@ -1193,7 +1193,7 @@ async function renderWatchFileDetailPage({
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
             <div>
               <SectionLabel>Signature</SectionLabel>
-              <div className="flex min-h-24 items-end rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 pb-3 pt-4 dark:border-neutral-700 dark:bg-neutral-800/40">
+              <div className="flex min-h-36 items-center rounded-xl border border-neutral-200 bg-neutral-50/80 px-2 py-2 dark:border-neutral-700 dark:bg-neutral-800/40">
                 {validationAtelier?.signature?.url ? (
                   <Image
                     src={
@@ -1204,9 +1204,9 @@ async function renderWatchFileDetailPage({
                       validationAtelier.signature.alternativeText ??
                       'Signature de Romain Calmelet'
                     }
-                    width={220}
-                    height={88}
-                    className="h-20 w-auto object-contain"
+                    width={320}
+                    height={128}
+                    className="h-28 w-auto object-contain"
                   />
                 ) : (
                   <span className="text-sm text-neutral-500 dark:text-neutral-400">
