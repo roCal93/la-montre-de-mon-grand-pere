@@ -1,0 +1,68 @@
+# La Montre de mon Grand-Père - LLMs & AI Agents
+
+## À propos du site
+
+La Montre de mon Grand-Père est une boutique en ligne spécialisée dans les montres vintage authentiques.
+
+**URL:** https://www.lamontredemongrandpere.com/
+
+## Navigation
+
+- Accueil: /fr
+- Boutique: /fr/boutique
+- Blog: /fr/blog
+- À propos: /fr (section "Petite présentation")
+
+## Contenu principal
+
+### Sections du site
+
+1. **Boutique** - Catalogue complet de montres vintage
+   - Fiches produits avec descriptions détaillées
+   - Images haute résolution
+   - Informations de prix
+
+2. **Blog** - Articles sur l'horlogerie vintage
+   - Guides de révision
+   - Histoires des manufactures
+   - Conseils d'experts
+
+### Données structurées
+
+- Chaque produit inclut: nom, prix, année d'origine, description
+- Pages optimisées pour les moteurs de recherche
+- Meta descriptions uniques par page
+
+## Accessibilité
+
+- Navigation par clavier supportée
+- Contraste des couleurs conforme WCAG
+- Textes alternatifs sur les images
+- Arborescence ARIA correctement formée
+
+## Structure du site
+
+```
+/
+├── /fr (accueil)
+├── /fr/boutique (catalogue)
+├── /fr/boutique/[produit] (fiches produits)
+├── /fr/blog (articles)
+├── /fr/blog/[article] (détail article)
+└── /fr/panier (panier)
+```
+
+## API Endpoints (privés)
+
+- `/api/checkout/session` - Création de session Stripe
+- `/api/webhooks/stripe` - Webhooks Stripe
+
+## Versions
+
+- **Framework:** Next.js 15+
+- **Backend:** Strapi v5
+- **Dernière mise à jour:** 2026-07-17
+
+## Contact
+
+Site web: https://www.lamontredemongrandpere.com/

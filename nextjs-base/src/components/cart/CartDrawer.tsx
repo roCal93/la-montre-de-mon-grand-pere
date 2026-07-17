@@ -90,7 +90,7 @@ export function CartDrawer() {
       />
 
       {/* Drawer panel */}
-      <aside
+      <div
         role="dialog"
         aria-modal
         aria-label="Panier"
@@ -211,7 +211,7 @@ export function CartDrawer() {
             </button>
           </div>
         )}
-      </aside>
+      </div>
     </>
   )
 }

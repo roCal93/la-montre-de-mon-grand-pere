@@ -69,6 +69,34 @@ const SEO_DATA = {
             seoDescription: 'Montre Mickey Mouse des années 70-80. Pièce collector révisée en atelier. Un incontournable pour les amateurs de montres vintages avec caractère. Prix: 170€',
             noIndex: false,
         },
+        {
+            slug: 'sinde',
+            locale: 'fr',
+            seoTitle: 'Montre Sinde Vintage - Pièce Rare Révisée en Atelier',
+            seoDescription: 'Découvrez la montre Sinde, une pièce rare et authentique. Entièrement révisée et contrôlée. Un modèle incontournable pour les collectionneurs de montres vintage.',
+            noIndex: false,
+        },
+        {
+            slug: 'cornavin',
+            locale: 'fr',
+            seoTitle: 'Montre Cornavin Vintage - Marque Suisse Authentique',
+            seoDescription: 'Montre Cornavin suisse vintage, pièce d\'exception révisée en atelier. Qualité horlogère certifiée et prête à être portée. Modèle authentique et fiable.',
+            noIndex: false,
+        },
+        {
+            slug: 'irak',
+            locale: 'fr',
+            seoTitle: 'Montre Irak Vintage - Pièce de Collection Révisée',
+            seoDescription: 'Montre Irak vintage, pièce originale de collection. Entièrement révisée et contrôlée en atelier. Un modèle rare pour les passionnés de montres anciennes.',
+            noIndex: false,
+        },
+        {
+            slug: 'europ-union',
+            locale: 'fr',
+            seoTitle: 'Montre Europ Union Vintage - Pièce Authentique',
+            seoDescription: 'Montre Europ Union, pièce vintage authentique et rare. Révisée et certifiée en atelier. Modèle original avec un caractère horloger distinctif.',
+            noIndex: false,
+        },
     ],
 };
 

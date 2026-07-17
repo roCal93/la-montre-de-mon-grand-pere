@@ -67,7 +67,7 @@ export const metadata: Metadata = {
 
 ---
 
-## 5️⃣ PRODUITS - EXEMPLES
+## 5️⃣ PRODUITS - TOUS LES MODÈLES
 
 ### Produit 1: Eza
 
@@ -94,6 +94,42 @@ export const metadata: Metadata = {
 | **seoTitle** | Montre Mickey Mouse Vintage - Années 70-80 | 49 |
 | **seoDescription** | Montre Mickey Mouse des années 70-80. Pièce collector révisée en atelier. Un incontournable pour les amateurs de montres vintages avec caractère. Prix: 170€ | 160 |
 | **seoImage** | Photo du produit Mickey Mouse | - |
+| **noIndex** | `FALSE` | - |
+
+### Produit 4: Sinde
+
+| Champ | Contenu | Caractères |
+|-------|---------|-----------|
+| **seoTitle** | Montre Sinde Vintage - Pièce Rare Révisée en Atelier | 52 |
+| **seoDescription** | Découvrez la montre Sinde, une pièce rare et authentique. Entièrement révisée et contrôlée. Un modèle incontournable pour les collectionneurs de montres vintage. | 157 |
+| **seoImage** | Photo haute résolution du produit Sinde | - |
+| **noIndex** | `FALSE` | - |
+
+### Produit 5: Cornavin
+
+| Champ | Contenu | Caractères |
+|-------|---------|-----------|
+| **seoTitle** | Montre Cornavin Vintage - Marque Suisse Authentique | 51 |
+| **seoDescription** | Montre Cornavin suisse vintage, pièce d'exception révisée en atelier. Qualité horlogère certifiée et prête à être portée. Modèle authentique et fiable. | 159 |
+| **seoImage** | Photo haute résolution du produit Cornavin | - |
+| **noIndex** | `FALSE` | - |
+
+### Produit 6: Irak
+
+| Champ | Contenu | Caractères |
+|-------|---------|-----------|
+| **seoTitle** | Montre Irak Vintage - Pièce de Collection Révisée | 50 |
+| **seoDescription** | Montre Irak vintage, pièce originale de collection. Entièrement révisée et contrôlée en atelier. Un modèle rare pour les passionnés de montres anciennes. | 156 |
+| **seoImage** | Photo haute résolution du produit Irak | - |
+| **noIndex** | `FALSE` | - |
+
+### Produit 7: Europ Union
+
+| Champ | Contenu | Caractères |
+|-------|---------|-----------|
+| **seoTitle** | Montre Europ Union Vintage - Pièce Authentique | 49 |
+| **seoDescription** | Montre Europ Union, pièce vintage authentique et rare. Révisée et certifiée en atelier. Modèle original avec un caractère horloger distinctif. | 154 |
+| **seoImage** | Photo haute résolution du produit Europ Union | - |
 | **noIndex** | `FALSE` | - |
 
 ---
