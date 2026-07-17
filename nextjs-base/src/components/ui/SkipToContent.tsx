@@ -10,7 +10,7 @@ export const SkipToContent = () => {
   return (
     <a
       href="#main-content"
-      className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[#F88379] focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#F88379]"
+      className="pointer-events-none fixed left-4 top-4 z-[100] -translate-y-[140%] rounded-md bg-[#F88379] px-4 py-2 text-white opacity-0 shadow-lg transition-all focus-visible:pointer-events-auto focus-visible:translate-y-0 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#F88379]"
       aria-label="Skip to main content"
     >
       Skip to main content
