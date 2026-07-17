@@ -29,7 +29,7 @@ const SEO_DATA = {
             slug: 'home',
             locale: 'fr',
             seoTitle: 'Montres Vintage Authentiques - La Montre de mon Grand-Père',
-            seoDescription: 'Découvrez notre sélection de montres vintage soigneusement choisies pour leur histoire, qualité et caractère unique. Chaque pièce revisitée en atelier.',
+            seoDescription: 'Découvrez ma sélection de montres vintage soigneusement choisies pour leur histoire, qualité et caractère unique. Chaque pièce revisitée en atelier.',
             noIndex: false,
         },
         {

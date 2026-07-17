@@ -11,16 +11,16 @@ Guide complet pour remplir les champs SEO des pages, articles de blog et produit
 | Champ | Contenu | Caractères |
 |-------|---------|-----------|
 | **seoTitle** | Montres Vintage Authentiques - La Montre de mon Grand-Père | 65 |
-| **seoDescription** | Découvrez notre sélection de montres vintage soigneusement choisies pour leur histoire, qualité et caractère unique. Chaque pièce revisitée en atelier. | 155 |
+| **seoDescription** | Découvrez ma sélection de montres vintage soigneusement choisies pour leur histoire, qualité et caractère unique. Chaque pièce revisitée en atelier. | 155 |
 | **seoImage** | Logo ou hero image du site (hauteur: 1200x630px) | - |
 | **noIndex** | `FALSE` | - |
 
 ### Meta Tags générés:
 ```
 <title>Montres Vintage Authentiques - La Montre de mon Grand-Père</title>
-<meta name="description" content="Découvrez notre sélection de montres vintage soigneusement choisies pour leur histoire, qualité et caractère unique. Chaque pièce revisitée en atelier.">
+<meta name="description" content="Découvrez ma sélection de montres vintage soigneusement choisies pour leur histoire, qualité et caractère unique. Chaque pièce revisitée en atelier.">
 <meta property="og:title" content="Montres Vintage Authentiques - La Montre de mon Grand-Père">
-<meta property="og:description" content="Découvrez notre sélection de montres vintage soigneusement choisies pour leur histoire, qualité et caractère unique. Chaque pièce revisitée en atelier.">
+<meta property="og:description" content="Découvrez ma sélection de montres vintage soigneusement choisies pour leur histoire, qualité et caractère unique. Chaque pièce revisitée en atelier.">
 ```
 
 ---
