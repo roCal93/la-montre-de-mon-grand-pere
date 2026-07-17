@@ -4,14 +4,14 @@
 
 La Montre de mon Grand-Père est une boutique en ligne spécialisée dans les montres vintage authentiques.
 
-**URL:** https://www.lamontredemongrandpere.com/
+**URL principale:** [https://www.lamontredemongrandpere.com/](https://www.lamontredemongrandpere.com/)
 
 ## Navigation
 
-- Accueil: /fr
-- Boutique: /fr/boutique
-- Blog: /fr/blog
-- À propos: /fr (section "Petite présentation")
+- [Accueil](https://www.lamontredemongrandpere.com/fr)
+- [Boutique](https://www.lamontredemongrandpere.com/fr/boutique)
+- [Blog](https://www.lamontredemongrandpere.com/fr/blog)
+- [À propos](https://www.lamontredemongrandpere.com/fr)
 
 ## Contenu principal
 
@@ -54,8 +54,8 @@ La Montre de mon Grand-Père est une boutique en ligne spécialisée dans les mo
 
 ## API Endpoints (privés)
 
-- `/api/checkout/session` - Création de session Stripe
-- `/api/webhooks/stripe` - Webhooks Stripe
+- [/api/checkout/session](https://www.lamontredemongrandpere.com/api/checkout/session) - Création de session Stripe
+- [/api/webhooks/stripe](https://www.lamontredemongrandpere.com/api/webhooks/stripe) - Webhooks Stripe
 
 ## Versions
 
@@ -65,4 +65,4 @@ La Montre de mon Grand-Père est une boutique en ligne spécialisée dans les mo
 
 ## Contact
 
-Site web: https://www.lamontredemongrandpere.com/
+Site web: [La Montre de mon Grand-Père](https://www.lamontredemongrandpere.com/)
