@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Afacad, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { cookies, headers } from 'next/headers'
 import { defaultLocale } from '@/lib/locales'
@@ -129,6 +130,7 @@ export default async function RootLayout({
         {/* Dev-only protective wrapper to avoid dev tooling throwing on performance.measure */}
         <DevPerfProtector />
         {children}
+        <Analytics />
         {!cookieConsent && <CookieConsentBanner />}
       </body>
     </html>
