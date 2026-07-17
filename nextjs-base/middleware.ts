@@ -44,7 +44,9 @@ function buildCsp(nonce: string): string {
     `script-src 'self' 'nonce-${nonce}' https://js.stripe.com https://vercel.live${isProd ? '' : " 'unsafe-eval'"}`,
     // Keep strict styles in production, but allow inline styles in dev/preview where
     // Vercel instrumentation may inject runtime styles without a nonce.
-    "style-src 'self' 'nonce-" + nonce + "'" +
+    "style-src 'self' 'nonce-" +
+      nonce +
+      "'" +
       (allowInlineStyles ? " 'unsafe-inline'" : ''),
     // Keep style attributes support for dynamic UI libraries.
     "style-src-attr 'unsafe-inline'",
