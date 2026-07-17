@@ -1204,9 +1204,9 @@ async function renderWatchFileDetailPage({
                       validationAtelier.signature.alternativeText ??
                       'Signature de Romain Calmelet'
                     }
-                    width={160}
-                    height={64}
-                    className="h-14 w-auto object-contain"
+                    width={220}
+                    height={88}
+                    className="h-20 w-auto object-contain"
                   />
                 ) : (
                   <span className="text-sm text-neutral-500 dark:text-neutral-400">
