@@ -1,8 +1,17 @@
 import { defineRouting } from 'next-intl/routing'
 
+const isProd = process.env.NODE_ENV === 'production'
+
 export const routing = defineRouting({
   locales: ['fr', 'en'],
   defaultLocale: 'fr',
+  localeCookie: {
+    name: 'NEXT_LOCALE',
+    path: '/',
+    sameSite: 'lax',
+    secure: isProd,
+    maxAge: 60 * 60 * 24 * 365,
+  },
   pathnames: {
     '/blog': {
       fr: '/blog',
