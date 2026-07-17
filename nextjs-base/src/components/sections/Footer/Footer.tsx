@@ -23,7 +23,7 @@ export const Footer = ({
   const madeWithLabel = isEn ? 'Made with passion by' : 'Fait avec passion par'
 
   return (
-    <footer className="relative z-10 -mt-12 backdrop-blur-sm bg-white/10 border-t border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-8 text-center">
+    <footer className="relative z-10 -mt-12 backdrop-blur-sm bg-white/10 border-t border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-8 text-center pr-16 md:pr-20">
       <div className="space-y-3">
         <p className="text-sm">
           {siteName} © {currentYear}. {rightsLabel}
@@ -92,33 +92,6 @@ export const Footer = ({
             Hakuna Mataweb
           </a>
         </p>
-        <div className="flex justify-center">
-          <a
-            href="https://www.instagram.com/lamontredemongrandpere/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram La Montre de mon Grand Pere"
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-            </svg>
-            <span className="sr-only">Instagram</span>
-          </a>
-        </div>
         <div className="flex justify-center mt-4">
           <Image
             src="/images/hakuna-mataweb-logo.svg"
@@ -133,6 +106,33 @@ export const Footer = ({
             className="opacity-40 dark:brightness-0 dark:invert dark:opacity-30"
           />
         </div>
+      </div>
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+        <a
+          href="https://www.instagram.com/lamontredemongrandpere/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram La Montre de mon Grand Pere"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+          </svg>
+          <span className="sr-only">Instagram</span>
+        </a>
       </div>
     </footer>
   )
