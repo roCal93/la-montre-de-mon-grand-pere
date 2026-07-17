@@ -160,6 +160,9 @@ export async function POST(request: NextRequest) {
       ? locale
       : 'fr'
     const template = emailTemplates[validLocale]
+    const siteBaseUrl =
+      process.env.NEXT_PUBLIC_SITE_URL?.trim() || request.nextUrl.origin
+    const logoUrl = `${siteBaseUrl.replace(/\/$/, '')}/images/logo.png`
 
     // 3. Validation basique
     if (!name || !email || !message || !consent) {
@@ -217,16 +220,28 @@ export async function POST(request: NextRequest) {
         <p><strong>Email :</strong> <a href="mailto:${sanitizedEmail}">${sanitizedEmail}</a></p>
         <p><strong>Message :</strong><br/>${sanitizedMessage}</p>
         <p><strong>Consentement RGPD :</strong> Oui</p>
-        <p style="font-size: 12px; color: #666;">
-          Envoyé via le formulaire de contact le ${new Date().toLocaleString(
-            'fr-FR',
-            {
-              timeZone: 'Europe/Paris',
-              dateStyle: 'full',
-              timeStyle: 'long',
-            }
-          )}
-        </p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top: 16px; border-top: 1px solid #ddd;">
+          <tr>
+            <td style="padding-top: 12px; font-size: 12px; color: #666; vertical-align: middle;">
+              Envoyé via le formulaire de contact le ${new Date().toLocaleString(
+                'fr-FR',
+                {
+                  timeZone: 'Europe/Paris',
+                  dateStyle: 'full',
+                  timeStyle: 'long',
+                }
+              )}
+            </td>
+            <td align="right" style="padding-top: 10px; vertical-align: middle;">
+              <img
+                src="${logoUrl}"
+                alt="La Montre de Mon Grand-Père"
+                width="140"
+                style="display: block; height: auto; border: 0;"
+              />
+            </td>
+          </tr>
+        </table>
       `,
     })
 
@@ -245,7 +260,21 @@ export async function POST(request: NextRequest) {
           <p>${template.closing}</p>
           <p>${template.thanks}</p>
           <p>${template.signature}</p>
-          <p style="font-size: 12px; color: #666;">${template.footer}</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top: 16px; border-top: 1px solid #ddd;">
+            <tr>
+              <td style="padding-top: 12px; font-size: 12px; color: #666; vertical-align: middle;">
+                ${template.footer}
+              </td>
+              <td align="right" style="padding-top: 10px; vertical-align: middle;">
+                <img
+                  src="${logoUrl}"
+                  alt="La Montre de Mon Grand-Père"
+                  width="140"
+                  style="display: block; height: auto; border: 0;"
+                />
+              </td>
+            </tr>
+          </table>
       `,
       })
     } catch (err: unknown) {
