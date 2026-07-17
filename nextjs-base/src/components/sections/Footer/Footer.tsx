@@ -92,6 +92,33 @@ export const Footer = ({
             Hakuna Mataweb
           </a>
         </p>
+        <div className="flex justify-center">
+          <a
+            href="https://www.instagram.com/lamontredemongrandpere/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram La Montre de mon Grand Pere"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+            <span className="sr-only">Instagram</span>
+          </a>
+        </div>
         <div className="flex justify-center mt-4">
           <Image
             src="/images/hakuna-mataweb-logo.svg"

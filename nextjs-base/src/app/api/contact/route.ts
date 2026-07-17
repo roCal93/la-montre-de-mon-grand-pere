@@ -73,29 +73,32 @@ function validateInput(data: {
 const emailTemplates = {
   fr: {
     subject: 'Confirmation de réception de votre message',
-    title: 'Merci pour votre message !',
+    title: 'Message bien reçu',
     greeting: 'Bonjour',
-    body: 'Nous avons bien reçu votre message et nous vous en remercions.',
-    closing: 'Notre équipe vous répondra dans les plus brefs délais.',
-    signature: "L'équipe",
+    body: "J'ai bien reçu votre message et je vous en remercie.",
+    closing: 'Je vous répondrai dans les plus brefs délais.',
+    thanks: 'Merci pour votre confiance.',
+    signature: 'La Montre de Mon Grand-Père',
     footer: 'Cet email est envoyé automatiquement, merci de ne pas y répondre.',
   },
   en: {
     subject: 'Confirmation of receipt of your message',
-    title: 'Thank you for your message!',
+    title: 'Message received',
     greeting: 'Hello',
-    body: 'We have received your message and thank you for it.',
-    closing: 'Our team will respond to you as soon as possible.',
-    signature: 'The team',
+    body: 'I have received your message and thank you for it.',
+    closing: 'I will get back to you as soon as possible.',
+    thanks: 'Thank you for your trust.',
+    signature: 'La Montre de Mon Grand-Père',
     footer: 'This email is sent automatically, please do not reply.',
   },
   it: {
     subject: 'Conferma di ricezione del tuo messaggio',
-    title: 'Grazie per il tuo messaggio!',
+    title: 'Messaggio ricevuto',
     greeting: 'Ciao',
-    body: 'Abbiamo ricevuto il tuo messaggio e ti ringraziamo.',
-    closing: 'Il nostro team ti risponderà il prima possibile.',
-    signature: 'Il team',
+    body: 'Ho ricevuto il tuo messaggio e ti ringrazio.',
+    closing: 'Ti risponderò il prima possibile.',
+    thanks: 'Grazie per la tua fiducia.',
+    signature: 'La Montre de Mon Grand-Père',
     footer:
       'Questa email viene inviata automaticamente, si prega di non rispondere.',
   },
@@ -209,87 +212,21 @@ export async function POST(request: NextRequest) {
       replyTo: sanitizedEmail,
       subject: `Nouveau message de contact de ${sanitizedName}`,
       html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              .header {
-                background-color: #3b82f6;
-                color: white;
-                padding: 20px;
-                border-radius: 8px 8px 0 0;
-              }
-              .content {
-                background-color: #f9f9f9;
-                padding: 20px;
-                border: 1px solid #ddd;
-                border-top: none;
-                border-radius: 0 0 8px 8px;
-              }
-              .info-row {
-                margin-bottom: 15px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #ddd;
-              }
-              .label {
-                font-weight: bold;
-                color: #555;
-              }
-              .message-box {
-                background-color: white;
-                padding: 15px;
-                border-radius: 5px;
-                margin-top: 10px;
-                white-space: pre-wrap;
-              }
-              .footer {
-                margin-top: 20px;
-                padding-top: 20px;
-                border-top: 1px solid #ddd;
-                font-size: 12px;
-                color: #666;
-                text-align: center;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1 style="margin: 0;">Nouveau message de contact</h1>
-            </div>
-            <div class="content">
-              <div class="info-row">
-                <span class="label">Nom :</span> ${sanitizedName}
-              </div>
-              <div class="info-row">
-                <span class="label">Email :</span> <a href="mailto:${sanitizedEmail}">${sanitizedEmail}</a>
-              </div>
-              <div class="info-row">
-                <span class="label">Message :</span>
-                <div class="message-box">${sanitizedMessage}</div>
-              </div>
-              <div class="info-row" style="border-bottom: none;">
-                <span class="label">Consentement RGPD :</span> ✓ Accordé
-              </div>
-            </div>
-            <div class="footer">
-              <p>Ce message a été envoyé via le formulaire de contact de votre site web.</p>
-              <p>Date : ${new Date().toLocaleString('fr-FR', {
-                timeZone: 'Europe/Paris',
-                dateStyle: 'full',
-                timeStyle: 'long',
-              })}</p>
-            </div>
-          </body>
-        </html>
+        <p>Nouveau message de contact reçu.</p>
+        <p><strong>Nom :</strong> ${sanitizedName}</p>
+        <p><strong>Email :</strong> <a href="mailto:${sanitizedEmail}">${sanitizedEmail}</a></p>
+        <p><strong>Message :</strong><br/>${sanitizedMessage}</p>
+        <p><strong>Consentement RGPD :</strong> Oui</p>
+        <p style="font-size: 12px; color: #666;">
+          Envoyé via le formulaire de contact le ${new Date().toLocaleString(
+            'fr-FR',
+            {
+              timeZone: 'Europe/Paris',
+              dateStyle: 'full',
+              timeStyle: 'long',
+            }
+          )}
+        </p>
       `,
     })
 
@@ -302,58 +239,13 @@ export async function POST(request: NextRequest) {
         to: sanitizedEmail,
         subject: template.subject,
         html: `
-        <!DOCTYPE html>
-        <html lang="${validLocale}">
-          <head>
-            <meta charset="utf-8">
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              .header {
-                background-color: #3b82f6;
-                color: white;
-                padding: 20px;
-                border-radius: 8px 8px 0 0;
-                text-align: center;
-              }
-              .content {
-                background-color: #f9f9f9;
-                padding: 30px;
-                border: 1px solid #ddd;
-                border-top: none;
-                border-radius: 0 0 8px 8px;
-              }
-              .footer {
-                margin-top: 20px;
-                padding-top: 20px;
-                border-top: 1px solid #ddd;
-                font-size: 12px;
-                color: #666;
-                text-align: center;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1 style="margin: 0;">${template.title}</h1>
-            </div>
-            <div class="content">
-              <p>${template.greeting} ${sanitizedName},</p>
-              <p>${template.body}</p>
-              <p>${template.closing}</p>
-              <p>Cordialement,<br>${template.signature}</p>
-            </div>
-            <div class="footer">
-              <p>${template.footer}</p>
-            </div>
-          </body>
-        </html>
+          <p>${template.greeting} ${sanitizedName},</p>
+          <p>${template.title}</p>
+          <p>${template.body}</p>
+          <p>${template.closing}</p>
+          <p>${template.thanks}</p>
+          <p>${template.signature}</p>
+          <p style="font-size: 12px; color: #666;">${template.footer}</p>
       `,
       })
     } catch (err: unknown) {
