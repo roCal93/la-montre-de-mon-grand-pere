@@ -57,7 +57,7 @@ export function CartDrawer() {
     const res = await fetch('/api/checkout/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, locale }),
+      body: JSON.stringify({ items, locale, cgvAccepted }),
     })
     const data = (await res.json()) as { url?: string; error?: string }
     if (data.url) {

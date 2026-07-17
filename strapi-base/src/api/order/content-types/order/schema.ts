@@ -40,6 +40,12 @@ export default {
       "type": "string",
       "required": true
     },
+    "cgvAcceptedAt": {
+      "type": "datetime"
+    },
+    "cgvVersion": {
+      "type": "string"
+    },
     "lineItems": {
       "type": "component",
       "component": "shop.order-line-item",

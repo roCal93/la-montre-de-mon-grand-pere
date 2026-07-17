@@ -11,6 +11,9 @@ interface StrapiProductPrice {
   active: boolean
 }
 
+const DEFAULT_CGV_VERSION =
+  process.env.CGV_VERSION?.trim() || 'site-cgv-current'
+
 /**
  * Fetch the authoritative prices from Strapi for the given documentIds.
  * This prevents clients from sending manipulated prices.
@@ -74,13 +77,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { items, locale = 'fr' } = body as {
+    const { items, locale = 'fr', cgvAccepted } = body as {
       items: CartItem[]
       locale?: string
+      cgvAccepted?: boolean
     }
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
+    }
+
+    if (cgvAccepted !== true) {
+      return NextResponse.json(
+        { error: 'CGV acceptance is required' },
+        { status: 400 }
+      )
     }
 
     // Watches are unique pieces: keep at most one line per product and force quantity to 1.
@@ -149,6 +160,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    const cgvAcceptedAt = new Date().toISOString()
+
     const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
@@ -178,6 +191,8 @@ export async function POST(request: NextRequest) {
       cancel_url: `${siteUrl}/${locale}/panier?cancelled=1`,
       metadata: {
         locale,
+        cgvAcceptedAt,
+        cgvVersion: DEFAULT_CGV_VERSION,
         cartItems: JSON.stringify(
           uniqueItems.map((i) => ({
             id: i.id,

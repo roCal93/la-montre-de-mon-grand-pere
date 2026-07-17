@@ -76,6 +76,17 @@ function isDuplicateStripeSessionError(
   )
 }
 
+function getStripeMetadataText(
+  metadata: Stripe.Metadata | null | undefined,
+  key: string
+): string | undefined {
+  const value = metadata?.[key]
+  if (typeof value !== 'string') return undefined
+
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : undefined
+}
+
 async function orderExistsInStrapi(stripeSessionId: string): Promise<boolean> {
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL
   const writeToken = process.env.STRAPI_WRITE_API_TOKEN
@@ -183,6 +194,8 @@ async function createOrderInStrapi(
       shippingCost,
       total,
       currency: session.currency ?? 'eur',
+      cgvAcceptedAt: getStripeMetadataText(session.metadata, 'cgvAcceptedAt'),
+      cgvVersion: getStripeMetadataText(session.metadata, 'cgvVersion'),
     },
   }
 

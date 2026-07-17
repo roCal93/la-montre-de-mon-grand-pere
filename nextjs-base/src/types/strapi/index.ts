@@ -611,6 +611,8 @@ export interface Order {
   order_status: string
   customerEmail: string
   customerName: string
+  cgvAcceptedAt?: string
+  cgvVersion?: string
   lineItems: OrderLineItem[]
   shippingAddress: ShippingAddress
   subtotal: number
