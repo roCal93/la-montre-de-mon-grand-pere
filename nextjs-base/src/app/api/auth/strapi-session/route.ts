@@ -5,6 +5,7 @@ import {
   getStrapiSessionCookieOptions,
   STRAPI_SESSION_COOKIE,
 } from '@/lib/strapi-session-cookie'
+import { enforceAuthenticatedMutationOrigin } from '@/lib/public-api-security'
 
 const schema = z.object({
   email: z.string().email(),
@@ -12,6 +13,9 @@ const schema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  const originError = enforceAuthenticatedMutationOrigin(request)
+  if (originError) return originError
+
   const body = await request.json().catch(() => null)
   const parsed = schema.safeParse(body)
 

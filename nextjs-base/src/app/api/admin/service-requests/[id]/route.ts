@@ -10,6 +10,7 @@ import {
   isEmailConfigured,
   sendEmail,
 } from '@/lib/email-client'
+import { enforceAuthenticatedMutationOrigin } from '@/lib/public-api-security'
 
 const updateSchema = z.object({
   status: z.enum([
@@ -91,6 +92,9 @@ export async function PATCH(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const originError = enforceAuthenticatedMutationOrigin(req)
+  if (originError) return originError
+
   const { id } = await context.params
   const strapiUser = await getCurrentStrapiUser()
 

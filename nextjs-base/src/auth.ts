@@ -7,22 +7,6 @@ import {
 } from '@/lib/strapi-login'
 import { STRAPI_SESSION_COOKIE } from '@/lib/strapi-session-cookie'
 
-function resolveAuthCookieDomain() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-  if (!siteUrl) return undefined
-
-  try {
-    const hostname = new URL(siteUrl).hostname
-    if (!hostname || hostname === 'localhost' || !hostname.includes('.')) {
-      return undefined
-    }
-
-    return hostname.startsWith('www.') ? hostname.slice(4) : hostname
-  } catch {
-    return undefined
-  }
-}
-
 function getCookieValue(cookieHeader: string | null, name: string) {
   if (!cookieHeader) return null
 
@@ -93,16 +77,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           STRAPI_SESSION_COOKIE
         )
         if (existingStrapiJwt) {
-          console.info('[auth] authorize using existing Strapi cookie', {
-            email: normalizedEmail,
-          })
+          if (process.env.NODE_ENV !== 'production') {
+            console.info('[auth] authorize using existing Strapi cookie')
+          }
           const strapiUser = await getStrapiUserFromJwt(existingStrapiJwt)
 
           if (strapiUser) {
-            console.info('[auth] authorize resolved user from Strapi cookie', {
-              email: strapiUser.email,
-              userId: strapiUser.id,
-            })
+            if (process.env.NODE_ENV !== 'production') {
+              console.info('[auth] authorize resolved user from Strapi cookie')
+            }
             return {
               id: String(strapiUser.id),
               email: strapiUser.email,
@@ -111,24 +94,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
           }
 
-          console.warn('[auth] existing Strapi cookie rejected by /users/me', {
-            email: normalizedEmail,
-          })
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn('[auth] existing Strapi cookie rejected by /users/me')
+          }
         }
 
         const result = await authenticateStrapiUser(normalizedEmail, password)
 
         if (!result) {
-          console.warn('[auth] authorize credentials rejected by Strapi', {
-            email: normalizedEmail,
-          })
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn('[auth] authorize credentials rejected by Strapi')
+          }
           throw new CredentialsSignin('Email ou mot de passe incorrect')
         }
 
-        console.info('[auth] authorize credentials accepted by Strapi', {
-          email: result.user.email,
-          userId: result.user.id,
-        })
+        if (process.env.NODE_ENV !== 'production') {
+          console.info('[auth] authorize credentials accepted by Strapi')
+        }
 
         return {
           id: String(result.user.id),
@@ -163,9 +145,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        ...(resolveAuthCookieDomain()
-          ? { domain: resolveAuthCookieDomain() }
-          : {}),
       },
     },
   },

@@ -3,6 +3,7 @@ import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { getStripe } from '@/lib/stripe'
 import { toCents } from '@/lib/currency'
 import type { CartItem } from '@/types/cart'
+import { enforceAuthenticatedMutationOrigin } from '@/lib/public-api-security'
 
 interface StrapiProductPrice {
   documentId: string
@@ -71,13 +72,20 @@ function toPublicImageUrl(url: string | null | undefined): string[] {
 
 export async function POST(request: NextRequest) {
   try {
+    const originError = enforceAuthenticatedMutationOrigin(request)
+    if (originError) return originError
+
     const strapiUser = await getCurrentStrapiUser()
     if (!strapiUser) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     const body = await request.json()
-    const { items, locale = 'fr', cgvAccepted } = body as {
+    const {
+      items,
+      locale = 'fr',
+      cgvAccepted,
+    } = body as {
       items: CartItem[]
       locale?: string
       cgvAccepted?: boolean

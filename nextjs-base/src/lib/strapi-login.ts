@@ -9,6 +9,11 @@ export type StrapiUser = {
   id: number
   email: string
   username: string
+  role?: {
+    id?: number
+    type?: string
+    name?: string
+  } | null
 }
 
 type StrapiAuthResult = {
@@ -19,12 +24,15 @@ type StrapiAuthResult = {
 export async function getStrapiUserFromJwt(jwt: string) {
   const strapiUrl = getStrapiUrl()
 
-  const res = await fetch(`${strapiUrl}/api/users/me`, {
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-    },
-    cache: 'no-store',
-  })
+  const res = await fetch(
+    `${strapiUrl}/api/users/me?populate[role][fields][0]=type&populate[role][fields][1]=name`,
+    {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+      cache: 'no-store',
+    }
+  )
 
   if (!res.ok) return null
 

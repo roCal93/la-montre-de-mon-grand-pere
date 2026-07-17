@@ -3,6 +3,7 @@ import { getCurrentStrapiUser } from '@/lib/strapi-session-cookie'
 import { isAdminUser } from '@/lib/is-admin-user'
 import { verifyWatchClaimCode } from '@/lib/watch-claim-code'
 import { verifyWatchClaimToken } from '@/lib/watch-claim-token'
+import { enforceAuthenticatedMutationOrigin } from '@/lib/public-api-security'
 
 function toJsonHeaders(token: string) {
   return {
@@ -25,6 +26,9 @@ function mapClaimError(reason: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const originError = enforceAuthenticatedMutationOrigin(req)
+  if (originError) return originError
+
   const strapiUser = await getCurrentStrapiUser()
   if (!strapiUser) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })

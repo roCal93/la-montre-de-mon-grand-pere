@@ -4,6 +4,7 @@ import {
   getCurrentStrapiUser,
   getStrapiSessionJwt,
 } from '@/lib/strapi-session-cookie'
+import { enforceAuthenticatedMutationOrigin } from '@/lib/public-api-security'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 const STRAPI_API_TOKEN = process.env.STRAPI_WRITE_API_TOKEN
@@ -54,9 +55,12 @@ async function resolveCustomerId(): Promise<string | null> {
 
 /** DELETE /api/wishlist/[id] — remove a wishlist item */
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const originError = enforceAuthenticatedMutationOrigin(req)
+  if (originError) return originError
+
   const customerId = await resolveCustomerId()
   if (!customerId) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })

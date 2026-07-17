@@ -5,6 +5,7 @@ import {
   getCurrentStrapiUser,
   getStrapiSessionJwt,
 } from '@/lib/strapi-session-cookie'
+import { enforceAuthenticatedMutationOrigin } from '@/lib/public-api-security'
 
 const serviceRequestSchema = z.object({
   type: z.enum(['retour_garantie', 'reparation', 'nettoyage', 'autre']),
@@ -34,6 +35,9 @@ function buildWatchLabel(watchFile: {
 }
 
 export async function POST(req: NextRequest) {
+  const originError = enforceAuthenticatedMutationOrigin(req)
+  if (originError) return originError
+
   const session = await auth()
   const strapiJwt = await getStrapiSessionJwt()
   if (!session || !strapiJwt) {

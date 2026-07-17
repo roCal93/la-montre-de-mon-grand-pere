@@ -4,6 +4,7 @@ import {
   getCurrentStrapiUser,
   getStrapiSessionJwt,
 } from '@/lib/strapi-session-cookie'
+import { enforceAuthenticatedMutationOrigin } from '@/lib/public-api-security'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 const STRAPI_API_TOKEN = process.env.STRAPI_WRITE_API_TOKEN
@@ -200,6 +201,9 @@ export async function GET() {
 
 /** POST /api/wishlist — add a product to wishlist */
 export async function POST(req: NextRequest) {
+  const originError = enforceAuthenticatedMutationOrigin(req)
+  if (originError) return originError
+
   if (!STRAPI_URL) {
     return NextResponse.json(
       { error: 'NEXT_PUBLIC_STRAPI_URL manquant' },

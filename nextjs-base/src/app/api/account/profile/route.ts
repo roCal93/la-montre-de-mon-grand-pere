@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { z } from 'zod'
 import { getStrapiSessionJwt } from '@/lib/strapi-session-cookie'
+import { enforceAuthenticatedMutationOrigin } from '@/lib/public-api-security'
 
 const schema = z.object({
   username: z.string().min(2),
@@ -9,6 +10,9 @@ const schema = z.object({
 })
 
 export async function PUT(req: NextRequest) {
+  const originError = enforceAuthenticatedMutationOrigin(req)
+  if (originError) return originError
+
   const session = await auth()
   const strapiJwt = await getStrapiSessionJwt()
   if (!session || !strapiJwt) {
