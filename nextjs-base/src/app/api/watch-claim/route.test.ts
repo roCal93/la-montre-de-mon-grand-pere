@@ -58,7 +58,7 @@ describe('POST /api/watch-claim', () => {
     const req = new NextRequest('http://localhost:3000/api/watch-claim', {
       method: 'POST',
       body: JSON.stringify({ token: 'abc' }),
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
     })
 
     const res = await POST(req)
@@ -76,7 +76,7 @@ describe('POST /api/watch-claim', () => {
     const req = new NextRequest('http://localhost:3000/api/watch-claim', {
       method: 'POST',
       body: JSON.stringify({ token: 'valid.token' }),
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
     })
 
     const res = await POST(req)
@@ -113,7 +113,7 @@ describe('POST /api/watch-claim', () => {
     const req = new NextRequest('http://localhost:3000/api/watch-claim', {
       method: 'POST',
       body: JSON.stringify({ token: 'valid.token' }),
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
     })
 
     const res = await POST(req)
@@ -156,7 +156,7 @@ describe('POST /api/watch-claim', () => {
     const req = new NextRequest('http://localhost:3000/api/watch-claim', {
       method: 'POST',
       body: JSON.stringify({ code: 'abc123' }),
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
     })
 
     const res = await POST(req)
@@ -189,7 +189,7 @@ describe('POST /api/watch-claim', () => {
     const req = new NextRequest('http://localhost:3000/api/watch-claim', {
       method: 'POST',
       body: JSON.stringify({ token: 'valid.token' }),
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
     })
 
     const res = await POST(req)
@@ -225,7 +225,7 @@ describe('POST /api/watch-claim', () => {
     const req = new NextRequest('http://localhost:3000/api/watch-claim', {
       method: 'POST',
       body: JSON.stringify({ token: 'valid.token' }),
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
     })
 
     const res = await POST(req)

@@ -65,7 +65,7 @@ describe('GET /api/invoice/[orderId] real render', () => {
       )
     )
 
-    const res = await GET({} as NextRequest, {
+    const res = await GET(new NextRequest('http://localhost/'), {
       params: Promise.resolve({ orderId: 'doc_12345678' }),
     })
 

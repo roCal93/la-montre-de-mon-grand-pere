@@ -62,7 +62,7 @@ describe('DemandesDeServicePage', () => {
     })
 
     expect(strapiAuthGetMock).toHaveBeenCalledWith(
-      '/service-requests?sort=createdAt:desc',
+      '/service-requests?sort=createdAt:desc&populate[watch_file][fields][0]=reference&populate[watch_file][populate][product][fields][0]=name',
       0
     )
     expect(redirectMock).not.toHaveBeenCalled()

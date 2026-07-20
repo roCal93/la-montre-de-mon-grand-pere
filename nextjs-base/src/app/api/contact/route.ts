@@ -233,9 +233,15 @@ export async function POST(request: NextRequest) {
     // E-mail de confirmation automatique à l'expéditeur (multilingue)
     // Best-effort: the request still succeeds if this secondary email fails,
     // but we explicitly await it so the runtime does not drop it after responding.
+    const baseFrom = getDefaultFromEmail()
+    const companyName = process.env.COMPANY_NAME?.trim()
+    const emailOnly = baseFrom.match(/<([^>]+)>/)?.[1] ?? baseFrom
+    const confirmationFrom = companyName
+      ? `${companyName} <${emailOnly}>`
+      : baseFrom
     try {
       await sendEmail({
-        from: getDefaultFromEmail(),
+        from: confirmationFrom,
         to: sanitizedEmail,
         subject: template.subject,
         html: `

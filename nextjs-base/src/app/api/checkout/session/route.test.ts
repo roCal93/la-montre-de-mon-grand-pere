@@ -49,6 +49,7 @@ describe('POST /api/checkout/session', () => {
           ],
           locale: 'fr',
         }),
+        headers: { origin: 'https://site.test' },
       })
     )
 

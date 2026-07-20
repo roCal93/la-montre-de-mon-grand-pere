@@ -60,7 +60,7 @@ describe('GET /api/invoice/[orderId]', () => {
   it('returns 401 when user is not authenticated', async () => {
     authMock.mockResolvedValue(null)
 
-    const res = await GET({} as NextRequest, {
+    const res = await GET(new NextRequest('http://localhost/'), {
       params: Promise.resolve({ orderId: 'ord_1' }),
     })
 
@@ -73,7 +73,7 @@ describe('GET /api/invoice/[orderId]', () => {
       new Response(JSON.stringify({ data: [] }), { status: 200 })
     )
 
-    const res = await GET({} as NextRequest, {
+    const res = await GET(new NextRequest('http://localhost/'), {
       params: Promise.resolve({ orderId: 'ord_2' }),
     })
 
@@ -132,7 +132,7 @@ describe('GET /api/invoice/[orderId]', () => {
       )
     )
 
-    const res = await GET({} as NextRequest, {
+    const res = await GET(new NextRequest('http://localhost/'), {
       params: Promise.resolve({ orderId: 'doc_12345678' }),
     })
 
@@ -200,7 +200,7 @@ describe('GET /api/invoice/[orderId]', () => {
       )
     )
 
-    const res = await GET({} as NextRequest, {
+    const res = await GET(new NextRequest('http://localhost/'), {
       params: Promise.resolve({ orderId: 'doc_12345678' }),
     })
 
