@@ -61,7 +61,7 @@ export default async function MesMontrePage({
             Aucun dossier de réparation pour le moment.
           </p>
           <p className="mt-2 text-xs text-neutral-400">
-            Vos dossiers apparaîtront ici dès qu&apos;un suivi sera ouvert par.
+            Vos dossiers apparaîtront ici.
           </p>
         </div>
       ) : (
