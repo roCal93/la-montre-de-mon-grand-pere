@@ -89,6 +89,7 @@ export const Header = memo(
     // Removed no-op useEffects for better performance
 
     const [activeAnchor, setActiveAnchor] = useState<string | null>(null)
+    const [currentHash, setCurrentHash] = useState<string>('')
     const [mounted, setMounted] = useState(false)
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
@@ -102,6 +103,23 @@ export const Header = memo(
         setMounted(false)
       }
     }, [])
+
+    useEffect(() => {
+      if (typeof window === 'undefined') return
+
+      const syncHash = () => {
+        setCurrentHash(window.location.hash || '')
+      }
+
+      syncHash()
+      window.addEventListener('hashchange', syncHash)
+      window.addEventListener('popstate', syncHash)
+
+      return () => {
+        window.removeEventListener('hashchange', syncHash)
+        window.removeEventListener('popstate', syncHash)
+      }
+    }, [pathname])
 
     const getLocalizedHref = useCallback(
       (slug: string, isHome: boolean, anchor?: string) => {
@@ -118,7 +136,19 @@ export const Header = memo(
         // If link targets an anchor, only consider it active after mount to avoid hydration mismatch
         if (anchor) {
           if (!mounted) return false
-          return activeAnchor === anchor
+
+          if (activeAnchor === anchor || currentHash === `#${anchor}`) {
+            return true
+          }
+
+          // For pages with a single anchor nav entry (e.g. boutique#catalogue),
+          // keep the item active on the page even if the section is out of view.
+          const anchorsOnSameBase = links.filter((l) => {
+            if (!l.anchor) return false
+            return getLocalizedHref(l.slug, l.isHome).split('#')[0] === base
+          }).length
+
+          return anchorsOnSameBase === 1
         }
         return true
       }
