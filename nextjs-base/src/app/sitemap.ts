@@ -20,6 +20,15 @@ const buildProductPath = (locale: string, slug: string): string => {
   return `/${locale}/${shopSegment}/${slug}`
 }
 
+const hasLocaleAndSlug = (entry: {
+  locale?: string
+  slug?: string
+}): entry is { locale: string; slug: string } =>
+  typeof entry.locale === 'string' &&
+  entry.locale.length > 0 &&
+  typeof entry.slug === 'string' &&
+  entry.slug.length > 0
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const client = createStrapiClient({
@@ -95,7 +104,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const allLocales = [
           { locale: product.locale, slug: product.slug },
           ...(product.localizations || []),
-        ].filter((entry) => entry.locale && entry.slug)
+        ].filter(hasLocaleAndSlug)
 
         return allLocales.map((entry) => ({
           url: buildAbsoluteUrl(buildProductPath(entry.locale, entry.slug)),
