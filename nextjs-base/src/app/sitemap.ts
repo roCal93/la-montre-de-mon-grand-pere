@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createStrapiClient } from '@/lib/strapi-client'
-import type { Page } from '@/types/strapi'
+import type { Page, Product } from '@/types/strapi'
 import { fetchBlogSitemapEntries } from '@/lib/blog'
 
 const buildAbsoluteUrl = (path = '/'): string => {
@@ -15,6 +15,11 @@ const buildAbsoluteUrl = (path = '/'): string => {
   return `${base}${path}`
 }
 
+const buildProductPath = (locale: string, slug: string): string => {
+  const shopSegment = locale === 'en' ? 'shop' : 'boutique'
+  return `/${locale}/${shopSegment}/${slug}`
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const client = createStrapiClient({
@@ -23,6 +28,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
     const res = await client.findMany<Page>('pages', { populate: '*' })
     const blogEntries = await fetchBlogSitemapEntries()
+    const productRes = await client.findMany<Product>('products', {
+      fields: ['slug', 'locale', 'active'],
+      populate: {
+        localizations: {
+          fields: ['slug', 'locale', 'active'],
+        },
+      },
+      publicationState: 'live',
+      pagination: {
+        page: 1,
+        pageSize: 1000,
+      },
+    })
 
     const pages = (res?.data || []).filter((p: Page) => !p.noIndex)
     const now = new Date()
@@ -71,7 +89,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     ]
 
-    return [...pageEntries, ...blogIndexEntries, ...blogArticleEntries]
+    const productEntries = (productRes?.data || [])
+      .filter((product) => product.active !== false)
+      .flatMap((product) => {
+        const allLocales = [
+          { locale: product.locale, slug: product.slug },
+          ...(product.localizations || []),
+        ].filter((entry) => entry.locale && entry.slug)
+
+        return allLocales.map((entry) => ({
+          url: buildAbsoluteUrl(buildProductPath(entry.locale, entry.slug)),
+          lastModified: now,
+          changeFrequency: 'weekly' as const,
+        }))
+      })
+
+    const allEntries = [
+      ...pageEntries,
+      ...blogIndexEntries,
+      ...blogArticleEntries,
+      ...productEntries,
+    ]
+
+    const uniqueEntries = Array.from(
+      new Map(allEntries.map((entry) => [entry.url, entry])).values()
+    )
+
+    return uniqueEntries
   } catch (error) {
     console.error('Erreur lors de la génération du sitemap:', error)
     // Retourner un sitemap vide ou avec des pages par défaut

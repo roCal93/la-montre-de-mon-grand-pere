@@ -86,9 +86,7 @@ const ButtonBlock = ({
               variant={
                 button.variant as 'primary' | 'secondary' | 'outline' | 'ghost'
               }
-              target={
-                button.isExternal || isFileDownload ? '_blank' : undefined
-              }
+              target={isFileDownload ? '_blank' : undefined}
               rel={isFileDownload ? 'noopener noreferrer' : undefined}
             >
               {button.label}
