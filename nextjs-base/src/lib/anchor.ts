@@ -1,3 +1,22 @@
+export function getActiveAnchorId(anchors: string[], threshold = 150) {
+  if (typeof window === 'undefined') return null
+
+  let activeAnchor: string | null = null
+
+  for (const id of anchors) {
+    const el = document.getElementById(id)
+    if (!el) continue
+
+    const rect = el.getBoundingClientRect()
+    const isVisible = rect.top <= threshold && rect.bottom > 0
+    if (isVisible) {
+      activeAnchor = id
+    }
+  }
+
+  return activeAnchor
+}
+
 export function scrollToAnchor(id?: string) {
   if (!id || typeof window === 'undefined') return
 
@@ -7,7 +26,9 @@ export function scrollToAnchor(id?: string) {
     const header = document.getElementById('site-header')
     const offset = header ? Math.ceil(header.getBoundingClientRect().height) : 0
     const TOP_PADDING = 8 // small extra spacing
-    const top = Math.round(el.getBoundingClientRect().top + window.scrollY - offset - TOP_PADDING)
+    const top = Math.round(
+      el.getBoundingClientRect().top + window.scrollY - offset - TOP_PADDING
+    )
     window.scrollTo({ top, behavior: 'smooth' })
     // update the hash without jumping
     history.replaceState(null, '', `#${id}`)
@@ -17,7 +38,11 @@ export function scrollToAnchor(id?: string) {
   }
 }
 
-export async function scrollToAnchorWithRetry(id?: string, attempts = 10, interval = 100) {
+export async function scrollToAnchorWithRetry(
+  id?: string,
+  attempts = 10,
+  interval = 100
+) {
   if (!id || typeof window === 'undefined') return
 
   // debug log to help troubleshooting in dev
@@ -26,16 +51,19 @@ export async function scrollToAnchorWithRetry(id?: string, attempts = 10, interv
   for (let i = 0; i < attempts; i++) {
     const el = document.getElementById(id)
     if (el) {
-
       const header = document.getElementById('site-header')
-      const offset = header ? Math.ceil(header.getBoundingClientRect().height) : 0
+      const offset = header
+        ? Math.ceil(header.getBoundingClientRect().height)
+        : 0
       const TOP_PADDING = 8
-      const top = Math.round(el.getBoundingClientRect().top + window.scrollY - offset - TOP_PADDING)
+      const top = Math.round(
+        el.getBoundingClientRect().top + window.scrollY - offset - TOP_PADDING
+      )
       window.scrollTo({ top, behavior: 'smooth' })
       history.replaceState(null, '', `#${id}`)
       return
     }
-    await new Promise(res => setTimeout(res, interval))
+    await new Promise((res) => setTimeout(res, interval))
   }
   // last attempt: set hash as fallback
 

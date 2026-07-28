@@ -19,7 +19,11 @@ import { CartButton } from '@/components/cart/CartButton'
 import { AccountButton } from '@/components/espace-client/AccountButton'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { GifToggle } from '@/components/ui/GifToggle'
-import { scrollToAnchor, scrollToAnchorWithRetry } from '@/lib/anchor'
+import {
+  getActiveAnchorId,
+  scrollToAnchor,
+  scrollToAnchorWithRetry,
+} from '@/lib/anchor'
 import type { StrapiMedia, PageLink } from '@/types/strapi'
 import {
   defaultLocale as STATIC_DEFAULT_LOCALE,
@@ -199,17 +203,7 @@ export const Header = memo(
       }
 
       const checkActive = () => {
-        let found: string | null = null
-        for (const id of anchors) {
-          const el = document.getElementById(id)
-          if (!el) continue
-          const rect = el.getBoundingClientRect()
-          if (rect.top <= 150 && rect.bottom > 0) {
-            found = id
-            break
-          }
-        }
-        setActiveAnchor(found)
+        setActiveAnchor(getActiveAnchorId(anchors))
       }
 
       checkActive()
