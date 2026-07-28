@@ -4,6 +4,7 @@ import { BackButton } from '@/components/shared/BackButton'
 import { fetchAPI } from '@/lib/strapi'
 import { defaultLocale } from '@/lib/locales'
 import { formatLegalContent } from '@/lib/format-legal-content'
+import type { Metadata } from 'next'
 
 type LegalData = {
   title?: string
@@ -13,6 +14,13 @@ type LegalData = {
 
 type LegalResponse = {
   data?: LegalData | null
+}
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
 }
 
 export default async function LegalNoticePage({
