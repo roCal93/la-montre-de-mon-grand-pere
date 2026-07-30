@@ -29,8 +29,8 @@ importers:
         specifier: ^4.5.1
         version: 4.5.1(react@19.2.8)
       '@stripe/stripe-js':
-        specifier: ^9.10.0
-        version: 9.10.0
+        specifier: ^9.12.1
+        version: 9.12.1
       '@vercel/analytics':
         specifier: ^2.0.1
         version: 2.0.1(next@16.2.11(@babel/core@7.29.7)(@types/node@26.1.2)(react-dom@19.2.7(react@19.2.8))(react@19.2.8))(react@19.2.8)
@@ -1151,8 +1151,8 @@ packages:
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
-  '@stripe/stripe-js@9.10.0':
-    resolution: {integrity: sha512-rxkKgWLAWtjvJhqEynPJ5zPXoKx5cK4eIUunnMGxwUJDRHKv3MlpA1mCCXdeiXzui5YZNWJKUJBTpe7m30jhOA==}
+  '@stripe/stripe-js@9.12.1':
+    resolution: {integrity: sha512-KLXPvjA0BfS4dQnW+ddHjwtIXMnIfKYxqmeNMmQCfKjvYog0cSG+Z7ZvK4RH1+bV90GC07nUztWDRWmJLi5HZQ==}
     engines: {node: '>=12.16'}
 
   '@swc/core-darwin-arm64@1.15.47':
@@ -4477,7 +4477,7 @@ snapshots:
 
   '@standard-schema/utils@0.3.0': {}
 
-  '@stripe/stripe-js@9.10.0': {}
+  '@stripe/stripe-js@9.12.1': {}
 
   '@swc/core-darwin-arm64@1.15.47':
     optional: true
