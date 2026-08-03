@@ -1,0 +1,60 @@
+name: Security Audit
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit-nextjs:
+    name: Audit nextjs-base
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: nextjs-base/.nvmrc
+          cache: pnpm
+          cache-dependency-path: nextjs-base/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: nextjs-base
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        working-directory: nextjs-base
+        run: pnpm audit --prod --audit-level=high
+
+  audit-strapi:
+    name: Audit strapi-base
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: strapi-base/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: strapi-base
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        working-directory: strapi-base
+        run: pnpm audit --prod --audit-level=high
