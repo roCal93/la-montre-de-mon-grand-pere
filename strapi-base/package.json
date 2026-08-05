@@ -51,7 +51,7 @@
   "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
   "pnpm": {
     "overrides": {
-      "postcss": "8.5.18",
+      "postcss": "8.5.25",
       "tar": "7.5.21",
       "undici": "6.28.0",
       "axios": "1.18.0",
@@ -59,7 +59,7 @@
       "lodash": "4.18.1",
       "lodash-es": "4.18.1",
       "file-type": ">=21.3.2 <22",
-      "fast-uri": "3.1.4",
+      "fast-uri": "3.1.5",
       "ajv": ">=8.18.0",
       "esbuild": ">=0.28.1",
       "markdown-it": ">=14.2.0",
@@ -75,7 +75,7 @@
       "picomatch@2": "2.3.2",
       "picomatch@4": "4.0.4",
       "brace-expansion@2": "5.0.9",
-      "brace-expansion@1": "1.1.17",
+      "brace-expansion@1": "1.1.18",
       "yaml@1": "1.10.3",
       "vite": "6.4.3",
       "@babel/core": ">=7.29.6 <8.0.0",
