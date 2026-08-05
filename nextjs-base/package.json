@@ -46,7 +46,7 @@
     "eslint-config-next": "16.2.12",
     "husky": "^9.1.6",
     "jsdom": "^29.1.1",
-    "lint-staged": "^17.0.7",
+    "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "strapi-to-typescript": "^2.0.15",
     "tailwindcss": "^4",
