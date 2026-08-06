@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { createStrapiClient } from './strapi-client'
 import { cleanImageUrl } from './strapi'
 import type { Page, StrapiEntity } from '../types/strapi'
+import { DEFAULT_STRAPI_URL } from './constants'
 
 // --- Helper : construit le Metadata pour Next.js ---
 export type Hreflang = {
@@ -90,7 +91,7 @@ export async function getPageSEO(
 ): Promise<Metadata | null> {
   try {
     const client = createStrapiClient({
-      apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337',
+      apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || DEFAULT_STRAPI_URL,
       apiToken: process.env.STRAPI_API_TOKEN,
     })
     const res = await client.findMany<Page>('pages', {
@@ -126,7 +127,7 @@ export async function getPageSEO(
       'https://example.com'
     ).replace(/\/$/, '')
     const strapiBase = (
-      process.env.NEXT_PUBLIC_STRAPI_URL ?? 'http://localhost:1337'
+      process.env.NEXT_PUBLIC_STRAPI_URL || DEFAULT_STRAPI_URL
     ).replace(/\/$/, '')
     if (imageUrl && imageUrl.startsWith('/')) {
       imageUrl = `${strapiBase}${imageUrl}`

@@ -1,5 +1,10 @@
 import React from 'react'
 import * as Blocks from '@/components/blocks'
+const kebabToPascal = (s: string): string =>
+  s
+    .split('-')
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join('')
 
 type BlocksMap = Record<string, React.ComponentType<Record<string, unknown>>>
 const TypedBlocks = Blocks as unknown as BlocksMap
@@ -64,18 +69,12 @@ export const SectionGeneric = ({
     return scope === 'global'
   })
 
-  const toPascalStatic = (s: string) =>
-    s
-      .split('-')
-      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-      .join('')
-
   // Pre-compute the index of the first image-bearing block for LCP priority (only needed in first section)
   const firstImageBlockIndex = isFirstSection
     ? contentBlocks.findIndex((b) => {
         const raw = (b as { __component?: string }).__component ?? ''
         const key = raw.split('.').pop() || raw
-        const name = toPascalStatic(key)
+        const name = kebabToPascal(key)
         return name === 'ImageBlock' || name === 'TextImageBlock'
       })
     : -1
@@ -101,12 +100,7 @@ export const SectionGeneric = ({
     // Component names are generated from Strapi __component like 'blocks.cards-block' -> 'CardsBlock'
     const raw = (block as { __component?: string }).__component ?? ''
     const key = raw.split('.').pop() || raw
-    const toPascal = (s: string) =>
-      s
-        .split('-')
-        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-        .join('')
-    const componentName = toPascal(key)
+    const componentName = kebabToPascal(key)
     const BlockComponent = TypedBlocks[componentName] as
       | React.ComponentType<Record<string, unknown>>
       | undefined
@@ -173,44 +167,29 @@ export const SectionGeneric = ({
     )
   }
 
-  const getTopSpacingClass = (
-    spacing: 'none' | 'small' | 'medium' | 'large'
+  const getSpacingClass = (
+    spacing: 'none' | 'small' | 'medium' | 'large',
+    side: 'top' | 'bottom'
   ) => {
+    const prefix = side === 'top' ? 'pt' : 'pb'
     switch (spacing) {
       case 'none':
         return ''
       case 'small':
-        return 'pt-6'
+        return `${prefix}-6`
       case 'medium':
-        return 'pt-12'
+        return `${prefix}-12`
       case 'large':
-        return 'pt-24'
+        return `${prefix}-24`
       default:
-        return 'pt-12'
-    }
-  }
-
-  const getBottomSpacingClass = (
-    spacing: 'none' | 'small' | 'medium' | 'large'
-  ) => {
-    switch (spacing) {
-      case 'none':
-        return ''
-      case 'small':
-        return 'pb-6'
-      case 'medium':
-        return 'pb-12'
-      case 'large':
-        return 'pb-24'
-      default:
-        return 'pb-12'
+        return `${prefix}-12`
     }
   }
 
   return (
     <section
       id={identifier}
-      className={`relative isolate ${sectionScopedBackgroundBlocks.length > 0 ? 'overflow-hidden' : ''} ${getTopSpacingClass(spacingTop)} ${getBottomSpacingClass(spacingBottom)} px-4`}
+      className={`relative isolate ${sectionScopedBackgroundBlocks.length > 0 ? 'overflow-hidden' : ''} ${getSpacingClass(spacingTop, 'top')} ${getSpacingClass(spacingBottom, 'bottom')} px-4`}
     >
       {sectionScopedBackgroundBlocks.map((block, index) => {
         const SectionBackgroundBlock = TypedBlocks.BackgroundBlock as

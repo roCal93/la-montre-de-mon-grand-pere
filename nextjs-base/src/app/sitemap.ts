@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { createStrapiClient } from '@/lib/strapi-client'
 import type { Page, Product } from '@/types/strapi'
 import { fetchBlogSitemapEntries } from '@/lib/blog'
+import { DEFAULT_STRAPI_URL } from '@/lib/constants'
 
 const buildAbsoluteUrl = (path = '/'): string => {
   const base = (
@@ -32,7 +33,7 @@ const hasLocaleAndSlug = (entry: {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const client = createStrapiClient({
-      apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337',
+      apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || DEFAULT_STRAPI_URL,
       apiToken: process.env.STRAPI_API_TOKEN,
     })
     const res = await client.findMany<Page>('pages', { populate: '*' })

@@ -1,5 +1,6 @@
 import { createStrapiClient } from '@/lib/strapi-client'
 import type {
+import { DEFAULT_STRAPI_URL } from './constants'
   Section,
   StrapiBlock,
   StrapiCollectionResponse,
@@ -44,7 +45,7 @@ const createClient = (isDraft: boolean) => {
     : process.env.STRAPI_API_TOKEN
 
   return createStrapiClient({
-    apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337',
+    apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || DEFAULT_STRAPI_URL,
     apiToken,
   })
 }

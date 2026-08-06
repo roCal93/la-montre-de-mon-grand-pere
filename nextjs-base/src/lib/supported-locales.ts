@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache'
 import { defaultLocale, locales as staticLocales } from './locales'
+import { DEFAULT_STRAPI_URL } from './constants'
 
 function uniq(values: string[]) {
   return Array.from(new Set(values))
@@ -35,7 +36,7 @@ function parseStrapiLocaleItem(item: StrapiLocaleItem): {
 }
 
 async function fetchLocalesConfigFromStrapi(): Promise<StrapiLocalesConfig> {
-  const apiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
+  const apiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || DEFAULT_STRAPI_URL
   const url = `${apiUrl.replace(/\/$/, '')}/api/i18n/locales`
 
   const headers: HeadersInit = {

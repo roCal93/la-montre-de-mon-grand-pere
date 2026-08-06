@@ -1,0 +1,1 @@
+export const DEFAULT_STRAPI_URL = 'http://localhost:1337'

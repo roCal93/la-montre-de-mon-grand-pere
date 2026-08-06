@@ -110,7 +110,7 @@ export function cleanImageUrl(url: string | undefined): string | undefined {
   // Si c'est une URL relative, la convertir en URL absolue avec le domaine Strapi
   if (url.startsWith('/')) {
     const strapiUrl =
-      process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
+      process.env.NEXT_PUBLIC_STRAPI_URL || DEFAULT_STRAPI_URL
     return `${strapiUrl}${url}`
   }
 

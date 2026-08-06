@@ -8,6 +8,7 @@ import { Hero } from '@/components/sections/Hero'
 import { SectionGeneric } from '@/components/sections/SectionGeneric'
 import { PageCollectionResponse, StrapiBlock } from '@/types/strapi'
 import { DynamicBlock } from '@/types/custom'
+import { DEFAULT_STRAPI_URL } from '@/lib/constants'
 
 type OpeningDay = {
   dayLabel: string
@@ -52,7 +53,7 @@ const fetchHomePageData = async (locale: string, isDraft: boolean) => {
     : process.env.STRAPI_API_TOKEN
 
   const client = createStrapiClient({
-    apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337',
+    apiUrl: process.env.NEXT_PUBLIC_STRAPI_URL || DEFAULT_STRAPI_URL,
     apiToken,
   })
 
