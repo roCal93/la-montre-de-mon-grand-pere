@@ -140,19 +140,7 @@ export const Header = memo(
         // If link targets an anchor, only consider it active after mount to avoid hydration mismatch
         if (anchor) {
           if (!mounted) return false
-
-          if (activeAnchor === anchor || currentHash === `#${anchor}`) {
-            return true
-          }
-
-          // For pages with a single anchor nav entry (e.g. boutique#catalogue),
-          // keep the item active on the page even if the section is out of view.
-          const anchorsOnSameBase = links.filter((l) => {
-            if (!l.anchor) return false
-            return getLocalizedHref(l.slug, l.isHome).split('#')[0] === base
-          }).length
-
-          return anchorsOnSameBase === 1
+          return activeAnchor === anchor || currentHash === `#${anchor}`
         }
         return true
       }
