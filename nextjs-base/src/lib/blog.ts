@@ -1,6 +1,6 @@
 import { createStrapiClient } from '@/lib/strapi-client'
-import type {
 import { DEFAULT_STRAPI_URL } from './constants'
+import type {
   Section,
   StrapiBlock,
   StrapiCollectionResponse,
