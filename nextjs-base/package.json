@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
-    "@react-pdf/renderer": "^4.5.1",
+    "@react-pdf/renderer": "^4.6.0",
     "@stripe/stripe-js": "^9.12.1",
     "@vercel/analytics": "^2.0.1",
     "framer-motion": "^12.43.0",
