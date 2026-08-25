@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 interface WishlistButtonProps {
   productDocumentId: string
@@ -83,6 +83,7 @@ export function WishlistButton({
   className = '',
 }: WishlistButtonProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const locale = pathname.split('/')[1] === 'en' ? 'en' : 'fr'
 
   const [isFavorite, setIsFavorite] = useState(false)
@@ -94,7 +95,9 @@ export function WishlistButton({
   const effectiveIsFavorite = canUseWishlist ? isFavorite : false
 
   const redirectToLogin = () => {
-    window.location.href = `/${locale}/espace-client/connexion?from=${encodeURIComponent(pathname)}`
+    router.push(
+      `/${locale}/espace-client/connexion?from=${encodeURIComponent(pathname)}`
+    )
   }
 
   useEffect(() => {

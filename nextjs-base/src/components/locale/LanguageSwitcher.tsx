@@ -157,12 +157,21 @@ export function LanguageSwitcher({
 
   const otherLocales = supportedLocales.filter((l) => l !== currentLocale)
 
-  const [canHover, setCanHover] = React.useState(false)
-  React.useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      setCanHover(window.matchMedia('(hover: hover)').matches)
-    }
-  }, [])
+  const canHover = React.useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === 'undefined' || !window.matchMedia) {
+        return () => {}
+      }
+      const mediaQuery = window.matchMedia('(hover: hover)')
+      mediaQuery.addEventListener('change', onStoreChange)
+      return () => mediaQuery.removeEventListener('change', onStoreChange)
+    },
+    () =>
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(hover: hover)').matches
+        : false,
+    () => false
+  )
 
   const shouldReduceMotion = useReducedMotion()
   const isHorizontalDropdown = dropdownDirection !== 'down'
