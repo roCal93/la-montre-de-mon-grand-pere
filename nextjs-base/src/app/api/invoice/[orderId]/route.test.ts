@@ -156,7 +156,9 @@ describe('GET /api/invoice/[orderId]', () => {
     expect(pdfText).toContain('owner@example.com')
     expect(pdfText).toContain('Omega Seamaster')
     expect(pdfText).toContain('Référence interne : LMGP-00027')
-    expect(pdfText).toContain('TVA non applicable, art. 293 B du CGI')
+    expect(pdfText).toContain(
+      'TVA non applicable, art. L. 223 et s. du code des impositions sur les biens et services'
+    )
     expect(pdfText).toContain('www.lamontredemongrandpere.com')
     expect(pdfText).toContain('contact@lamontredemongrandpere.com')
   })

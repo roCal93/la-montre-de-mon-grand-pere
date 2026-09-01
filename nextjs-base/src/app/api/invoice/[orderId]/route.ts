@@ -121,7 +121,7 @@ function getInvoiceIssuer(): InvoiceIssuer {
   const phone = asText(process.env.COMPANY_PHONE, '')
   const vatNotice = asText(
     process.env.COMPANY_VAT_NOTICE,
-    'TVA non applicable, art. 293 B du CGI'
+    'TVA non applicable, art. L. 223 et s. du code des impositions sur les biens et services'
   )
 
   const missing: string[] = []
