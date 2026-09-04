@@ -58,6 +58,8 @@
   "pnpm": {
     "overrides": {
       "postcss": "8.5.25",
+      "browserslist": "4.28.8",
+      "@humanfs/node": "0.16.8",
       "svix": "1.92.2",
       "esbuild": ">=0.28.1",
       "vite": "7.3.5",
