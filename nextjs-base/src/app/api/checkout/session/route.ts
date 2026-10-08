@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
           },
         },
       ],
-      payment_method_types: ['card'],
+      allowed_payment_method_types: ['card'],
       success_url: `${siteUrl}/${locale}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/${locale}/panier?cancelled=1`,
       metadata: {
