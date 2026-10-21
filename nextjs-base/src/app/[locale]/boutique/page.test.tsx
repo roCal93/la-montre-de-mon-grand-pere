@@ -129,6 +129,24 @@ describe('buildBoutiqueListing', () => {
     ])
   })
 
+  it('keeps sold products after available products, including with price sorting', () => {
+    const soldProducts = [
+      { ...products[0], active: false },
+      products[1],
+      products[2],
+    ]
+
+    const listing = buildBoutiqueListing(soldProducts as never, {
+      tri: 'prix-asc',
+    })
+
+    expect(listing.paginated.map((product) => product.slug)).toEqual([
+      'rolex-atelier',
+      'cartier-classique',
+      'omega-vintage',
+    ])
+  })
+
   it('searches through watch-file public marketing fields', () => {
     const listing = buildBoutiqueListing(products as never, {
       q: 'selection',

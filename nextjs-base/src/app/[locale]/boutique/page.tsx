@@ -202,6 +202,7 @@ export function buildBoutiqueListing(
   })
 
   const sorted = [...priceFiltered].sort((a, b) => {
+    if (a.active !== b.active) return a.active ? -1 : 1
     if (filters.tri === 'prix-asc') return a.price - b.price
     if (filters.tri === 'prix-desc') return b.price - a.price
     return 0
