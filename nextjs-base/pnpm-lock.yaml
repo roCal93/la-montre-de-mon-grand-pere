@@ -27,7 +27,7 @@ importers:
     dependencies:
       '@hookform/resolvers':
         specifier: ^5.9.2
-        version: 5.9.2(@standard-schema/spec@1.1.0)(react-hook-form@7.90.0(@types/react@19.3.0)(react@19.3.0))(zod@4.6.7)
+        version: 5.9.2(@standard-schema/spec@1.1.0)(react-hook-form@7.90.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
       '@react-pdf/renderer':
         specifier: ^4.9.0
         version: 4.9.0(react@19.3.1)
@@ -36,7 +36,7 @@ importers:
         version: 10.1.0
       '@vercel/analytics':
         specifier: ^2.0.1
-        version: 2.0.1(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+        version: 2.0.1(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1))(react@19.3.1)
       framer-motion:
         specifier: ^14.3.0
         version: 14.3.0(react-dom@19.3.0(react@19.3.1))(react@19.3.1)
@@ -45,13 +45,13 @@ importers:
         version: 3.0.8
       next:
         specifier: 16.4.2
-        version: 16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1)
       next-auth:
         specifier: 5.0.0-beta.32
-        version: 5.0.0-beta.32(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+        version: 5.0.0-beta.32(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1))(react@19.3.1)
       next-intl:
         specifier: ^4.14.9
-        version: 4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+        version: 4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1))(react@19.3.1)
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -3976,7 +3976,7 @@ snapshots:
     dependencies:
       '@formatjs/fast-memoize': 3.1.7
 
-  '@hookform/resolvers@5.9.2(@standard-schema/spec@1.1.0)(react-hook-form@7.90.0(@types/react@19.3.0)(react@19.3.0))(zod@4.6.7)':
+  '@hookform/resolvers@5.9.2(@standard-schema/spec@1.1.0)(react-hook-form@7.90.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)':
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.90.0(@types/react@19.3.0)(react@19.3.1)
@@ -4798,10 +4798,10 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
 
-  '@vercel/analytics@2.0.1(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)':
+  '@vercel/analytics@2.0.1(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1))(react@19.3.1)':
     optionalDependencies:
-      next: 16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react: 19.3.0
+      next: 16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1)
+      react: 19.3.1
 
   '@vitest/mocker@5.0.5(vite@7.3.7(@types/node@26.6.5)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.1))':
     dependencies:
@@ -6108,15 +6108,15 @@ snapshots:
     dependencies:
       content-type: 2.1.0
 
-  next-auth@5.0.0-beta.32(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
+  next-auth@5.0.0-beta.32(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1))(react@19.3.1):
     dependencies:
       '@auth/core': 0.41.3
-      next: 16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react: 19.3.0
+      next: 16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1)
+      react: 19.3.1
 
   next-intl-swc-plugin-extractor@4.14.9: {}
 
-  next-intl@4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
+  next-intl@4.14.9(@swc/helpers@0.5.23)(@types/react@19.3.0)(next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1))(react@19.3.1):
     dependencies:
       '@eloqnt/config': 0.1.1
       '@eloqnt/format-json': 0.1.0
@@ -6126,7 +6126,7 @@ snapshots:
       '@swc/core': 1.16.13(@swc/helpers@0.5.23)
       icu-minify: 4.14.9
       negotiator: 1.1.0
-      next: 16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next: 16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1)
       next-intl-swc-plugin-extractor: 4.14.9
       react: 19.3.1
       use-intl: 4.14.9(@types/react@19.3.0)(react@19.3.1)
@@ -6135,7 +6135,7 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
+  next@16.4.2(@babel/core@7.29.7)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.1))(react@19.3.1):
     dependencies:
       '@next/env': 16.4.2
       '@swc/helpers': 0.5.23
