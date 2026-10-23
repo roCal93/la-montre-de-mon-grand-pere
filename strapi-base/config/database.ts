@@ -14,13 +14,20 @@ export default ({ env }) => {
   }
 
   // Configuration PostgreSQL pour Railway
-  const connection = env('DATABASE_URL')
+  const databaseUrl = env('DATABASE_URL')
+  const isRailwayPrivateNetwork = databaseUrl
+    ? new URL(databaseUrl).hostname.endsWith('.railway.internal')
+    : false
+  const connection = databaseUrl
     ? {
-        // Railway fournit DATABASE_URL avec SSL activé
-        connectionString: env('DATABASE_URL'),
-        ssl: env('NODE_ENV') === 'production'
-          ? { rejectUnauthorized: false } // SSL requis en production
-          : false,
+        connectionString: databaseUrl,
+        // Railway private networking does not require PostgreSQL SSL.
+        // Keep the existing TLS behavior for external production connections.
+        ssl: isRailwayPrivateNetwork
+          ? false
+          : env('NODE_ENV') === 'production'
+            ? { rejectUnauthorized: false }
+            : false,
       }
     : {
         // Configuration manuelle
