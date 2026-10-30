@@ -272,6 +272,9 @@ async function markProductsAsSoldInStrapi(
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  if (process.env.VERCEL_ENV === 'preview') {
+    return NextResponse.json({ error: 'Webhooks Stripe désactivés en prévisualisation' }, { status: 403 })
+  }
   const signature = request.headers.get('stripe-signature')
 
   if (!signature) {
