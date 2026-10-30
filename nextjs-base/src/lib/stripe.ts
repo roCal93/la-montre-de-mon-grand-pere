@@ -3,6 +3,9 @@ import Stripe from 'stripe'
 let _stripe: Stripe | null = null
 
 export function getStripe(): Stripe {
+  if (process.env.VERCEL_ENV === 'preview') {
+    throw new Error('Stripe is disabled for Vercel previews.')
+  }
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY environment variable is not set')
   }
