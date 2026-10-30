@@ -35,6 +35,9 @@ function buildWatchLabel(watchFile: {
 }
 
 export async function POST(req: NextRequest) {
+  if (process.env.VERCEL_ENV === 'preview') {
+    return NextResponse.json({ error: 'Demandes désactivées en prévisualisation' }, { status: 403 })
+  }
   const originError = enforceAuthenticatedMutationOrigin(req)
   if (originError) return originError
 
