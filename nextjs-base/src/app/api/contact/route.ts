@@ -107,6 +107,9 @@ const emailTemplates = {
 type Locale = keyof typeof emailTemplates
 
 export async function POST(request: NextRequest) {
+  if (process.env.VERCEL_ENV === 'preview') {
+    return NextResponse.json({ error: 'Formulaire désactivé en prévisualisation' }, { status: 403 })
+  }
   try {
     const originError = enforcePublicApiOrigin(request)
     if (originError) return originError
