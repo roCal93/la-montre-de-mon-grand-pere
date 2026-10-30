@@ -63,6 +63,9 @@ export async function sendEmail({
   html,
   replyTo,
 }: SendEmailArgs) {
+  if (process.env.VERCEL_ENV === 'preview') {
+    throw new Error('Email sending is disabled for Vercel previews.')
+  }
   if (!apiKey) {
     throw new Error('RESEND_API_KEY is not configured.')
   }
