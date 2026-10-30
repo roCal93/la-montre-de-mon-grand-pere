@@ -71,6 +71,9 @@ function toPublicImageUrl(url: string | null | undefined): string[] {
 }
 
 export async function POST(request: NextRequest) {
+  if (process.env.VERCEL_ENV === 'preview') {
+    return NextResponse.json({ error: 'Paiements désactivés en prévisualisation' }, { status: 403 })
+  }
   try {
     const originError = enforceAuthenticatedMutationOrigin(request)
     if (originError) return originError
