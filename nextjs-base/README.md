@@ -14,6 +14,11 @@ Template de base pour tous les projets frontend.
 - Prévu pour Vercel
 - Variables d'environnement via `.env.local`
 
+### Stripe
+
+- Le client serveur dans `src/lib/stripe.ts` utilise la version API `2026-10-28.endive`, compatible avec le SDK `stripe` 23.1.0.
+- Lors d'une mise à jour du SDK, vérifiez la compatibilité de cette version API et lancez `pnpm exec tsc --noEmit` avant le déploiement.
+
 ### Sécurité API (recommandé)
 
 - Activez la protection d'origine + rate limiting distribué (Upstash) pour les endpoints publics.
