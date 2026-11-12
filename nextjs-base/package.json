@@ -63,7 +63,7 @@
       "svix": "1.92.2",
       "esbuild": ">=0.28.1",
       "vite": "7.3.7",
-      "undici": "8.10.2",
+      "undici": "8.12.4",
       "flatted": ">=3.4.0",
       "picomatch": ">=4.0.4",
       "js-yaml": "5.4.1",
@@ -71,7 +71,8 @@
       "brace-expansion@>=4": "5.0.12",
       "brace-expansion@1": "1.1.21",
       "source-map-js": "1.2.2",
-      "@babel/core": ">=7.29.6 <8.0.0"
+      "@babel/core": ">=7.29.6 <8.0.0",
+      "minimatch@>=7 <11.0.1": "11.0.8"
     }
   }
 }
