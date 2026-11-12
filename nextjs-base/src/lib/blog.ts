@@ -1,5 +1,6 @@
 import { createStrapiClient } from '@/lib/strapi-client'
 import { DEFAULT_STRAPI_URL } from './constants'
+import { PAGE_POPULATE } from './page-populate'
 import type {
   Section,
   StrapiBlock,
@@ -36,8 +37,7 @@ export interface BlogArticle {
 export type BlogArticleCollectionResponse =
   StrapiCollectionResponse<BlogArticle>
 
-const BLOG_ARTICLE_POPULATE_WITH_SECTIONS =
-  'coverImage,categories,seoImage,localizations,sections.blocks.cards.image,sections.blocks.image,sections.blocks.images,sections.blocks.imageDesktop,sections.blocks.buttons.file,sections.blocks.items.images.image,sections.blocks.items.images.link,sections.blocks.examples,sections.blocks.workItems.image,sections.blocks.workItems.categories,sections.blocks.privacyPolicy,sections.blocks.markerImage,sections.blocks.openingDays,sections.blocks.category'
+const BLOG_ARTICLE_POPULATE_WITH_SECTIONS = `coverImage,categories,${PAGE_POPULATE}`
 
 const createClient = (isDraft: boolean) => {
   const apiToken = isDraft

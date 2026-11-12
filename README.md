@@ -93,6 +93,19 @@ Copier le `whsec_...` affiché dans `STRIPE_WEBHOOK_SECRET`.
 4. Carte test : `4242 4242 4242 4242` (n'importe quelle date future, CVC 3 chiffres)
 5. Vérifier que la commande apparaît dans Strapi admin avec `status: paid`
 
+## Population des sections
+
+Les requêtes des pages et des articles partagent les chemins définis dans
+[`page-populate.ts`](./nextjs-base/src/lib/page-populate.ts). Strapi 5.61 valide
+chaque chemin : ne demander que les champs des blocs réellement présents dans
+`strapi-base/src/components/blocks/` et autorisés par le schéma `section`.
+Un chemin issu d'un autre variant, tel que `sections.blocks.items`, provoque
+une réponse HTTP 400 pour toute la requête.
+
+Les tests de population vérifient ces chemins contre les schémas du projet.
+La clé du cache des pages inclut aussi la liste de population pour ne pas
+conserver une ancienne réponse de secours après sa correction.
+
 ## Architecture de décision
 
 | Choix | Raison |

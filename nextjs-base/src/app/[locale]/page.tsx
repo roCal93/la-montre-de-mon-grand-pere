@@ -9,6 +9,7 @@ import { SectionGeneric } from '@/components/sections/SectionGeneric'
 import { PageCollectionResponse, StrapiBlock } from '@/types/strapi'
 import { DynamicBlock } from '@/types/custom'
 import { DEFAULT_STRAPI_URL } from '@/lib/constants'
+import { PAGE_POPULATE } from '@/lib/page-populate'
 
 type OpeningDay = {
   dayLabel: string
@@ -68,8 +69,7 @@ const fetchHomePageData = async (locale: string, isDraft: boolean) => {
       'noIndex',
       'locale',
     ],
-    populate:
-      'sections.blocks.cards.image,sections.blocks.image,sections.blocks.images,sections.blocks.imageDesktop,sections.blocks.buttons.file,sections.blocks.items.images.image,sections.blocks.items.images.link,sections.blocks.examples,sections.blocks.workItems.image,sections.blocks.workItems.categories,sections.blocks.privacyPolicy,sections.blocks.markerImage,sections.blocks.openingDays,sections.blocks.category,seoImage,localizations',
+    populate: PAGE_POPULATE,
     locale,
     publicationState: isDraft ? 'preview' : 'live',
   })
@@ -87,8 +87,7 @@ const fetchHomePageData = async (locale: string, isDraft: boolean) => {
         'noIndex',
         'locale',
       ],
-      populate:
-        'sections.blocks.cards.image,sections.blocks.image,sections.blocks.images,sections.blocks.imageDesktop,sections.blocks.buttons.file,sections.blocks.items.images.image,sections.blocks.items.images.link,sections.blocks.examples,sections.blocks.workItems.image,sections.blocks.workItems.categories,sections.blocks.privacyPolicy,sections.blocks.markerImage,sections.blocks.openingDays,sections.blocks.category,seoImage,localizations',
+      populate: PAGE_POPULATE,
       locale: 'fr',
       publicationState: isDraft ? 'preview' : 'live',
     })
@@ -155,7 +154,7 @@ export function buildHomeImagePreloadLinks(
 
 const getHomePageData = unstable_cache(
   async (locale: string) => fetchHomePageData(locale, false),
-  ['home-page'],
+  ['home-page', PAGE_POPULATE],
   { revalidate: 3600, tags: ['strapi-pages'] }
 )
 

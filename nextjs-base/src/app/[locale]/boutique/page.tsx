@@ -10,6 +10,7 @@ import type { DynamicBlock } from '@/types/custom'
 import type { Page, PageCollectionResponse, StrapiEntity } from '@/types/strapi'
 import type { Metadata } from 'next'
 import { DEFAULT_STRAPI_URL } from '@/lib/constants'
+import { PAGE_SECTIONS_POPULATE } from '@/lib/page-populate'
 
 interface StrapiImage {
   id: number
@@ -250,8 +251,7 @@ const fetchShopLandingPage = async ({
   const pageRes: PageCollectionResponse = await client.findMany('pages', {
     filters: { slug: { $eq: 'boutique' } },
     fields: ['title', 'hideTitle', 'slug'],
-    populate:
-      'sections.blocks.cards.image,sections.blocks.image,sections.blocks.images,sections.blocks.imageDesktop,sections.blocks.buttons.file,sections.blocks.items.images.image,sections.blocks.items.images.link,sections.blocks.examples,sections.blocks.workItems.image,sections.blocks.workItems.categories,sections.blocks.privacyPolicy,sections.blocks.markerImage,sections.blocks.openingDays,sections.blocks.category',
+    populate: PAGE_SECTIONS_POPULATE,
     locale,
     publicationState: isDraft ? 'preview' : 'live',
     pagination: { page: 1, pageSize: 1 },
