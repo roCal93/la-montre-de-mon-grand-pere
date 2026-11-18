@@ -27,8 +27,8 @@ importers:
   .:
     dependencies:
       '@hookform/resolvers':
-        specifier: ^7.0.5
-        version: 7.0.5(@standard-schema/spec@1.1.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
+        specifier: ^7.0.6
+        version: 7.0.6(@standard-schema/spec@1.1.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
       '@react-pdf/renderer':
         specifier: ^4.9.0
         version: 4.9.0(react@19.3.1)
@@ -214,8 +214,8 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  '@babel/runtime@7.29.13':
-    resolution: {integrity: sha512-v+oN26xP4YIlQsbQ/CbTH1WG5m/l/DjKKZNy/Kp3f/AFvbgt7Em/D0FeMM3O2hX0YzeN2M16W8lOpyhIkfCBcQ==}
+  '@babel/runtime@7.29.14':
+    resolution: {integrity: sha512-Y5tqevQaUAZhhj82BpYMNC1ssvLQTVAfwKdm8iy8qwmhvC2/CpcAu8OC+QEtjM7pMk7knx83u1Qj8gzkicyelw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/runtime@7.29.7':
@@ -477,8 +477,8 @@ packages:
   '@formatjs/intl-localematcher@0.8.14':
     resolution: {integrity: sha512-8O7V38QmbB11+ryJ3KM/znrzXtiqgpXzqNoqDsndHZZ5/zDKTTL+cf5F0mzXkQEwhx8IlWnqYvEovf2S5EwLTw==}
 
-  '@hookform/resolvers@7.0.5':
-    resolution: {integrity: sha512-E7ca3tpIJxHPGhFOfXLlCCZh7up6EcnUTbgTt0SRUENXagq8DJnob9rK+VqsNCsfUuO6mMU5NYNm6BaL18flgQ==}
+  '@hookform/resolvers@7.0.6':
+    resolution: {integrity: sha512-LSTMwW4tmRWtM7pS5HkSqahi71USbhrmjc9pNHNa7UyYTbKIK/e0G1EAw6xsEnp9GahTjXhunxRJp0Bd8E6NZA==}
     peerDependencies:
       '@standard-schema/spec': ^1.0.0
       '@vinejs/vine': ^2.0.0 || ^3.0.0 || ^4.0.0
@@ -3677,7 +3677,7 @@ snapshots:
     dependencies:
       '@babel/types': 7.29.11
 
-  '@babel/runtime@7.29.13': {}
+  '@babel/runtime@7.29.14': {}
 
   '@babel/runtime@7.29.7': {}
 
@@ -3873,7 +3873,7 @@ snapshots:
     dependencies:
       '@formatjs/fast-memoize': 3.1.7
 
-  '@hookform/resolvers@7.0.5(@standard-schema/spec@1.1.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)':
+  '@hookform/resolvers@7.0.6(@standard-schema/spec@1.1.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)':
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.91.0(@types/react@19.3.0)(react@19.3.1)
@@ -4461,7 +4461,7 @@ snapshots:
   '@testing-library/dom@10.4.1':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/runtime': 7.29.13
+      '@babel/runtime': 7.29.14
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       dom-accessibility-api: 0.5.16
