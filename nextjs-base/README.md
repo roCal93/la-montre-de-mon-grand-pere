@@ -16,7 +16,7 @@ Template de base pour tous les projets frontend.
 
 ### Stripe
 
-- Le client serveur dans `src/lib/stripe.ts` utilise la version API `2026-10-28.endive`, compatible avec le SDK `stripe` 23.1.0.
+- Le client serveur dans `src/lib/stripe.ts` utilise la version API `2026-11-18.endive`, compatible avec le SDK `stripe` 23.2.0.
 - Lors d'une mise à jour du SDK, vérifiez la compatibilité de cette version API et lancez `pnpm exec tsc --noEmit` avant le déploiement.
 
 ### Sécurité API (recommandé)
