@@ -14,6 +14,15 @@ Template de base pour tous les projets frontend.
 - Prévu pour Vercel
 - Variables d'environnement via `.env.local`
 
+### Découverte des ressources agentiques
+
+Le manifeste ARD est disponible à `/.well-known/ard.json` ; l'ancienne URL
+`/.well-known/ai-catalog.json` renvoie le même contenu. Sa liste `entries` est
+vide car aucun outil ou agent public n'est actuellement déclaré. Ajoutez-y
+uniquement des ressources agentiques réellement disponibles, conformément à la
+[spécification ARD](https://agenticresourcediscovery.org/spec/).
+Le fichier `llms.txt` reste dédié à la description et à la navigation du site.
+
 ### Stripe
 
 - Le client serveur dans `src/lib/stripe.ts` utilise la version API `2026-11-18.endive`, compatible avec le SDK `stripe` 23.2.0.

@@ -55,6 +55,15 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname, '..'),
   } as const,
 
+  async rewrites() {
+    return [
+      {
+        source: '/.well-known/ai-catalog.json',
+        destination: '/.well-known/ard.json',
+      },
+    ]
+  },
+
   // Autoriser l'admin Strapi à intégrer le site en iframe pour la Preview
   async headers() {
     const siteOrigin = getSiteOrigin()
