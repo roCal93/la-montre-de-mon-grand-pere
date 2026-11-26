@@ -15,7 +15,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@hookform/resolvers": "^7.0.6",
+    "@hookform/resolvers": "^7.0.8",
     "@react-pdf/renderer": "^4.9.0",
     "@stripe/stripe-js": "^10.3.0",
     "@vercel/analytics": "^2.0.1",
@@ -23,21 +23,21 @@
     "js-cookie": "^3.0.8",
     "next": "16.4.6",
     "next-auth": "5.0.0-beta.32",
-    "next-intl": "^4.14.9",
+    "next-intl": "^4.15.3",
     "qrcode": "^1.5.4",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-hook-form": "^7.92.0",
-    "resend": "^6.38.1",
+    "resend": "^6.39.0",
     "sharp": "^0.35.5",
-    "stripe": "^23.1.0",
+    "stripe": "^23.2.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.10",
+    "@testing-library/user-event": "^14.6.13",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^26",
     "@types/react": "^19",
@@ -46,13 +46,13 @@
     "eslint-config-next": "16.4.6",
     "husky": "^9.1.6",
     "jsdom": "^31.0.1",
-    "lint-staged": "^17.6.1",
+    "lint-staged": "^17.6.2",
     "prettier": "^3.10.1",
     "strapi-to-typescript": "^2.0.15",
     "tailwindcss": "^4",
     "typescript": "^6",
     "vite": "7.3.7",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
   "pnpm": {
